@@ -26,8 +26,8 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from tum_clean import (COLUMN_MAP, OUTPUT_SCHEMA, Params, StreamState, clean_stream, derive_time,
-                       field_file_summary, load_worktype_map, rename_and_null_sentinels, tractor_from_model)
+from tum_clean import (COLUMN_MAP, FIELD_POINTS_SCHEMA, OUTPUT_SCHEMA, Params, clean_stream, field_file_summary,
+                       field_points, load_worktype_map, tractor_from_model)
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT / "data" / "raw"
@@ -105,16 +105,10 @@ def process_zip(zpath: Path, params: Params, worktype_map: dict[str, str]) -> tu
         rows.append({"tractor_id": tractor_id, "work_type": work_type,
                      "operation_code": worktype_map.get(work_type, f"unmapped:{work_type}"),
                      "field_file": field_file, **s})
-        df = derive_time(rename_and_null_sentinels(raw), StreamState(), params)
-        keep = df["t_s"].floordiv(1.0).diff().ne(0)
-        pts = df.loc[keep, ["status", "lat", "lon", "speed_mps", "dt_s", "implement_width_m"]].copy()
-        pts.insert(0, "field_file", field_file)
-        pts.insert(0, "work_type", work_type)
-        pts.insert(0, "tractor_id", tractor_id)
-        points.append(pts)
+        points.append(field_points(raw, tractor_id, work_type, field_file, params))
     if points:
-        pd.concat(points, ignore_index=True).to_parquet(CLEAN_DIR / f"field_points_{tractor_id}.parquet",
-                                                        index=False)
+        pts = pd.concat(points, ignore_index=True).astype(FIELD_POINTS_SCHEMA)
+        pts.to_parquet(CLEAN_DIR / f"field_points_{tractor_id}.parquet", index=False)
 
     _, rated_kw = tractor_from_model(pd.read_csv(z.open(main_csv), nrows=1)["Tractor_Model_[-]"].iloc[0])
     provenance = {

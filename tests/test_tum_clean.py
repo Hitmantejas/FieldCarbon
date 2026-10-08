@@ -215,3 +215,15 @@ def test_generic_names_tractor_4():
     assert implement_class("Cultivator") == ("cultivator", "cultivating_shallow")
     assert implement_class("Disc harrow") == ("disc_harrow", "disc_harrowing")
     assert implement_class("Kerner Komet K420") == ("cultivator", "cultivating_deep")
+
+
+def test_field_points_types_are_fixed_even_for_integer_widths():
+    from tum_clean import FIELD_POINTS_SCHEMA, field_points
+    secs = [round(0.1 * i, 1) for i in range(25)]                  # 2.5 s -> 3 points at ~1 Hz
+    raw = raw_frame(secs, implement="Lemken Zirkon", status="working")
+    raw["Implement_Width_(m)"] = 3                                   # integer column, as in Tractor 1
+    pts = field_points(raw, "tractor_1", "Power harrowing", "Field_1")
+    assert len(pts) == 3
+    assert {c: str(t) for c, t in pts.dtypes.items()} == {c: ("string" if t == "string" else "float64")
+                                                          for c, t in FIELD_POINTS_SCHEMA.items()}
+    assert rename_and_null_sentinels(raw)["implement_width_m"].dtype == "float64"

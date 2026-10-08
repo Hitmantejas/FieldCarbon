@@ -92,6 +92,13 @@ OUTPUT_SCHEMA: dict[str, str] = {
 }
 
 
+# Schema of telemetry_field_points (must match backend/emissions/ddl/001_tables.sql).
+FIELD_POINTS_SCHEMA: dict[str, str] = {
+    "tractor_id": "string", "work_type": "string", "field_file": "string", "status": "string",
+    "lat": "float64", "lon": "float64", "speed_mps": "float64", "dt_s": "float64", "implement_width_m": "float64",
+}
+
+
 @dataclass(frozen=True)
 class Params:
     dt_cap_s: float = 1.0          # max time step credited with fuel (ignores logging gaps)
@@ -142,7 +149,7 @@ def rename_and_null_sentinels(raw: pd.DataFrame) -> pd.DataFrame:
     df = df.reindex(columns=list(COLUMN_MAP.values()))
     for col in df.columns:   # numeric columns: non-numeric text such as "unknown" becomes null
         if col in J1939_MAX or OUTPUT_SCHEMA.get(col) == "float64":
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")   # ints too: fixed type
     for col, upper in J1939_MAX.items():
         df[col] = df[col].where(df[col] <= upper)
     gnss = df["speed_mps"].notna().any()
@@ -279,6 +286,15 @@ def clean_stream(raw_chunks: Iterable[pd.DataFrame], worktype_map: dict[str, str
             yield clean_chunk(head.reset_index(drop=True), state, worktype_map, params)
     if pending is not None and len(pending):
         yield clean_chunk(pending.reset_index(drop=True), state, worktype_map, params)
+
+
+def field_points(raw: pd.DataFrame, tractor_id: str, work_type: str, field_file: str,
+                 params: Params = Params()) -> pd.DataFrame:
+    """~1 Hz GPS points of one per-field file (first row of each second), typed for BigQuery."""
+    df = derive_time(rename_and_null_sentinels(raw), StreamState(), params)
+    keep = df["t_s"].floordiv(1.0).diff().ne(0)
+    pts = df.loc[keep].assign(tractor_id=tractor_id, work_type=work_type, field_file=field_file)
+    return pts[list(FIELD_POINTS_SCHEMA)].astype(FIELD_POINTS_SCHEMA).reset_index(drop=True)
 
 
 def field_file_summary(raw: pd.DataFrame, params: Params = Params()) -> dict[str, float]:
