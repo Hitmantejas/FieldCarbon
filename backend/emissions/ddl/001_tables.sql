@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS `${dataset}.ref_fuel_prices` (
 
 CREATE TABLE IF NOT EXISTS `${dataset}.dataset_provenance` (
   provenance_id STRING NOT NULL, dataset_name STRING, doi STRING, version STRING, licence STRING,
-  file_name STRING, md5 STRING, processed_at TIMESTAMP, script_commit STRING, params JSON
+  file_name STRING, md5 STRING, processed_at TIMESTAMP, script_commit STRING, params JSON,
+  details JSON                         -- e.g. tractor, rated kW, rows, litres, excluded frozen data
 );
 
 -- ===== Inputs =====
