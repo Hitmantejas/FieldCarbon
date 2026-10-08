@@ -1,0 +1,48 @@
+field_id,hull_area_ha,n_field_files,tractors,work_types
+field_001,28.404,6,tractor_1|tractor_3|tractor_4,Cultivating (deep)|Mulching|Power harrowing|Seed drill combination 4m
+field_002,19.374,4,tractor_3|tractor_4,Cultivating (deep)|Cultivating (shallow)|Mulching|Seed drill combination 3m
+field_003,21.228,8,tractor_3|tractor_4,Cultivating (deep)|Cultivating (shallow)|Disc harrowing|Mulching|Power harrowing|Seed drill combination|Seed drill combination 3m
+field_004,7.354,2,tractor_3|tractor_4,Cultivating (deep)|Seed drill combination 4m
+field_005,8.534,1,tractor_4,Cultivating (deep)
+field_006,7.33,4,tractor_3|tractor_4,Cultivating (deep)|Fertilizing|Mulching|Power harrowing
+field_007,3.009,2,tractor_4,Disc harrowing|Seed drill combination 4m
+field_008,12.339,5,tractor_3|tractor_4,Ploughing|Seed drill combination 3m|Seed drill combination 4m|Seedbed combination
+field_009,73.079,29,tractor_1|tractor_3|tractor_4,Cultivating (deep)|Cultivating (shallow)|Fertilizing|Mulching|Ploughing|Power harrowing|Precision air seeding|Rotary tilling|Seed drill combination 3m|Seedbed combination
+field_010,13.051,6,tractor_4,Disc harrowing|Fertilizing|Mulching|Ploughing|Power harrowing|Seed drill combination 4m
+field_011,14.697,5,tractor_3|tractor_4,Fertilizing|Mulching|Seed drill combination 4m|Seedbed combination
+field_012,2.355,1,tractor_4,Cultivating (deep)
+field_013,0.494,1,tractor_2,Fertilizing
+field_014,5.719,2,tractor_2,Fertilizing|Swathing
+field_015,2.02,1,tractor_2,Fertilizing
+field_016,7.92,1,tractor_2,Fertilizing
+field_017,0.328,1,tractor_2,Seed drill combination
+field_018,2.557,1,tractor_2,Fertilizing
+field_019,0.369,2,tractor_2,Fertilizing|Spraying
+field_020,0.856,1,tractor_2,Seed drill combination
+field_021,2.91,1,tractor_2,Spraying
+field_022,18.483,4,tractor_2,Disc harrowing|Fertilizing|Mowing (front)|Seed drill combination
+field_023,8.37,1,tractor_2,Fertilizing
+field_024,3.476,1,tractor_2,Spraying
+field_025,14.652,3,tractor_2,Seed drill combination|Spraying
+field_026,7.589,2,tractor_2,Seed drill combination|Spraying
+field_027,1.455,2,tractor_2,Seed drill combination|Spraying
+field_028,0.38,1,tractor_2,Spraying
+field_029,13.995,2,tractor_2,Seed drill combination|Spraying
+field_030,0.561,1,tractor_2,Fertilizing
+field_031,1.513,1,tractor_2,Seed drill combination
+field_032,6.145,1,tractor_5,Ploughing
+field_033,6.502,1,tractor_2,Disc harrowing
+field_034,1.71,1,tractor_2,Spraying
+field_035,5.195,1,tractor_2,Disc harrowing
+field_036,2.599,3,tractor_2|tractor_5,Ploughing|Seed drill combination|Spraying
+field_037,1.452,1,tractor_2,Seed drill combination
+field_038,4.095,1,tractor_2,Fertilizing
+field_039,4.834,1,tractor_5,Ploughing
+field_040,1.489,1,tractor_2,Seed drill combination
+field_041,6.11,1,tractor_2,Fertilizing
+field_042,3.017,1,tractor_2,Spraying
+field_043,0.735,2,tractor_2,Seed drill combination|Spraying
+field_044,10.203,3,tractor_2,Fertilizing|Mowing (large-scale)
+field_045,5.733,5,tractor_2|tractor_5,Fertilizing|Mowing (large-scale)|Ploughing|Seed drill combination|Spraying
+field_046,12.1,2,tractor_2|tractor_5,Cultivating (deep)|Fertilizing
+field_047,4.633,2,tractor_2|tractor_5,Ploughing|Seed drill combination
