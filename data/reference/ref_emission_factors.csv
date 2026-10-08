@@ -1,0 +1,23 @@
+ef_id,fuel_type,component,unit,kgco2e_per_unit,kgco2_per_unit,kgch4_co2e_per_unit,kgn2o_co2e_per_unit,standard,year,source_row_id,source_row_label,source_id,value_status
+gas_oil_s1_2025,gas_oil,scope1_combustion,litre,2.75541,2.72417,0.00315,0.02809,UK GHG CF,2025,1_101_1014_8_x,Scope 1 > Fuels > Liquid fuels > Gas oil,uk_ghg_2025,checked
+gas_oil_wtt_2025,gas_oil,wtt,litre,0.62665,,,,UK GHG CF,2025,11_101_1014_8_1,Scope 3 > WTT- fuels > Liquid fuels > Gas oil,uk_ghg_2025,checked
+diesel_blend_s1_2025,diesel_blend,scope1_combustion,litre,2.57082,2.53763,0.00029,0.0329,UK GHG CF,2025,1_101_1011_8_x,Scope 1 > Fuels > Liquid fuels > Diesel (average biofuel blend),uk_ghg_2025,checked
+diesel_blend_wtt_2025,diesel_blend,wtt,litre,0.61101,,,,UK GHG CF,2025,11_101_1011_8_1,Scope 3 > WTT- fuels > Liquid fuels > Diesel (average biofuel blend),uk_ghg_2025,checked
+hvo_s1_2025,hvo,scope1_combustion,litre,0.03558,,,,UK GHG CF,2025,2_103_1036_8_1,Scope 1 > Bioenergy > Biofuel > Biodiesel HVO,uk_ghg_2025,checked
+hvo_wtt_2025,hvo,wtt,litre,0.56439,,,,UK GHG CF,2025,12_900_1036_8_1,Scope 3 > WTT- bioenergy > WTT- biofuel > Biodiesel HVO,uk_ghg_2025,checked
+hvo_biogenic_2025,hvo,outside_scopes_biogenic_co2,litre,2.43,2.43,,,UK GHG CF,2025,99_103_1036_8_2,Outside of Scopes > Biofuel > Biodiesel HVO,uk_ghg_2025,checked
+elec_gen_2025,electricity_uk,scope2_generation,kWh,0.177,0.17489,0.0009,0.00122,UK GHG CF,2025,7_400_4000_5_x,Scope 2 > UK electricity > Electricity generated > Electricity: UK,uk_ghg_2025,checked
+elec_td_2025,electricity_uk,scope3_td,kWh,0.01853,0.01834,0.00008,0.00011,UK GHG CF,2025,13_402_4000_5_x,Scope 3 > Transmission and distribution > T&D- UK electricity,uk_ghg_2025,checked
+elec_wtt_gen_2025,electricity_uk,wtt,kWh,0.0459,,,,UK GHG CF,2025,15_917_4000_5_1,Scope 3 > WTT- UK electricity (generation),uk_ghg_2025,checked
+elec_wtt_td_2025,electricity_uk,wtt_td,kWh,0.00397,,,,UK GHG CF,2025,15_918_4000_5_1,Scope 3 > WTT- UK electricity (T&D),uk_ghg_2025,checked
+gas_oil_s1_2026,gas_oil,scope1_combustion,litre,2.75541,2.72417,0.00315,0.02809,UK GHG CF,2026,1_101_1014_8_x,Scope 1 > Fuels > Liquid fuels > Gas oil,uk_ghg_2026,checked
+gas_oil_wtt_2026,gas_oil,wtt,litre,0.62665,,,,UK GHG CF,2026,11_101_1014_8_1,Scope 3 > WTT- fuels > Liquid fuels > Gas oil,uk_ghg_2026,checked
+diesel_blend_s1_2026,diesel_blend,scope1_combustion,litre,2.58354,2.55035,0.00029,0.0329,UK GHG CF,2026,1_101_1011_8_x,Scope 1 > Fuels > Liquid fuels > Diesel (average biofuel blend),uk_ghg_2026,checked
+diesel_blend_wtt_2026,diesel_blend,wtt,litre,0.61101,,,,UK GHG CF,2026,11_101_1011_8_1,Scope 3 > WTT- fuels > Liquid fuels > Diesel (average biofuel blend),uk_ghg_2026,checked
+hvo_s1_2026,hvo,scope1_combustion,litre,0.03558,,,,UK GHG CF,2026,2_103_1036_8_1,Scope 1 > Bioenergy > Biofuel > Biodiesel HVO,uk_ghg_2026,checked
+hvo_wtt_2026,hvo,wtt,litre,0.56439,,,,UK GHG CF,2026,12_900_1036_8_1,Scope 3 > WTT- bioenergy > WTT- biofuel > Biodiesel HVO,uk_ghg_2026,checked
+hvo_biogenic_2026,hvo,outside_scopes_biogenic_co2,litre,2.43,2.43,,,UK GHG CF,2026,99_103_1036_8_2,Outside of Scopes > Biofuel > Biodiesel HVO,uk_ghg_2026,checked
+elec_gen_2026,electricity_uk,scope2_generation,kWh,0.13096,0.12943,0.00067,0.00086,UK GHG CF,2026,7_400_4000_5_x,Scope 2 > UK electricity > Electricity generated > Electricity: UK,uk_ghg_2026,checked
+elec_td_2026,electricity_uk,scope3_td,kWh,0.01299,0.01284,0.00007,0.00009,UK GHG CF,2026,13_402_4000_5_x,Scope 3 > Transmission and distribution > T&D- UK electricity,uk_ghg_2026,checked
+elec_wtt_gen_2026,electricity_uk,wtt,kWh,0.03682,,,,UK GHG CF,2026,15_917_4000_5_1,Scope 3 > WTT- UK electricity (generation),uk_ghg_2026,checked
+elec_wtt_td_2026,electricity_uk,wtt_td,kWh,0.00359,,,,UK GHG CF,2026,15_918_4000_5_1,Scope 3 > WTT- UK electricity (T&D),uk_ghg_2026,checked

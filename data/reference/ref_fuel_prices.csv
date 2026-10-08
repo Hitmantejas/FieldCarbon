@@ -1,0 +1,12 @@
+fuel_type,price_month,price_per_litre,currency,unit,vat_basis,report_url,source_id
+gas_oil,2025-09-01,0.752,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/691c835884a267da57d706de/UKAMMG_DataReport_OCTOBER.pdf,defra_ukammg
+gas_oil,2025-10-01,0.764,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/693045d0375aee4a15ee8b31/Data_considered_by_the_UK_Agricultural_Market_Monitoring_Group_at_the_meeting_of_11_November_2025.pdf,defra_ukammg
+gas_oil,2025-11-01,0.772,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/695e879011989e7ef067195b/Data_considered_by_the_UK_Agricultural_Market_Monitoring_Group_at_the_meeting_of_9_December_2025.pdf,defra_ukammg
+gas_oil,2025-12-01,0.788,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/698460e62df808759a7bd6d3/Data_considered_by_the_UK_Agricultural_Market_Monitoring_Group_at_the_meeting_of_13_January_2026.pdf,defra_ukammg
+gas_oil,2026-01-01,0.759,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/69aad73ac78869bf8eb8a49a/UKAMMG_Data_Report_February_2026.pdf,defra_ukammg
+gas_oil,2026-02-01,0.749,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/69cd33bf5cf899414a0bc67d/UKAMMG-data-report-260310.pdf,defra_ukammg
+gas_oil,2026-03-01,0.896,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/69fa016483a800f1a92ab9fd/UKAMMG_Data_Report_April_2026.pdf,defra_ukammg
+gas_oil,2026-04-01,1.176,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/6a311c52d95ffddb05d4b0fc/UKAMMG_DataReport_May_2026.pdf,defra_ukammg
+gas_oil,2026-05-01,1.1204,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/6a439a34065c5aec12a4e39d/UKAMMG_DataReport_9_June_2026.pdf,defra_ukammg
+gas_oil,2026-06-01,1.007,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/6a71ccefde77e2943cd3bb5d/UKAMMG_DataReport_15_July_2026.pdf,defra_ukammg
+gas_oil,2026-08-01,1.085,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/6abd0a91efad0f1df67227ca/UK_Agricultural_Market_Monitoring_Group_data_report_8_September_2026.pdf,defra_ukammg

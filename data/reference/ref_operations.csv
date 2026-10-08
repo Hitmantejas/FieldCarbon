@@ -1,0 +1,17 @@
+operation_code,display_name,category,tum_worktypes,isu_rate_ids,purdue_rate_ids,match_quality,note
+ploughing,Ploughing,primary_tillage,Ploughing,isu_moldboard_plow,pur_moldboard_plow,direct,
+cultivating_deep,Deep cultivating,primary_tillage,Cultivating (deep)|Cultivating,isu_chisel_plow,pur_chisel_plow,closest,Stubble cultivator worked deep ~ chisel plough
+cultivating_shallow,Shallow cultivating,secondary_tillage,Cultivating (shallow),isu_field_cultivate,pur_field_cultivate,direct,
+disc_harrowing,Disc harrowing,secondary_tillage,Disc harrow|Disc harrowing,isu_tandem_disk_tilled,pur_tandem_disk_2nd,closest,
+power_harrowing,Power harrowing,secondary_tillage,Power harrowing,isu_seedbed_conditioner,pur_strip_rotary_till_plant,closest,No PTO-driven harrow row in either source
+rotary_tilling,Rotary tilling,secondary_tillage,Rotary tilling,isu_seedbed_conditioner,pur_strip_rotary_till_plant,closest,No PTO-driven tiller row in either source
+seedbed_combination,Seedbed combination,secondary_tillage,Seedbed combination,isu_seedbed_conditioner,pur_field_cultivate,closest,
+seed_drill_combination,Power harrow + seed drill,seeding,Seed drill combination|Seed drill combination 3m|Seed drill combination 4m,isu_seedbed_conditioner|isu_grain_drill,pur_field_cultivate_plant,composite,Iowa = sum of listed rows
+precision_seeding,Precision air seeding,seeding,Precision air seeding,isu_air_drill,pur_conventional_planting,closest,
+mulching,Mulching,residue,Mulching,isu_shredding_stalks,pur_shredding_stalks,closest,
+fertilizing,Fertiliser spreading,crop_care,Fertilizing,isu_spread_dry_fert,pur_spread_dry_fert,direct,
+spraying,Spraying,crop_care,Spraying,isu_sprayer_trailer,pur_spraying_trail,direct,
+mowing,Mowing,grassland,Mowing (front)|Mowing (large-scale),isu_mower_conditioner,pur_mowing_conditioning,closest,
+swathing,Swathing,grassland,Swathing,isu_rake,pur_hay_raking,closest,
+transport,Transport / haulage,transport,Transport|Silage transport,,,none,Rates exclude travel and haulage: estimated as residual in Tier 3
+idle,Idling,non_field,,,,none,Not in rate tables: part of Tier 3 residual

@@ -1,0 +1,46 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*credentials*.json
+*service-account*.json
+*-sa.json
+application_default_credentials.json
+.gcloud/
+
+# --- Raw / large data (CC-BY-4.0 allows redistribution, but size: use data/prep/download_tum.py) ---
+data/raw/
+*.zip
+*.pkl
+*.pickle
+*.parquet
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# --- Node / frontend ---
+node_modules/
+dist/
+.vite/
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Local Claude files (CLAUDE.md is shared with the team outside the repo) ---
+CLAUDE.md
+.claude/settings.local.json

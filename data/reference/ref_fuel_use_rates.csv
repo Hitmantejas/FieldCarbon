@@ -1,0 +1,25 @@
+rate_id,source_id,source_row_label,gal_per_acre,l_per_ha,range_low_l_per_ha,range_high_l_per_ha,published_band_pct,excludes,source_id_note
+isu_moldboard_plow,isu_a3_27,Moldboard plow (2015-2025 avg; Table 2 range 1.10-1.90 gal/ac),1.40,13.10,10.29,17.77,35,field travel and machine preparation,Table 2 median/range (ASABE D497.9)
+isu_chisel_plow,isu_a3_27,Chisel plow (2015-2025 avg; Table 2 range 0.70-1.20 gal/ac),0.90,8.42,6.55,11.22,35,field travel and machine preparation,Table 2 median/range (ASABE D497.9)
+isu_tandem_disk_tilled,isu_a3_27,"Tandem disk, tilled field",0.55,5.14,,,35,field travel and machine preparation,Table 1
+isu_field_cultivate,isu_a3_27,Field cultivate (2015-2025 avg; Table 2 range 0.40-0.80 gal/ac),0.60,5.61,3.74,7.48,35,field travel and machine preparation,Table 2 median/range (ASABE D497.9)
+isu_seedbed_conditioner,isu_a3_27,Seedbed conditioner,0.90,8.42,,,35,field travel and machine preparation,Table 1
+isu_shredding_stalks,isu_a3_27,Shredding cornstalks,0.45,4.21,,,35,field travel and machine preparation,Table 1
+isu_spread_dry_fert,isu_a3_27,"Spreading dry fertilizer, bulk cart",0.15,1.40,,,35,field travel and machine preparation,Table 1
+isu_sprayer_trailer,isu_a3_27,"Sprayer, trailer type",0.10,0.94,,,35,field travel and machine preparation,Table 1
+isu_air_drill,isu_a3_27,Air drill,0.70,6.55,,,35,field travel and machine preparation,Table 1
+isu_grain_drill,isu_a3_27,Grain drill,0.30,2.81,,,35,field travel and machine preparation,Table 1
+isu_mower_conditioner,isu_a3_27,Mower-conditioner (2015-2025 avg; Table 2 range 0.40-0.65 gal/ac),0.50,4.68,3.74,6.08,35,field travel and machine preparation,Table 2 median/range (ASABE D497.9)
+isu_rake,isu_a3_27,Rake,0.25,2.34,,,35,field travel and machine preparation,Table 1
+pur_moldboard_plow,purdue_ae110,Moldboard plowing (8 in.),1.85,17.30,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_chisel_plow,purdue_ae110,Chisel plowing (8 in.),1.25,11.69,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_tandem_disk_2nd,purdue_ae110,"Tandem disking, second trip",0.50,4.68,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_field_cultivate,purdue_ae110,"Field cultivating, plowed ground",0.60,5.61,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_strip_rotary_till_plant,purdue_ae110,Strip rotary tilling and planting,0.95,8.89,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_field_cultivate_plant,purdue_ae110,Field cultivating and planting,0.90,8.42,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_conventional_planting,purdue_ae110,Conventional planting,0.50,4.68,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_shredding_stalks,purdue_ae110,Shredding cornstalks,0.75,7.02,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_spread_dry_fert,purdue_ae110,"Spreading fertilizer, dry bulk",0.20,1.87,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_spraying_trail,purdue_ae110,"Spraying, trail type",0.15,1.40,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_mowing_conditioning,purdue_ae110,"Mowing/conditioning, PTO",0.65,6.08,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel
+pur_hay_raking,purdue_ae110,Hay raking,0.22,2.06,,,50,travel to/from/between fields and hauling supplies,Table 1 diesel

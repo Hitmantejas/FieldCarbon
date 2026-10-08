@@ -1,0 +1,5 @@
+# Data prep + tests (backend runtime deps added in Phase 0/3)
+pandas>=2.2
+pyarrow>=17
+requests>=2.32
+pytest>=8

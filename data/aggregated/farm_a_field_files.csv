@@ -1,0 +1,144 @@
+tractor_id,work_type,operation_code,field_file,rows,hours_total,hours_working,litres_total,litres_working,area_worked_ha,implement_width_m,mean_load_pct_working,hours_excluded_frozen
+tractor_1,Power harrowing,power_harrowing,Field_1,49846,1.5187,1.2938,12.4319,11.4818,1.6048,3.0,69.9688,0.0
+tractor_1,Power harrowing,power_harrowing,Field_2,25417,1.1576,0.8077,9.5766,8.2053,1.0461,3.0,73.0661,0.0
+tractor_1,Precision air seeding,precision_seeding,Field_1,14315,2.0998,1.8423,8.3994,7.2811,0.7614,3.0,39.385,0.0
+tractor_1,Precision air seeding,precision_seeding,Field_2,9273,0.3531,0.1161,1.5578,0.5428,0.0881,3.0,47.192,0.0
+tractor_2,Disc harrowing,disc_harrowing,Field_1,52601,1.5386,0.0,38.6912,0.0,0.0,3.0,,0.0
+tractor_2,Disc harrowing,disc_harrowing,Field_2,64215,2.1448,1.5946,47.2974,41.4859,4.9537,3.0,92.169,0.0
+tractor_2,Disc harrowing,disc_harrowing,Field_3,79825,2.3603,1.9593,54.2426,51.0131,7.1595,3.0,90.6776,0.0
+tractor_2,Fertilizing,fertilizing,Field_1,14674,0.5349,0.0376,4.9401,0.5639,0.6187,15.0,84.9873,0.0
+tractor_2,Fertilizing,fertilizing,Field_10,23680,0.7938,0.0006,3.7504,0.0059,0.0095,15.0,74.9,0.0
+tractor_2,Fertilizing,fertilizing,Field_11,17865,0.55,0.0028,4.652,0.0413,0.0564,15.0,85.5,0.0
+tractor_2,Fertilizing,fertilizing,Field_12,13017,0.4278,0.0022,3.5519,0.0317,0.0414,15.0,80.2133,0.0
+tractor_2,Fertilizing,fertilizing,Field_13,8801,0.2865,0.0027,2.1564,0.0482,0.0647,15.0,89.2824,0.0
+tractor_2,Fertilizing,fertilizing,Field_14,9354,0.2921,0.007,2.6915,0.1009,0.1329,15.0,83.0537,0.0
+tractor_2,Fertilizing,fertilizing,Field_2,25903,0.7864,0.21,8.3278,3.4772,3.5532,15.0,86.5341,0.0
+tractor_2,Fertilizing,fertilizing,Field_3,16457,0.5233,0.1309,5.5115,2.0259,2.2038,15.0,85.319,0.0
+tractor_2,Fertilizing,fertilizing,Field_4,38669,1.1678,0.3107,13.7142,4.5962,5.5099,15.0,84.4542,0.0
+tractor_2,Fertilizing,fertilizing,Field_5,24472,0.7507,0.1125,7.215,1.6976,1.965,15.0,86.9254,0.0
+tractor_2,Fertilizing,fertilizing,Field_6,4244,0.1408,0.0231,1.3656,0.3542,0.3855,15.0,86.9241,0.0
+tractor_2,Fertilizing,fertilizing,Field_7,20696,0.7335,0.0988,7.2843,1.643,1.7218,15.0,88.0889,0.0
+tractor_2,Fertilizing,fertilizing,Field_8,10487,0.339,0.0507,2.9881,0.7946,1.02,15.0,84.759,0.0
+tractor_2,Fertilizing,fertilizing,Field_9,20204,0.7963,0.0002,7.017,0.0038,0.0037,15.0,86.375,0.0
+tractor_2,Mowing (front),mowing,Field_1,17100,0.4922,0.4465,4.6152,4.1674,0.5978,3.0,52.1105,0.0
+tractor_2,Mowing (large-scale),mowing,Field_1,21675,0.8365,0.8344,18.3958,18.3636,6.13,8.3,81.0254,0.0
+tractor_2,Mowing (large-scale),mowing,Field_2,19439,0.7539,0.7496,16.1751,16.1064,4.9368,8.3,81.1015,0.0
+tractor_2,Mowing (large-scale),mowing,Field_3,17761,0.6,0.5939,11.2038,11.1571,3.3079,8.3,77.7157,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_1,37788,1.3276,0.8146,18.1099,14.987,1.6485,3.0,82.6766,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_10,29495,1.0647,0.6778,16.5653,13.4484,1.3417,3.0,83.4376,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_11,43471,1.8149,1.2169,26.1602,21.8492,1.8789,3.0,82.3309,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_12,64171,2.5199,1.4887,36.1204,28.6642,2.4376,3.0,81.6789,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_13,137543,4.4981,3.1434,82.5547,73.4434,4.622,3.0,86.2758,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_14,39467,1.4832,1.2287,23.611,22.0091,1.629,3.0,79.1197,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_15,23060,0.8467,0.5668,12.6572,10.8587,0.9235,3.0,81.6482,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_2,91838,4.2812,3.1573,71.2542,63.7111,6.6848,3.0,81.3355,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_3,61339,3.2928,1.5708,44.1927,33.1883,1.802,3.0,84.295,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_4,52892,1.7656,1.1901,23.9969,20.2831,2.5106,3.0,81.3927,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_5,40434,1.2988,0.8618,18.4407,15.4396,1.9499,3.0,82.873,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_6,130303,6.0274,4.2158,113.8479,100.7752,8.3916,3.0,86.7501,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_7,534374,17.1815,12.9813,259.7419,230.7488,21.6149,3.0,79.885,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_8,8662,0.3588,0.1399,3.2967,2.0615,0.2867,3.0,80.5216,0.0
+tractor_2,Seed drill combination,seed_drill_combination,Field_9,70568,3.14,1.3651,41.9347,28.0706,1.5084,3.0,83.1578,0.0
+tractor_2,Spraying,spraying,Field_1,23685,0.7891,0.0038,4.7742,0.0579,0.1019,15.0,84.0657,0.0
+tractor_2,Spraying,spraying,Field_10,3742,0.1701,0.1123,1.2067,0.8659,1.2948,15.0,56.3553,0.0
+tractor_2,Spraying,spraying,Field_11,6255,0.334,0.216,2.3344,1.6095,2.7468,15.0,51.9596,0.0
+tractor_2,Spraying,spraying,Field_12,8238,0.3131,0.0154,2.1838,0.2306,0.2351,15.0,86.0349,0.0
+tractor_2,Spraying,spraying,Field_13,13487,0.4787,0.037,3.379,0.5682,0.5654,15.0,85.3117,0.0
+tractor_2,Spraying,spraying,Field_2,19209,0.6836,0.0224,4.7851,0.3145,0.3279,15.0,80.1845,0.0
+tractor_2,Spraying,spraying,Field_3,9662,0.375,0.0014,2.6582,0.0205,0.0207,15.0,81.7222,0.0
+tractor_2,Spraying,spraying,Field_4,58748,2.6152,0.0663,18.4337,1.0069,1.3565,15.0,83.7435,0.0
+tractor_2,Spraying,spraying,Field_5,46302,2.1249,0.1827,16.2042,2.8015,3.042,15.0,85.6567,0.0
+tractor_2,Spraying,spraying,Field_6,7672,0.2694,0.0009,1.2965,0.0129,0.0153,15.0,91.4,0.0
+tractor_2,Spraying,spraying,Field_7,14999,0.9113,0.0291,6.4643,0.3998,0.3751,15.0,84.2935,0.0
+tractor_2,Spraying,spraying,Field_8,5093,0.2565,0.1444,1.8185,1.1433,1.7827,15.0,53.8058,0.0
+tractor_2,Spraying,spraying,Field_9,4492,0.1806,0.1146,1.2567,0.8448,1.2617,15.0,47.5369,0.0
+tractor_2,Swathing,swathing,Field_1,96729,2.8568,0.0076,17.0581,0.0983,0.087,6.9,77.0818,0.0
+tractor_2,Swathing,swathing,Field_2,17350,0.5157,0.0,3.113,0.0,0.0,6.9,,0.0
+tractor_2,Transport,transport,Field_1,270044,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_2,Transport,transport,Field_2,197111,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_2,Transport,transport,Field_3,132118,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_1,108053,6.3997,4.8941,130.4068,122.1769,17.4633,4.2,75.6012,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_2,80978,4.8592,3.3242,95.7197,86.8657,11.7008,4.2,77.0625,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_3,120472,6.8401,6.4422,193.075,190.8292,24.0362,4.2,82.2208,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_4,128596,7.4284,5.5453,171.7552,158.9648,21.6728,4.2,86.7873,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_5,58301,3.3266,2.7313,99.1623,94.4545,10.9352,4.2,90.9859,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_6,304845,18.088,12.5201,376.4918,345.1332,46.6784,4.2,81.1917,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_7,146246,8.4617,5.935,181.4658,165.7982,22.6399,4.2,80.1295,0.0
+tractor_3,Cultivating (deep),cultivating_deep,Field_8,3031,0.1783,0.1113,4.3443,3.5891,0.3586,4.2,90.0113,0.0
+tractor_3,Mulching,mulching,Field_1,15171,0.8568,0.6134,12.1958,8.8022,1.2041,3.0,35.9565,0.0
+tractor_3,Mulching,mulching,Field_2,3952,0.2259,0.1501,2.9947,1.9937,0.2939,3.0,35.2564,0.0
+tractor_3,Mulching,mulching,Field_3,27377,1.5659,1.0123,20.898,13.6986,2.2774,3.0,35.2646,0.0
+tractor_3,Mulching,mulching,Field_4,5937,0.3673,0.0,4.601,0.0,0.0,3.0,,0.0
+tractor_3,Mulching,mulching,Field_5,19601,1.1788,0.6686,14.0332,10.8023,1.2616,3.0,43.1481,0.0
+tractor_3,Mulching,mulching,Field_6,11947,0.7056,0.0,9.7691,0.0,0.0,3.0,,0.0
+tractor_3,Mulching,mulching,Field_7,15381,0.8838,0.7265,8.0819,7.1776,1.8409,3.0,48.9874,0.0
+tractor_3,Mulching,mulching,Field_8,7934,0.4618,0.3434,5.2392,4.5816,0.733,3.0,57.5314,0.0
+tractor_3,Ploughing,ploughing,Field_1,50027,3.0313,1.8268,45.3433,38.6665,2.363,2.0,70.3366,0.0
+tractor_3,Ploughing,ploughing,Field_2,103873,5.8797,5.3544,178.5652,175.4719,8.4165,2.0,87.594,0.0
+tractor_3,Ploughing,ploughing,Field_3,14591,0.9008,0.5364,12.6048,10.2359,0.6981,2.0,67.2535,0.0
+tractor_3,Rotary tilling,rotary_tilling,Field_1,14016,0.8603,0.5289,7.7725,6.1738,0.5809,3.0,43.3535,0.0
+tractor_3,Rotary tilling,rotary_tilling,Field_2,9867,0.6191,0.4496,9.4486,7.5937,0.2115,3.0,43.7314,0.0
+tractor_3,Rotary tilling,rotary_tilling,Field_3,7246,0.4809,0.2312,5.4897,3.6226,0.0932,3.0,45.2138,0.0
+tractor_3,Seed drill combination,seed_drill_combination,Field_1,32238,1.8915,1.3701,43.506,40.7986,4.2484,4.0,82.547,0.0
+tractor_3,Seedbed combination,seedbed_combination,Field_1,84082,5.0106,3.3703,79.9981,69.3481,18.0093,6.0,67.3075,0.0
+tractor_4,Cultivating (deep),cultivating_deep,Field_1,290749,8.4662,5.5197,169.5527,143.827,19.0749,4.2,78.7523,0.0
+tractor_4,Cultivating (deep),cultivating_deep,Field_2,203154,5.8265,4.8821,188.9151,180.5737,18.8055,4.2,88.5417,0.0
+tractor_4,Cultivating (deep),cultivating_deep,Field_3,125746,3.6224,2.7866,109.0516,102.335,11.1809,4.2,91.2476,0.0
+tractor_4,Cultivating (deep),cultivating_deep,Field_4,26699,0.7507,0.6685,28.1813,27.3493,2.5698,4.2,96.0141,0.0
+tractor_4,Cultivating (shallow),cultivating_shallow,Field_1,202962,5.93,3.9794,108.81,91.6221,13.2303,4.0,74.7603,0.0
+tractor_4,Cultivating (shallow),cultivating_shallow,Field_2,226214,6.4073,4.2407,120.8461,102.5682,14.5483,4.0,75.824,0.0
+tractor_4,Cultivating (shallow),cultivating_shallow,Field_3,25167,0.7654,0.5201,11.5355,9.4232,1.3799,4.0,72.7116,0.0
+tractor_4,Cultivating (shallow),cultivating_shallow,Field_4,2094,0.0612,0.0356,0.7042,0.5258,0.0765,4.0,69.7151,0.0
+tractor_4,Cultivating (shallow),cultivating_shallow,Field_5,94189,3.1075,2.057,56.217,46.9873,7.4675,4.0,76.7954,0.0
+tractor_4,Disc harrowing,disc_harrowing,Field_1,106987,3.0039,2.7234,83.3676,80.158,12.8878,4.0,,0.0
+tractor_4,Disc harrowing,disc_harrowing,Field_2,96901,2.7502,2.097,55.8691,49.939,9.2734,4.0,,0.0
+tractor_4,Disc harrowing,disc_harrowing,Field_3,34507,0.9688,0.7964,22.9348,21.3365,3.6607,4.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_1,11903,0.4018,0.0,2.9321,0.0,0.0,24.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_2,15354,0.438,0.0,4.8389,0.0,0.0,24.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_3,27008,0.7878,0.0,9.7509,0.0,0.0,24.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_4,18483,0.5331,0.0,6.2617,0.0,0.0,24.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_5,11986,0.3434,0.0,4.2247,0.0,0.0,24.0,,0.0
+tractor_4,Fertilizing,fertilizing,Field_6,92569,2.6816,0.0,71.1645,0.0,0.0,24.0,,0.0
+tractor_4,Mulching,mulching,Field_1,203075,5.7882,4.8705,76.0748,67.5392,14.2395,3.0,63.7551,0.0
+tractor_4,Mulching,mulching,Field_2,153590,4.3329,3.2153,95.2821,76.4384,8.6051,3.0,73.3597,0.0
+tractor_4,Mulching,mulching,Field_3,27089,0.8059,0.482,8.7949,6.456,1.0482,3.0,63.0593,0.0
+tractor_4,Mulching,mulching,Field_4,210153,6.0127,4.3629,84.6669,67.1459,10.8885,3.0,67.8927,0.0
+tractor_4,Mulching,mulching,Field_5,161394,4.678,3.4342,68.0882,53.136,8.1651,3.0,61.9381,0.0
+tractor_4,Mulching,mulching,Field_6,48346,1.3634,1.2273,14.3698,13.3113,3.132,3.0,61.3167,0.0
+tractor_4,Mulching,mulching,Field_7,49263,1.4103,0.7186,27.7305,15.8651,1.7629,3.0,54.3178,0.0
+tractor_4,Ploughing,ploughing,Field_1,392534,11.2095,5.1812,249.2937,180.7747,8.6124,2.0,85.8724,0.0
+tractor_4,Ploughing,ploughing,Field_2,316283,9.0675,7.6321,256.6079,244.5326,11.9859,2.0,81.8361,0.0
+tractor_4,Ploughing,ploughing,Field_3,107350,3.0526,2.743,114.4978,111.1347,4.7113,2.0,94.1493,0.0
+tractor_4,Ploughing,ploughing,Field_4,424790,12.1213,9.773,328.6128,309.7996,15.4125,2.0,83.5101,0.0
+tractor_4,Ploughing,ploughing,Field_5,58889,1.7176,1.3353,46.5998,43.4553,2.1861,2.0,83.2541,0.0
+tractor_4,Ploughing,ploughing,Field_6,158998,4.5935,3.0013,102.4572,91.6294,4.4043,2.0,83.4893,0.0
+tractor_4,Power harrowing,power_harrowing,Field_1,20081,0.6438,0.2785,12.4687,10.114,1.4575,4.0,,0.0
+tractor_4,Power harrowing,power_harrowing,Field_2,80645,2.3409,2.0006,68.0935,65.1972,9.2191,4.0,,0.0
+tractor_4,Power harrowing,power_harrowing,Field_3,61076,1.7212,1.3047,52.6048,48.4822,3.9309,4.0,,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_1,319486,9.2377,6.2789,201.9478,168.3276,14.1481,3.0,69.8349,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_2,321952,9.3819,5.9745,170.7863,134.4521,13.7657,3.0,36.4301,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_3,627295,17.9716,11.4334,327.0919,254.4806,24.7961,3.0,51.8343,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_4,12922,0.3818,0.1967,5.6638,3.9383,0.3665,3.0,64.9907,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_5,23126,0.6835,0.2533,7.6233,4.7034,0.48,3.0,65.0675,0.0
+tractor_4,Seed drill combination 3m,seed_drill_combination,Field_6,84788,2.4503,1.6174,38.4693,29.9214,2.6257,3.0,64.9156,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_1,92491,2.6246,2.1803,74.1312,69.979,7.8579,4.0,80.6223,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_2,16936,0.4845,0.351,13.1586,11.9266,1.2058,4.0,85.4121,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_3,176820,5.0485,4.1718,168.3431,160.7269,14.7594,4.0,93.6772,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_4,52069,1.4758,1.1477,40.6093,37.7426,3.6229,4.0,86.4338,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_5,132823,3.7585,3.1029,113.399,104.411,10.8058,4.0,86.3677,0.0
+tractor_4,Seed drill combination 4m,seed_drill_combination,Field_6,230290,6.5483,5.8989,182.7486,176.6365,16.4682,4.0,77.9113,0.0
+tractor_4,Seedbed combination,seedbed_combination,Field_1,451243,13.1386,9.0757,252.7824,221.0716,0.0,,30.4977,0.0
+tractor_4,Seedbed combination,seedbed_combination,Field_2,113132,3.3781,2.4923,71.4855,65.5973,0.0,,1.0,0.0
+tractor_4,Seedbed combination,seedbed_combination,Field_3,130687,3.7072,3.2835,82.6419,77.3821,0.0,,73.5891,0.0
+tractor_4,Transport,transport,Field_1,144547,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_4,Transport,transport,Field_2,233966,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_4,Transport,transport,Field_3,227748,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_4,Transport,transport,Field_4,106698,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_5,Cultivating (deep),cultivating_deep,Field_1,141876,5.0125,4.5594,196.7684,191.6963,9.5964,3.0,93.3897,0.0
+tractor_5,Ploughing,ploughing,Field_1,52588,1.8766,1.2328,42.5583,36.7964,1.4774,2.0,75.4455,0.0
+tractor_5,Ploughing,ploughing,Field_2,91755,3.5562,2.206,89.7898,78.0199,2.6566,2.0,84.6254,0.0
+tractor_5,Ploughing,ploughing,Field_3,88269,3.4101,2.3355,81.661,71.0486,2.8284,2.0,77.5641,0.0
+tractor_5,Ploughing,ploughing,Field_4,69525,2.4832,1.6466,55.3502,48.3738,2.1788,2.0,75.6446,0.0
+tractor_5,Ploughing,ploughing,Field_5,59479,1.9419,1.2089,46.4716,39.5012,1.6185,2.0,79.7853,0.0
+tractor_5,Transport,transport,Field_1,237568,0.0,0.0,0.0,0.0,0.0,,,0.0
+tractor_5,Transport,transport,Field_2,214438,0.0,0.0,0.0,0.0,0.0,,,0.0
