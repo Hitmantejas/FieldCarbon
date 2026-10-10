@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Docket world: thermal paper in light, amber print on a black roll in dark. */
+:root {
+  --desk: oklch(87% 0.014 190);
+  --paper: oklch(96.5% 0.006 200);
+  --ink: oklch(17% 0.012 250);
+  --ink-soft: oklch(38% 0.012 250);
+  --rule: oklch(70% 0.012 220);
+  --mark: oklch(91% 0.21 118);
+  --on-mark: oklch(17% 0.012 250);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --desk: oklch(9% 0.008 70);
+  --paper: oklch(15% 0.012 70);
+  --ink: oklch(83% 0.16 78);
+  --ink-soft: oklch(70% 0.12 74);
+  --rule: oklch(40% 0.06 72);
+  --mark: oklch(80% 0.17 78);
+  --on-mark: oklch(15% 0.012 70);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-desk: var(--desk);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-mark: var(--mark);
+  --color-on-mark: var(--on-mark);
+  --font-display: "Big Shoulders Display Variable", "Arial Narrow", sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, monospace;
+  --ease-print: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html { background: var(--desk); color: var(--ink); scrollbar-color: var(--rule) var(--desk); }
+body { margin: 0; font-family: var(--font-sans); font-size: 1.0625rem; line-height: 1.5; }
+::selection { background: var(--mark); color: var(--on-mark); }
+:focus-visible { outline: 3px solid var(--mark); outline-offset: 3px; }
+:root[data-theme="light"] :focus-visible { outline-color: var(--ink); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-feature-settings: "zero"; }
+
+/* Thermal-printer reveal: each block prints top to bottom, staggered by --i. Visible by default. */
+@keyframes print {
+  from { clip-path: inset(0 0 100% 0); transform: translateY(-6px); }
+  to { clip-path: inset(0 0 0 0); transform: none; }
+}
+.print { animation: print 0.7s var(--ease-print) both; animation-delay: calc(var(--i, 0) * 80ms); }
+
+/* Zigzag torn edge hanging off the bottom of the docket. */
+.torn { position: relative; margin-bottom: 14px; }
+.torn::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: var(--paper);
+  mask: conic-gradient(from -45deg at bottom, #000 90deg, #0000 0) 50% / 18px 100%;
+}
+
+/* Receipt line: label, dot leader, value. */
+.leader { flex: 1; align-self: end; margin: 0 0.5rem 0.4em; border-bottom: 2px dotted var(--rule); min-width: 1rem; }
+
+/* Confidence stamps. The outline form carries the meaning as well as the word. */
+.stamp {
+  display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+  text-transform: uppercase; line-height: 1; padding: 0.35rem 0.5rem; border: 2px solid var(--ink);
+  transform: rotate(-1.5deg); white-space: nowrap;
+}
+.stamp-measured { background: var(--ink); color: var(--paper); }
+.stamp-allocated { border-style: dashed; }
+.stamp-estimated { border-style: dotted; border-width: 3px; }
+
+/* Bracketed range: the bar spans low to high inside a 0..max track. */
+@keyframes span-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.span-in { animation: span-in 0.9s var(--ease-print) 0.25s both; }
+
+dialog.sheet { margin: auto 0 0 0; max-width: none; width: 100%; background: var(--paper); color: var(--ink);
+  border: 0; border-top: 3px solid var(--ink); padding: 0; }
+dialog.sheet::backdrop { background: color-mix(in oklab, var(--desk) 70%, transparent); }
+@media (min-width: 40rem) { dialog.sheet { margin: auto; width: 34rem; border: 3px solid var(--ink); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .print, .span-in { animation: none; }
+}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FieldCarbon: your farm's fuel, worked out</title>
+    <meta name="description" content="From farm fuel data to ranked climate action, with honest confidence." />
+    <script>
+      // Set the theme before first paint so a dark-theme visitor never sees a white flash.
+      (function () {
+        var saved = localStorage.getItem("fc-theme");
+        var dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
