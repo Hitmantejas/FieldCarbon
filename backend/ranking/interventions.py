@@ -142,7 +142,11 @@ def _apply(ctx: FarmContext, c) -> _Row:
         if not small:
             return _Row("not_feasible", f"The research only covers small tractors, up to {machine['rated_kw_max']:g} kW. "
                                         f"Your smallest tractor is {min(ctx.tractor_kw.values())} kW, so this does not apply to your farm.")
-        base = sum(ctx.litres_by_tractor[t] for t in small)
+        base = sum(ctx.litres_by_tractor.get(t, 0.0) for t in small)
+    elif "load_pct_max" in app and not ctx.mean_load_by_op:
+        # No engine data (receipts only): job loads are unknown, which is not the same as too heavy.
+        base = _drawbar_litres(ctx, float("inf"))
+        missing = missing or "engine_load"
     elif "load_pct_max" in app:
         base = _drawbar_litres(ctx, app["load_pct_max"])
         if base <= 0:
@@ -209,7 +213,8 @@ STRENGTH_TEXT = {
 }
 
 
-def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: int, robustness: str) -> str:
+def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: int, robustness: str,
+         ranged: bool = False) -> str:
     if state == "not_feasible":
         return reason
     first = used.iloc[0]
@@ -233,15 +238,30 @@ def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: in
            "left to gain."] if json.loads(first.applicability).get("requires_operation") else []),
         f"The evidence is **{robustness}**: {STRENGTH_TEXT[robustness]}",
     ]
-    if state == "needs_info":
+    if ranged:
+        lines.append("Your receipts do not say which job used the fuel, so this range also covers the "
+                     "**uncertainty in your job split**.")
+    if state == "needs_info" and any(r.missing == "engine_load" for r in chosen):
+        lines.append("It only applies if your towed jobs run the engine at part load. Your receipts cannot show "
+                     "that; engine data from the tractor, or a note of how hard each job works it, would.")
+    elif state == "needs_info":
         lines.append("It only applies if the answer to our question fits your farm.")
     return bullets(*lines)
 
 
-def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame) -> InterventionResult:
+def _merge(low: _Row, high: _Row) -> _Row:
+    """One coefficient evaluated at both ends of an estimated job split: low end of one, high end of the other."""
+    pair = lambda a, b: None if a is None else (min(a[0], b[0]), max(a[1], b[1]))  # noqa: E731
+    return _Row(low.state, low.reason, low.missing, pair(low.litres, high.litres), pair(low.co2e, high.co2e))
+
+
+def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame,
+                  ctx_high: FarmContext | None = None) -> InterventionResult:
     # Manufacturer claims are shown as evidence but never set the range (CLAUDE.md section 6).
     used = coefs[[not _is_manufacturer(s) for s in coefs.source_id]]
     rows = [_apply(ctx, c) for c in used.itertuples()]
+    if ctx_high is not None:  # an estimated split (Tier 3): ctx is its low end, ctx_high its high end
+        rows = [_merge(r, _apply(ctx_high, c)) for r, c in zip(rows, used.itertuples())]
     feasible = [r for r in rows if r.state == "feasible"]
     needs = [r for r in rows if r.state == "needs_info"]
     chosen, state = (feasible, "feasible") if feasible else (needs, "needs_info") if needs else ([], "not_feasible")
@@ -261,17 +281,18 @@ def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame) -
         missing_inputs=tuple(dict.fromkeys(r.missing for r in chosen if r.missing)) if state == "needs_info" else (),
         litres_saved_low=litres_low, litres_saved_high=litres_high, co2e_avoided_low=co2e_low, co2e_avoided_high=co2e_high,
         robustness=robustness, n_sources=n_sources, relative_width=width, label="estimated",
-        how=_how(state, reason, chosen, used, n_sources, robustness),
+        how=_how(state, reason, chosen, used, n_sources, robustness, ranged=ctx_high is not None),
         overlaps=OVERLAPS.get(intervention_id, ()), evidence=_evidence(coefs),
     )
 
 
-def evaluate(ctx: FarmContext) -> list[InterventionResult]:
-    return [_evaluate_one(ctx, iv, g) for iv, g in _coefficients().groupby("intervention_id", sort=False)]
+def evaluate(ctx: FarmContext, ctx_high: FarmContext | None = None) -> list[InterventionResult]:
+    """`ctx_high` is given for a farm whose job split is a range (Tier 3); `ctx` is then its low end."""
+    return [_evaluate_one(ctx, iv, g, ctx_high) for iv, g in _coefficients().groupby("intervention_id", sort=False)]
 
 
-def rank_interventions(ctx: FarmContext) -> list[InterventionResult]:
-    return sorted(evaluate(ctx), key=lambda r: (
+def rank_interventions(ctx: FarmContext, ctx_high: FarmContext | None = None) -> list[InterventionResult]:
+    return sorted(evaluate(ctx, ctx_high), key=lambda r: (
         STATE_ORDER[r.state], ROBUST_ORDER[r.robustness], 1e9 if r.relative_width is None else r.relative_width, r.name))
 
 

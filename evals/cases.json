@@ -166,6 +166,51 @@
           "type": "report_traceable"
         }
       ]
+    },
+    {
+      "id": "rank-farm-b",
+      "question": "Farm B (receipts only): what can I change to cut my machinery emissions?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {
+        "farm_id": "b"
+      },
+      "checks": [
+        {
+          "type": "every_recommendation_cites_source"
+        },
+        {
+          "type": "state",
+          "intervention_id": "shift_up_throttle_down",
+          "equals": "needs_info"
+        },
+        {
+          "type": "state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        }
+      ]
+    },
+    {
+      "id": "report-farm-b",
+      "question": "Farm B: give me a report I can share with my buyer.",
+      "expected_tools": [
+        "generate_report"
+      ],
+      "arguments": {
+        "farm_id": "b"
+      },
+      "checks": [
+        {
+          "type": "report_traceable"
+        }
+      ]
     }
   ]
 }

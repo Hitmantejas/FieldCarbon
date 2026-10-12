@@ -1,6 +1,7 @@
 from math import ceil
 
 MIN_GOAL_PCT, MAX_GOAL_PCT = 1, 90
+DEFAULT_GOAL_PCT = 10  # used when there are no pain points to size a goal from
 
 
 def suggested_goal_pct(litres_at_stake_high: float, total_litres: float) -> int:

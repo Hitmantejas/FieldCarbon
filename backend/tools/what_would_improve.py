@@ -37,7 +37,15 @@ def _plural(n: int, one: str, many: str) -> str:
 def still_uncertain(farm_id: str = "a", known: dict | None = None) -> list[str]:
     """What stays uncertain however the questions are answered, worked out from the plan itself."""
     ideas = [i for i in rank_interventions(farm_id, known) if i["state"] != "not_feasible"]
-    out = ["We do not know what you pay for diesel, so every money figure is a range."]
+    if farm_id == "b":  # receipts: we know what was paid, but not which job used the fuel
+        out = ["Your receipts do not say which job used the fuel, so every job figure is an estimate. A simple "
+               "logbook (job, field, hours, tractor) would turn these estimates into allocated figures.",
+               "Diesel prices change, so money saved in future is a range."]
+    else:
+        out = ["We do not know what you pay for diesel, so every money figure is a range."]
+    if any("engine_load" in i["missing_inputs"] for i in ideas):
+        out.append("We do not know how hard your towed jobs work the engine, so we cannot tell if shifting up "
+                   "and throttling back applies. Engine data from the tractor would show it.")
     thin = sum(i["robustness"] == "limited" for i in ideas)
     if thin:
         out.append(f"{_plural(thin, 'of your ideas rests', 'of your ideas rest')} on a single source.")

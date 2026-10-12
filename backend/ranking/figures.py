@@ -1,6 +1,6 @@
 from backend.emissions.factors import wtw_factor
 from backend.emissions.text import bullets, month_name
-from backend.emissions.farm_summary import EF_YEAR, TELEMETRY_SOURCE, fuel_price_range
+from backend.emissions.farm_summary import EF_YEAR, fuel_price_range
 from backend.ranking.context import FarmContext
 from backend.ranking.interventions import InterventionResult
 from backend.ranking.roi import Roi
@@ -46,7 +46,7 @@ def plan_figures(result: InterventionResult, roi: Roi, ctx: FarmContext) -> dict
 
     price = fuel_price_range()
     evidence = tuple(dict.fromkeys(e.source_id for e in result.evidence if e.used_in_range))
-    farm_litres = evidence + (TELEMETRY_SOURCE,)
+    farm_litres = evidence + ctx.litres_source_ids
     factor = wtw_factor(ctx.fuel_type, EF_YEAR)
     fuel = FUEL_NAMES.get(ctx.fuel_type, ctx.fuel_type.replace("_", " "))
 
@@ -82,7 +82,7 @@ def plan_figures(result: InterventionResult, roi: Roi, ctx: FarmContext) -> dict
                         "We treat your one recorded season as a year."),
                 cost.source_ids + farm_litres + (price.source_id,))
         if roi.running_cost_change_gbp_low is not None:
-            sources = cost.source_ids + (TELEMETRY_SOURCE,) + ((price.source_id,) if cost.kind == "running_cost_extra_per_litre" else ())
+            sources = cost.source_ids + ctx.litres_source_ids + ((price.source_id,) if cost.kind == "running_cost_extra_per_litre" else ())
             out["running_cost_change_gbp"] = _range("GBP per year", roi.running_cost_change_gbp_low,
                                                      roi.running_cost_change_gbp_high, _running_cost_how(roi, cost), sources)
     return out

@@ -6,8 +6,9 @@ from backend.emissions import tier3
 from backend.emissions.data import farm_a_breakdown, farm_a_totals
 from backend.emissions.farm_summary import TRACTOR_KW
 from backend.emissions.pain_points import above_range, farm_a_ratings
-from backend.emissions.provenance import PROVENANCE
+from backend.emissions.provenance import FARM_B_PROVENANCE, PROVENANCE
 from backend.emissions.sources import all_sources
+from backend.ranking.context import FARMS
 from backend.tools.generate_report import generate_report
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.set_goal import set_goal
@@ -22,13 +23,9 @@ def _require_farm_a(farm_id: str) -> None:
         raise HTTPException(404, f"unknown farm {farm_id}")
 
 
-FARM_B_PROVENANCE = {
-    "dataset": "Farm B: the same farm as Farm A seen through fuel receipts and a farm profile only "
-               "(data/synthetic/farm_b). Receipts are synthetic; their diesel litres add up to Farm A's measured fuel.",
-    "emission_factors": PROVENANCE["emission_factors"],
-    "fuel_use_rates": "Iowa State University Extension A3-27 (2026), fuel required for field operations",
-    "demo_data": True,
-}
+def _require_farm(farm_id: str) -> None:
+    if farm_id not in FARMS:
+        raise HTTPException(404, f"unknown farm {farm_id}")
 
 
 def _farm_b_summary():
@@ -75,8 +72,24 @@ def get_breakdown(farm_id: str, by: str):
     return farm_a_breakdown(by)
 
 
+def _farm_b_pain_points():
+    """Rating L/ha against the published rates that produced the estimate would be circular."""
+    t = tier3.receipt_totals()
+    rest = next(r for r in tier3.breakdown_by_operation(t) if r.key == tier3.REMAINDER_KEY)
+    return {
+        "available": False,
+        "reason": "Your receipts do not show fuel per job, so we cannot compare your jobs with typical fuel use. "
+                  "A logbook or engine data would.",
+        "ratings": [], "above_range": None,
+        "not_working": {"litres": rest.litres.value, "litres_low": rest.litres.low, "litres_high": rest.litres.high,
+                        "total_litres": t.litres, "share_pct": rest.share_pct, "label": "estimated"},
+    }
+
+
 @app.get("/api/farms/{farm_id}/pain-points")
 def get_pain_points(farm_id: str):
+    if farm_id == "b":
+        return _farm_b_pain_points()
     _require_farm_a(farm_id)
     ratings, not_working = farm_a_ratings()
     return {"ratings": ratings, "above_range": above_range(ratings), "not_working": not_working}
@@ -91,7 +104,7 @@ def _answers(tyre_pressure_checked: bool | None, has_ctis: bool | None, ballast_
 @app.get("/api/farms/{farm_id}/interventions")
 def get_interventions(farm_id: str, tyre_pressure_checked: bool | None = None, has_ctis: bool | None = None,
                       ballast_type: Literal["liquid", "none"] | None = None):
-    _require_farm_a(farm_id)
+    _require_farm(farm_id)
     return rank_interventions(farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
 
 
@@ -103,19 +116,19 @@ def get_sources():
 @app.get("/api/farms/{farm_id}/goal")
 def get_goal(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
              has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
-    _require_farm_a(farm_id)
+    _require_farm(farm_id)
     return set_goal(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
 
 
 @app.get("/api/farms/{farm_id}/sharpen")
 def get_sharpen(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
                 has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
-    _require_farm_a(farm_id)
+    _require_farm(farm_id)
     return what_would_improve(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
 
 
 @app.get("/api/farms/{farm_id}/report")
 def get_report(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
                has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
-    _require_farm_a(farm_id)
+    _require_farm(farm_id)
     return generate_report(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))

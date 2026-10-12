@@ -3,7 +3,7 @@ from functools import lru_cache
 
 import pandas as pd
 
-from backend.emissions.farm_summary import AGG, TRACTOR_KW, FUEL
+from backend.emissions.farm_summary import AGG, FUEL, TELEMETRY_SOURCE, TRACTOR_KW
 
 
 @dataclass(frozen=True)
@@ -21,6 +21,8 @@ class FarmContext:
     # Working litres per job on the fields that were ploughed. Tillage changes replace the plough system,
     # so jobs on fields already worked without a plough are not counted. None = no field data: use litres_by_op.
     ploughed_litres_by_op: dict[str, float] | None = None
+    # Where the farm's litres come from, cited by every plan figure built on them.
+    litres_source_ids: tuple[str, ...] = (TELEMETRY_SOURCE,)
 
 
 @lru_cache(maxsize=1)
@@ -44,3 +46,45 @@ def _farm_a_base() -> FarmContext:
 
 def farm_a_context(known: dict[str, object] | None = None) -> FarmContext:
     return replace(_farm_a_base(), known=known or {})
+
+
+@lru_cache(maxsize=1)
+def _farm_b_bases() -> tuple[FarmContext, FarmContext]:
+    """Farm B (receipts + profile) at the low and the high end of its estimated job split.
+    Engine load and litres per tractor are unknown from receipts, so they are left empty."""
+    from backend.emissions import tier3
+
+    total = tier3.receipt_totals().litres
+    est = tier3.operation_estimates()
+    ploughed = tier3.operation_estimates(tier3.ploughed_fields_profile())
+
+    def at(end: str) -> FarmContext:
+        return FarmContext(
+            litres_by_op={e.operation_code: getattr(e, end) for e in est},
+            hectares_by_op={e.operation_code: e.area_ha for e in est},
+            mean_load_by_op={},
+            tractor_kw=dict(TRACTOR_KW),
+            litres_by_tractor={},
+            total_litres=total,
+            ploughed_litres_by_op={e.operation_code: getattr(e, end) for e in ploughed},
+            litres_source_ids=(tier3.RECEIPTS_SOURCE, tier3.PROFILE_SOURCE, "isu_a3_27"),
+        )
+    return at("low"), at("high")
+
+
+def farm_b_contexts(known: dict[str, object] | None = None) -> tuple[FarmContext, FarmContext]:
+    """(low, high) contexts: savings are evaluated at both ends so the split's uncertainty carries through."""
+    low, high = _farm_b_bases()
+    return replace(low, known=known or {}), replace(high, known=known or {})
+
+
+FARMS = ("a", "b")
+
+
+def farm_contexts(farm_id: str, known: dict[str, object] | None = None) -> tuple[FarmContext, FarmContext | None]:
+    """(context, high-end context or None). Farm A's split is measured or allocated, so it has one context."""
+    if farm_id == "a":
+        return farm_a_context(known), None
+    if farm_id == "b":
+        return farm_b_contexts(known)
+    raise KeyError(f"unknown farm {farm_id}")

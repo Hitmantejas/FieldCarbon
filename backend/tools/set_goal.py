@@ -1,9 +1,11 @@
 from dataclasses import asdict
 
+from backend.emissions import tier3
 from backend.emissions.farm_summary import farm_a_rows, summarise
 from backend.emissions.pain_points import above_range, farm_a_ratings
 from backend.emissions.text import bullets
-from backend.ranking.goal import MAX_GOAL_PCT, MIN_GOAL_PCT, suggested_goal_pct, verdict
+from backend.ranking.context import FARMS
+from backend.ranking.goal import DEFAULT_GOAL_PCT, MAX_GOAL_PCT, MIN_GOAL_PCT, suggested_goal_pct, verdict
 from backend.tools.contracts import Figure
 from backend.tools.rank_interventions import rank_interventions
 
@@ -20,12 +22,19 @@ def _warning(figures: dict) -> str | None:
 
 def set_goal(target_pct: float | None = None, farm_id: str = "a", known: dict | None = None) -> dict:
     """A cut-my-emissions goal in real numbers, and which ideas could reach it on their own."""
-    if farm_id != "a":
+    if farm_id not in FARMS:
         raise KeyError(f"unknown farm {farm_id}")
-    totals = summarise(farm_a_rows())
+    totals = summarise(farm_a_rows()) if farm_id == "a" else tier3.summarise()
     total_litres, total_co2e = totals.litres.value, totals.co2e_kg.value
-    stake = above_range(farm_a_ratings()[0])
-    suggested = suggested_goal_pct(stake.litres_high, total_litres)
+    if farm_id == "a":
+        stake = above_range(farm_a_ratings()[0])
+        suggested = suggested_goal_pct(stake.litres_high, total_litres)
+        suggested_how = (f"Your pain points add up to about {stake.litres_low / total_litres * 100:.0f} to "
+                         f"{stake.litres_high / total_litres * 100:.0f}% of your fuel, so we suggest {suggested}%.")
+    else:  # receipts give no fuel per job, so there are no pain points to size a goal from
+        suggested = DEFAULT_GOAL_PCT
+        suggested_how = (f"Your receipts do not show fuel per job, so we cannot size your pain points. "
+                         f"We suggest {suggested}% as a starting goal.")
     pct = suggested if target_pct is None else target_pct
     if not MIN_GOAL_PCT <= pct <= MAX_GOAL_PCT:
         raise ValueError(f"goal must be between {MIN_GOAL_PCT}% and {MAX_GOAL_PCT}%")
@@ -52,8 +61,7 @@ def set_goal(target_pct: float | None = None, farm_id: str = "a", known: dict | 
     return {
         "target_pct": pct,
         "suggested_pct": suggested,
-        "suggested_how": (f"Your pain points add up to about {stake.litres_low / total_litres * 100:.0f} to "
-                          f"{stake.litres_high / total_litres * 100:.0f}% of your fuel, so we suggest {suggested}%."),
+        "suggested_how": suggested_how,
         "target_co2e": asdict(Figure(total_co2e * pct / 100, "kg CO2e per year", "measured",
                                      bullets(f"**{pct:g}%** of your yearly emissions of **{total_co2e / 1000:.1f} tonnes** of CO2."),
                                      source_ids=totals.co2e_kg.source_ids)),

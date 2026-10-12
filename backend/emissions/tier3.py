@@ -87,6 +87,12 @@ def operation_estimates(prof: pd.DataFrame | None = None) -> list[OperationEstim
     return sorted(out, key=lambda e: -e.typical)
 
 
+def ploughed_fields_profile(prof: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Profile rows on the fields the farmer ploughed (tillage changes only act there)."""
+    prof = profile() if prof is None else prof
+    return prof[prof.field_id.isin(prof[prof.operation_code == "ploughing"].field_id)]
+
+
 def summarise(t: ReceiptTotals | None = None) -> Summary:
     t = t or receipt_totals()
     e = emissions_kg(t.litres, FUEL, EF_YEAR, "measured")
