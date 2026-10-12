@@ -1,16 +1,15 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type StopId = "farm" | "pain" | "goal" | "plan" | "sharpen" | "report";
+export type StopId = "farm" | "pain" | "plan" | "sharpen" | "report";
 
 // Stops follow the farmer's path (CLAUDE.md section 7). Only built stops are live; the rest are struck.
 export const STOPS: { id: StopId; name: string; built: boolean }[] = [
   { id: "farm", name: "Your farm", built: true },
   { id: "pain", name: "Pain points", built: true },
-  { id: "goal", name: "Goal", built: false },
-  { id: "plan", name: "Plan", built: false },
-  { id: "sharpen", name: "Sharpen", built: false },
-  { id: "report", name: "Report", built: false },
+  { id: "plan", name: "Plan", built: true },
+  { id: "sharpen", name: "Sharpen", built: true },
+  { id: "report", name: "Report", built: true },
 ];
 
 const step = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -38,7 +37,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
 
   return (
     <div className="min-h-dvh bg-desk px-3 pb-16 pt-3 sm:px-6">
-      <div className="mx-auto flex max-w-[36rem] justify-end pb-3">
+      <div className="no-print mx-auto flex max-w-[36rem] justify-end pb-3">
         <ThemeToggle />
       </div>
       <main className="torn mx-auto max-w-[36rem] bg-paper text-ink shadow-[0_6px_18px_-8px_rgb(0_0_0/0.45)]">
@@ -52,7 +51,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
           <h1 className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide">FieldCarbon</h1>
           <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Farm A</span>
         </header>
-        <nav aria-label="Steps" className="print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
+        <nav aria-label="Steps" className="print no-print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
           <ol className="flex min-w-max items-end gap-5 border-b-2 border-ink font-mono text-xs uppercase tracking-widest">
             {STOPS.map((s) => (
               <li key={s.id}>
@@ -60,7 +59,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
                   <button
                     onClick={() => onGo(s.id)}
                     aria-current={s.id === current ? "step" : undefined}
-                    className={`inline-flex min-h-11 items-end border-b-4 pb-2 uppercase ${s.id === current ? "border-ink font-bold" : "border-transparent text-ink-soft hover:border-rule"}`}
+                    className={`btn-tab inline-flex min-h-11 items-end border-b-4 pb-2 uppercase ${s.id === current ? "border-ink font-bold" : "border-transparent text-ink-soft hover:border-rule"}`}
                   >
                     {s.name}
                   </button>

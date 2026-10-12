@@ -4,6 +4,7 @@ import { gbp, litres, pct, tonnes } from "../format";
 import { Arrow } from "../components/Arrow";
 import { CountUp } from "../components/CountUp";
 import { RangeBar, ShareBar } from "../components/RangeBar";
+import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 
@@ -38,17 +39,13 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {s && (
         <section aria-labelledby="fuel-h" className="print px-4 pb-6" style={step(3)}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="fuel-h" className="font-mono text-sm uppercase tracking-widest">
-              Fuel used
-            </h2>
-            <Stamp label={s.litres.label} />
-          </div>
+          <SectionHead id="fuel-h" title="Fuel used" tone="solid" aside={<Stamp label={s.litres.label} />} />
           <button
             onClick={() =>
-              setOpened({ title: "Fuel used", shown: `${litres(s.litres.value!)} litres`, label: s.litres.label, how: s.litres.how })
+              setOpened({ title: "Fuel used", shown: `${litres(s.litres.value!)} litres`, label: s.litres.label, how: s.litres.how,
+ sourceIds: s.litres.source_ids, })
             }
-            className="block w-full text-left"
+            className="btn-row block w-full text-left"
             aria-label="Fuel used, how it was worked out"
           >
             <span className="flex items-baseline gap-2">
@@ -71,9 +68,10 @@ export function Farm({ summary, pain, onNext }: Props) {
                   shown: `${tonnes(s.co2e_kg.value!)} CO2e`,
                   label: s.co2e_kg.label,
                   how: s.co2e_kg.how,
+ sourceIds: s.co2e_kg.source_ids,
                 })
               }
-              className="flex w-full items-end text-left"
+              className="btn-row flex w-full items-end text-left"
             >
               <dt className="font-bold">Emissions</dt>
               <span className="leader" />
@@ -87,9 +85,10 @@ export function Farm({ summary, pain, onNext }: Props) {
                     shown: `${gbp(s.cost_gbp.low!)} to ${gbp(s.cost_gbp.high!)}`,
                     label: s.cost_gbp.label,
                     how: s.cost_gbp.how,
+ sourceIds: s.cost_gbp.source_ids,
                   })
                 }
-                className="flex w-full items-end text-left"
+                className="btn-row flex w-full items-end text-left"
               >
                 <dt className="font-bold">Fuel cost</dt>
                 <span className="leader" />
@@ -115,12 +114,7 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {pain.data && (
         <section aria-labelledby="idle-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="idle-h" className="font-mono text-sm uppercase tracking-widest">
-              Fuel not doing work
-            </h2>
-            <Stamp label={pain.data.not_working.label} />
-          </div>
+          <SectionHead id="idle-h" title="Fuel not doing work" tone="mark" aside={<Stamp label={pain.data.not_working.label} />} />
           <p className="mt-2 flex items-baseline gap-3">
             <span className="bg-mark px-2 font-display text-6xl font-extrabold leading-none text-on-mark">
               <CountUp to={pain.data.not_working.share_pct} format={pct} />
@@ -143,9 +137,7 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {ops.data && (
         <section aria-labelledby="ops-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
-          <h2 id="ops-h" className="mb-3 font-mono text-sm uppercase tracking-widest">
-            Where it went
-          </h2>
+          <SectionHead id="ops-h" title="Where it went" tone="dashed" />
           <ul>
             {(showAll ? ops.data : ops.data.slice(0, TOP_ROWS)).map((r) => (
               <li key={r.key} className="border-b border-rule">
@@ -156,9 +148,10 @@ export function Farm({ summary, pain, onNext }: Props) {
                       shown: `${litres(r.litres.value!)} litres, ${pct(r.share_pct)}`,
                       label: r.litres.label,
                       how: r.litres.how,
+ sourceIds: r.litres.source_ids,
                     })
                   }
-                  className="block min-h-11 w-full py-2 text-left"
+                  className="btn-row block min-h-11 w-full py-2 text-left"
                 >
                   <span className="flex items-end">
                     <span>{r.name}</span>
@@ -178,7 +171,7 @@ export function Farm({ summary, pain, onNext }: Props) {
           {ops.data.length > TOP_ROWS && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="mt-4 min-h-11 w-full border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest"
+              className="btn-outline mt-4 min-h-11 w-full border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest"
             >
               {showAll ? "Show fewer" : `Show all ${ops.data.length}`}
             </button>
@@ -186,10 +179,10 @@ export function Farm({ summary, pain, onNext }: Props) {
         </section>
       )}
 
-      <div className="px-4 pb-6">
+      <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
-          className="flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
         >
           Next: Pain points
           <Arrow />

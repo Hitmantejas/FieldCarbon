@@ -1,0 +1,171 @@
+{
+  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output.",
+  "cases": [
+    {
+      "id": "rank-basic",
+      "question": "What can I change to cut my machinery emissions?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_recommendation_cites_source"
+        },
+        {
+          "type": "first_state",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "correct_tyre_pressure",
+          "equals": "needs_info"
+        }
+      ]
+    },
+    {
+      "id": "roi-reduced-tillage",
+      "question": "What would reduced tillage save me and what does it cost?",
+      "expected_tools": [
+        "calculate_roi"
+      ],
+      "arguments": {
+        "intervention_id": "reduced_tillage"
+      },
+      "checks": [
+        {
+          "type": "has_range",
+          "field": "fuel_gbp_saved"
+        },
+        {
+          "type": "has_range",
+          "field": "running_cost_change_gbp"
+        },
+        {
+          "type": "no_payback"
+        }
+      ]
+    },
+    {
+      "id": "roi-no-cost-source",
+      "question": "How long until liquid ballast removal pays back?",
+      "expected_tools": [
+        "calculate_roi"
+      ],
+      "arguments": {
+        "intervention_id": "avoid_liquid_ballast"
+      },
+      "checks": [
+        {
+          "type": "cost_note",
+          "equals": "Cost not yet sourced"
+        },
+        {
+          "type": "no_payback"
+        }
+      ]
+    },
+    {
+      "id": "goal-20",
+      "question": "I want to cut my emissions by 20%. What could get me there?",
+      "expected_tools": [
+        "set_goal"
+      ],
+      "arguments": {
+        "target_pct": 20
+      },
+      "checks": [
+        {
+          "type": "verdict",
+          "intervention_id": "no_till",
+          "equals": "reaches"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "reduced_tillage",
+          "equals": "might_reach"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "shift_up_throttle_down",
+          "equals": "falls_short"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "electric_tractor",
+          "equals": "not_applicable"
+        },
+        {
+          "type": "target_is_sourced"
+        }
+      ]
+    },
+    {
+      "id": "plan-after-answer",
+      "question": "I have not checked my tyre pressures. What does that change?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {
+        "known": {
+          "tyre_pressure_checked": false
+        }
+      },
+      "checks": [
+        {
+          "type": "state",
+          "intervention_id": "correct_tyre_pressure",
+          "equals": "feasible"
+        },
+        {
+          "type": "every_recommendation_cites_source"
+        }
+      ]
+    },
+    {
+      "id": "sharpen-default",
+      "question": "What one thing would make my plan more certain?",
+      "expected_tools": [
+        "what_would_improve"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "top_question",
+          "equals": "tyre_pressure_checked"
+        },
+        {
+          "type": "question_count",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "report-default",
+      "question": "Give me a report I can share with a buyer.",
+      "expected_tools": [
+        "generate_report"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "report_traceable"
+        }
+      ]
+    }
+  ]
+}

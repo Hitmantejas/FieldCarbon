@@ -21,6 +21,7 @@ def source_ids() -> set[str]:
 
 @pytest.mark.parametrize("name", [
     "ref_emission_factors.csv", "ref_fuel_use_rates.csv", "ref_interventions.csv", "ref_fuel_prices.csv",
+    "ref_intervention_costs.csv",
 ])
 def test_every_row_has_a_known_source(name, source_ids):
     df = load(name)
@@ -80,3 +81,19 @@ def test_fuel_prices_one_row_per_month():
     p = load("ref_fuel_prices.csv")
     assert not p.duplicated(["fuel_type", "price_month"]).any()
     assert (p["price_per_litre"] > 0).all()
+
+
+def test_intervention_costs_are_ranges_for_known_interventions_and_flagged():
+    costs = load("ref_intervention_costs.csv")
+    assert costs["cost_id"].is_unique
+    assert (costs["low"] <= costs["high"]).all()
+    assert set(costs["intervention_id"]) <= set(load("ref_interventions.csv")["intervention_id"])
+    # Weak or secondary figures must say so; nothing here is silently "checked" unless the page was opened.
+    assert set(costs["value_status"]) <= {"checked", "needs_primary_check"}
+    assert costs["currency"].notna().all() and costs["region"].notna().all() and costs["year"].notna().all()
+
+
+def test_every_operation_has_a_drive_type():
+    ops = load("ref_operations.csv")
+    assert set(ops["drive_type"]) <= {"drawbar", "pto", "none"}
+    assert ops["drive_type"].notna().all()

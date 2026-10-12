@@ -11,7 +11,7 @@ export function RangeBar({ low, high, max, description }: Props) {
     <div role="img" aria-label={description} className="relative h-5 border-b-2 border-ink-soft">
       <div
         className="span-in absolute inset-y-0 border-x-2 border-ink bg-mark"
-        style={{ left: `${(low / max) * 100}%`, width: `${((high - low) / max) * 100}%` }}
+        style={{ left: `${(low / max) * 100}%`, width: `max(${((high - low) / max) * 100}%, 6px)` }}
       />
     </div>
   );

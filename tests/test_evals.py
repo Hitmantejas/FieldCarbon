@@ -1,0 +1,69 @@
+"""Runs evals/cases.json against the agent tools' output (agent tool-selection is checked once the agent exists)."""
+import json
+from pathlib import Path
+
+import pytest
+
+from backend.tools.calculate_roi import calculate_roi
+from backend.tools.rank_interventions import rank_interventions
+from backend.tools.generate_report import generate_report
+from backend.tools.set_goal import set_goal
+from backend.tools.what_would_improve import what_would_improve
+
+CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text())["cases"]
+TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_roi, "set_goal": set_goal,
+         "what_would_improve": what_would_improve, "generate_report": generate_report}
+
+
+def figures(node):
+    if isinstance(node, dict):
+        if "label" in node and "how" in node and "source_ids" in node:
+            yield node
+        for value in node.values():
+            yield from figures(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from figures(value)
+
+
+def check(case: dict, output, spec: dict) -> None:
+    kind = spec["type"]
+    if kind == "every_recommendation_cites_source":
+        assert all(item["evidence"] and all(e["title"] and e["link_status"] for e in item["evidence"]) for item in output)
+    elif kind == "first_state":
+        assert output[0]["state"] == spec["equals"]
+    elif kind == "state":
+        assert next(i for i in output if i["intervention_id"] == spec["intervention_id"])["state"] == spec["equals"]
+    elif kind == "has_range":
+        fig = output["figures"][spec["field"]]
+        assert fig is not None and fig["source_ids"] and fig["low"] <= fig["high"]
+    elif kind == "no_payback":
+        assert output["figures"]["payback_years"] is None
+    elif kind == "verdict":
+        assert next(i for i in output["ideas"] if i["intervention_id"] == spec["intervention_id"])["verdict"] == spec["equals"]
+    elif kind == "target_is_sourced":
+        assert output["target_co2e"]["source_ids"] and output["target_co2e"]["label"] == "measured"
+    elif kind == "top_question":
+        assert output["top"] == spec["equals"]
+    elif kind == "question_count":
+        assert len(output["questions"]) == spec["equals"]
+    elif kind == "report_traceable":
+        assert output["sources"] and "traceable" in output["meta"]["statement"]
+        assert all(f["source_ids"] and f["label"] for f in figures(output))
+    elif kind == "cost_note":
+        assert output["cost_note"] == spec["equals"]
+    else:
+        raise AssertionError(f"unknown check {kind}")
+
+
+@pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])
+def test_eval_case(case):
+    assert set(case["expected_tools"]) <= set(TOOLS)
+    output = TOOLS[case["expected_tools"][0]](**case["arguments"])
+    for spec in case["checks"]:
+        check(case, output, spec)
+
+
+def test_every_tool_has_at_least_one_eval_case():
+    covered = {t for c in CASES for t in c["expected_tools"]}
+    assert covered == set(TOOLS)

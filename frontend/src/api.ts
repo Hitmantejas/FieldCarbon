@@ -67,6 +67,160 @@ export interface PainPoints {
   not_working: { litres: number; total_litres: number; share_pct: number; label: Label };
 }
 
+export interface SourceInfo {
+  source_id: string;
+  title: string;
+  publisher_or_authors: string | null;
+  year: number | null;
+  url: string | null;
+  evidence_type: string;
+  region: string | null;
+  is_manufacturer: boolean;
+  link_status: string;
+}
+
+export interface Evidence {
+  coef_id: string;
+  source_id: string;
+  title: string;
+  url: string;
+  link_status: string;
+  evidence_type: string;
+  region: string;
+  year: number | null;
+  is_manufacturer: boolean;
+  low: number;
+  high: number;
+  unit: string;
+  baseline: string;
+  value_status: string;
+  used_in_range: boolean;
+}
+
+export interface PlanFigures {
+  litres_saved: Figure | null;
+  co2e_avoided_kg: Figure | null;
+  fuel_gbp_saved: Figure | null;
+  cost: Figure | null;
+  payback_years: Figure | null;
+  running_cost_change_gbp: Figure | null;
+}
+
+export interface Intervention {
+  intervention_id: string;
+  name: string;
+  state: "feasible" | "needs_info" | "not_feasible";
+  reason: string | null;
+  missing_inputs: string[];
+  robustness: "strong" | "moderate" | "limited";
+  n_sources: number;
+  label: Label;
+  how: string;
+  overlaps: string[];
+  evidence: Evidence[];
+  figures: PlanFigures;
+  cost_kind: "capex_one_off" | "running_cost_extra_per_litre" | "operating_cost_per_area_change" | null;
+  cost_note: string;
+  notes: string;
+}
+
+export interface GoalIdea {
+  intervention_id: string;
+  name: string;
+  state: Intervention["state"];
+  robustness: Intervention["robustness"];
+  n_sources: number;
+  missing_inputs: string[];
+  verdict: "reaches" | "might_reach" | "falls_short" | "not_applicable";
+  reach: Figure | null;
+  warning: string | null;
+}
+
+// The farmer's answers; an unanswered question is simply missing.
+export interface Answers {
+  tyre_pressure_checked?: boolean;
+  has_ctis?: boolean;
+  ballast_type?: "liquid" | "none";
+}
+
+export function query(params: Record<string, string | number | boolean | undefined>): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== undefined) p.set(k, String(v));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
+export interface Goal {
+  target_pct: number;
+  suggested_pct: number;
+  suggested_how: string;
+  target_co2e: Figure;
+  target_litres: Figure;
+  counts: Record<GoalIdea["verdict"], number>;
+  ideas: GoalIdea[];
+}
+
+export interface SharpenOutcome {
+  answer: boolean | string;
+  applies: boolean;
+  verdict: GoalIdea["verdict"];
+  litres_saved: Figure | null;
+}
+
+export interface SharpenQuestion {
+  field: keyof Answers;
+  intervention_id: string;
+  name: string;
+  outcomes: SharpenOutcome[];
+  matters_for_goal: boolean;
+  swing: Figure;
+}
+
+export interface Sharpen {
+  target_pct: number;
+  top: keyof Answers | null;
+  questions: SharpenQuestion[];
+  still_uncertain: string[];
+}
+
+export interface Report {
+  meta: { title: string; farm: string; demo_data: boolean; generated_at: string; statement: string };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; engine_hours: number; excluded_hours: number };
+  where_it_went: { name: string; share_pct: number; litres: Figure }[];
+  pain_points: {
+    name: string;
+    band: Band;
+    you_l_per_ha: number;
+    typical_low: number;
+    typical_high: number;
+    hectares: number;
+    sources_agree: boolean | null;
+    at_stake: Figure;
+  }[];
+  plan: {
+    goal: { target_pct: number; target_co2e: Figure; target_litres: Figure };
+    ideas: {
+      intervention_id: string;
+      name: string;
+      robustness: Intervention["robustness"];
+      n_sources: number;
+      verdict: GoalIdea["verdict"];
+      reach: Figure | null;
+      figures: PlanFigures;
+      how: string;
+      cost_kind: Intervention["cost_kind"];
+      overlaps: string[];
+    }[];
+    waiting: number;
+  };
+  answers: Answers;
+  limits: string[];
+  labels: { label: Label; meaning: string }[];
+  method: string;
+  attribution: { dataset: string; licence: string; attribution: string; emission_factors: string };
+  sources: SourceInfo[];
+}
+
 export type State<T> = { data?: T; error?: string };
 
 export function useApi<T>(path: string): State<T> {

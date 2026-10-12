@@ -65,12 +65,33 @@ def test_pain_points_carry_plain_explanations_and_a_summary():
     assert body["above_range"]["litres_low"] <= body["above_range"]["litres_high"]
 
 
-def test_interventions_endpoint_ranks_with_labels_and_sources():
+def test_interventions_endpoint_ranks_and_cites():
     body = client.get("/api/farms/a/interventions").json()
-    items = body["interventions"]
-    assert [i["rank"] for i in items] == list(range(1, len(items) + 1))
-    assert items[-1]["intervention_id"] == "electric_tractor" and items[-1]["status"] == "not_applicable"
-    for i in items:
-        if i["co2e_avoided_kg"]:
-            assert i["co2e_avoided_kg"]["label"] == "estimated" and i["co2e_avoided_kg"]["source_ids"]
-    assert "not added up" in body["note"]
+    assert [i["state"] for i in body] == sorted((i["state"] for i in body), key=["feasible", "needs_info", "not_feasible"].index)
+    assert all(i["evidence"] and i["how"] and "figures" in i for i in body)
+    assert client.get("/api/farms/z/interventions").status_code == 404
+
+
+def test_sources_endpoint_resolves_every_source_a_figure_cites():
+    sources = {s["source_id"]: s for s in client.get("/api/sources").json()}
+    assert sources["tum_alc_data"]["title"] and sources["uk_ghg_2025"]["link_status"]
+    cited = set()
+    for item in client.get("/api/farms/a/interventions").json():
+        for fig in item["figures"].values():
+            cited |= set(fig["source_ids"]) if fig else set()
+        cited |= {e["source_id"] for e in item["evidence"]}
+    assert cited <= set(sources)
+
+
+def test_sources_have_no_nan_so_the_json_is_valid():
+    body = client.get("/api/sources").text
+    assert "NaN" not in body
+
+
+def test_goal_endpoint_defaults_to_the_suggested_goal_and_validates_the_target():
+    default = client.get("/api/farms/a/goal").json()
+    assert default["target_pct"] == default["suggested_pct"]
+    assert client.get("/api/farms/a/goal?target_pct=20").json()["target_pct"] == 20
+    assert client.get("/api/farms/a/goal?target_pct=0").status_code == 422
+    assert client.get("/api/farms/a/goal?target_pct=95").status_code == 422
+    assert client.get("/api/farms/z/goal").status_code == 404

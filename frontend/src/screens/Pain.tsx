@@ -1,7 +1,9 @@
-import { useState, type CSSProperties } from "react";
+import { Fragment, useState, type CSSProperties } from "react";
 import type { Band, PainPoints, Rating, State } from "../api";
 import { litres, pct } from "../format";
+import { Arrow } from "../components/Arrow";
 import { BandRange } from "../components/BandRange";
+import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 
@@ -48,12 +50,27 @@ function BandTag({ band }: { band: Band }) {
   );
 }
 
+// The numbers behind a rating, one per line, so they read as a table.
+const facts = (r: Rating): [string, string][] => [
+  ["You", `${r.l_per_ha!.toFixed(1)} litres per hectare`],
+  ["Typical", `${r.reference!.low.toFixed(1)} to ${r.reference!.high.toFixed(1)} litres per hectare`],
+  ["Area worked", `${r.hectares.toFixed(0)} hectares`],
+  ["Could be saved", r.litres_at_stake_high > 0 ? `${litres(r.litres_at_stake_low)} to ${litres(r.litres_at_stake_high)} litres` : "nothing: you are in the typical range"],
+];
+
 const range = (r: Rating) => `${r.reference!.low.toFixed(1)} to ${r.reference!.high.toFixed(1)}`;
 
-export function Pain({ pain }: { pain: State<PainPoints> }) {
+export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => void }) {
   const [opened, setOpened] = useState<Opened | null>(null);
-  const open = (r: Rating, shown: string) =>
-    setOpened({ title: r.display_name, shown, label: r.label, how: r.how });
+  const open = (r: Rating, shown: string, facts?: [string, string][]) =>
+    setOpened({
+      title: r.display_name,
+      shown,
+      facts,
+      label: r.label,
+      how: r.how,
+      sourceIds: [...new Set([...(r.reference?.source_ids ?? []), ...(r.second_opinion?.source_ids ?? [])])],
+    });
 
   if (pain.error) {
     return (
@@ -100,15 +117,13 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
 
       {flagged.length > 0 && (
         <section aria-labelledby="above-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
-          <h2 id="above-h" className="mb-2 font-mono text-sm uppercase tracking-widest">
-            Above the typical range
-          </h2>
+          <SectionHead id="above-h" title="Above the typical range" tone="solid" note={`${flagged.length}`} />
           <ul>
             {flagged.map((r) => (
               <li key={r.operation_code} className="border-b border-rule py-5 last:border-b-0">
                 <button
-                  onClick={() => open(r, `${r.l_per_ha!.toFixed(1)} L/ha, typical ${range(r)}`)}
-                  className="block w-full text-left"
+                  onClick={() => open(r, "", facts(r))}
+                  className="btn-row block w-full text-left"
                 >
                   <span className="flex items-start justify-between gap-3">
                     <span className="text-lg font-bold">{r.display_name}</span>
@@ -120,15 +135,16 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
                     high={r.reference!.high}
                     description={`${r.display_name}: ${r.l_per_ha!.toFixed(1)} litres per hectare, typical ${range(r)}`}
                   />
-                  <span className="num mt-2 block text-sm">
-                    You {r.l_per_ha!.toFixed(1)} L/ha. Typical {range(r)}.
+                  <span className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
+                    {facts(r).map(([k, v]) => (
+                      <Fragment key={k}>
+                        <span className="font-bold">{k}</span>
+                        <span className="num">{v}</span>
+                      </Fragment>
+                    ))}
                   </span>
-                  <span className="mt-2 flex flex-wrap items-center gap-3">
-                    <span>
-                      About <span className="num">{litres(r.litres_at_stake_low)} to {litres(r.litres_at_stake_high)} L</span>{" "}
-                      over {r.hectares.toFixed(0)} ha.
-                    </span>
-                    <Stamp label={r.litres_at_stake_label} />
+                  <span className="mt-1 flex items-center gap-3 text-sm text-ink-soft">
+                    <Stamp label={r.litres_at_stake_label} /> The litres at stake are an estimate.
                   </span>
                   <span className="mt-2 block text-sm">{AGREEMENT[String(r.sources_agree)]}</span>
                   <span className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
@@ -143,12 +159,7 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
       )}
 
       <section aria-labelledby="idle-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="idle-h" className="font-mono text-sm uppercase tracking-widest">
-            Also worth knowing
-          </h2>
-          <Stamp label={idle.label} />
-        </div>
+        <SectionHead id="idle-h" title="Also worth knowing" tone="mark" aside={<Stamp label={idle.label} />} />
         <p className="mt-2 max-w-[65ch]">
           <span className="font-bold">{pct(idle.share_pct)} of your fuel was not doing work</span> ({litres(idle.litres)} L).
           This is an observation only: we do not yet have a sourced fix for it, so we do not suggest one.
@@ -157,15 +168,13 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
 
       {fine.length > 0 && (
         <section aria-labelledby="fine-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(6)}>
-          <h2 id="fine-h" className="mb-2 font-mono text-sm uppercase tracking-widest">
-            In line with typical
-          </h2>
+          <SectionHead id="fine-h" title="In line with typical" tone="dashed" note={`${fine.length}`} />
           <ul>
             {fine.map((r) => (
               <li key={r.operation_code} className="border-b border-rule">
                 <button
-                  onClick={() => open(r, `${r.l_per_ha!.toFixed(1)} L/ha, typical ${range(r)}`)}
-                  className="flex min-h-11 w-full items-end py-2 text-left"
+                  onClick={() => open(r, "", facts(r))}
+                  className="btn-row flex min-h-11 w-full items-end py-2 text-left"
                 >
                   <span>{r.display_name}</span>
                   <span className="leader" />
@@ -180,15 +189,13 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
 
       {unrated.length > 0 && (
         <section aria-labelledby="unrated-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(7)}>
-          <h2 id="unrated-h" className="mb-2 font-mono text-sm uppercase tracking-widest">
-            Not rated
-          </h2>
+          <SectionHead id="unrated-h" title="Not rated" tone="muted" note={`${unrated.length}`} />
           <ul>
             {unrated.map((r) => (
               <li key={r.operation_code} className="border-b border-rule">
                 <button
                   onClick={() => open(r, BAND_TEXT[r.band])}
-                  className="flex min-h-11 w-full items-end py-2 text-left"
+                  className="btn-row flex min-h-11 w-full items-end py-2 text-left"
                 >
                   <span>{r.display_name}</span>
                   <span className="leader" />
@@ -200,13 +207,13 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
         </section>
       )}
 
-      <div className="px-4 pb-6">
+      <div className="no-print px-4 pb-6">
         <button
-          disabled
-          className="flex min-h-14 w-full items-center justify-between border-2 border-ink px-4 font-mono text-sm uppercase tracking-widest text-ink-soft"
+          onClick={onNext}
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
         >
-          <span className="line-through decoration-2">Next: Set a goal</span>
-          <span>Next step</span>
+          Next: Plan
+          <Arrow />
         </button>
       </div>
 

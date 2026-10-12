@@ -1,268 +1,278 @@
-"""Rank the evidence-table interventions for one farm (core journey step 4).
-
-Deterministic: applicability rules from ref_interventions.csv, then published coefficient ranges
-times the farm's own litres. Every saving is an `estimated` range; Gemini only explains the result.
-Intervention cost and payback belong to calculate_roi.
-"""
 import json
-from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
 import pandas as pd
 
-from backend.emissions.factors import wtw_factor
-from backend.emissions.farm_summary import EF_YEAR, FUEL, TELEMETRY_SOURCE, TRACTOR_KW, farm_a_rows, fuel_price_range
-from backend.tools.contracts import Figure
+from backend.emissions.factors import emissions_kg, wtw_factor
+from backend.emissions.farm_summary import EF_YEAR
+from backend.emissions.text import bullets
+from backend.ranking.context import FarmContext
 
 REF = Path(__file__).resolve().parents[2] / "data" / "reference"
 
-STATUS_ORDER = ("applies", "conditional", "not_applicable")
-
-# Jobs the tractor pulls without driving the implement through the PTO. Shift up / throttle down
-# evidence covers drawbar work only. Engineering classification, not a sourced value.
-DRAWBAR_OPERATIONS = {"ploughing", "cultivating_deep", "cultivating_shallow", "disc_harrowing",
-                      "seedbed_combination", "precision_seeding"}
-
-# Savings that act on the same fuel: never add them up.
+# Effects overlap, so interventions are flagged against each other and never added up.
 OVERLAPS = {
     "reduced_tillage": ("no_till",),
     "no_till": ("reduced_tillage",),
-    "correct_tyre_pressure": ("central_tyre_inflation",),
-    "central_tyre_inflation": ("correct_tyre_pressure",),
+    "correct_tyre_pressure": ("central_tyre_inflation", "avoid_liquid_ballast"),
+    "central_tyre_inflation": ("correct_tyre_pressure", "avoid_liquid_ballast"),
+    "avoid_liquid_ballast": ("correct_tyre_pressure", "central_tyre_inflation"),
 }
 
-# Machine facts we may not know; None in the farm profile means unknown.
-FACT_QUESTIONS = {
-    "tyre_pressure_checked": "Are tyre pressures set to the manufacturer's figure for each job?",
-    "has_ctis": "Do your tractors have central tyre inflation?",
-    "ballast_type": "Do your tyres carry liquid ballast?",
-}
+STATE_ORDER = {"feasible": 0, "needs_info": 1, "not_feasible": 2}
+ROBUST_ORDER = {"strong": 0, "moderate": 1, "limited": 2}
+
+# Farmer answers that rule an intervention out when True.
+ALREADY_DONE = {"tyre_pressure_checked": "You have already checked your tyre pressure, so there is little left for this idea to save you."}
 
 
 @dataclass(frozen=True)
-class Tractor:
-    name: str
-    rated_kw: float
-    litres: float
+class Evidence:
+    coef_id: str
+    source_id: str
+    title: str
+    url: str  # empty when the source has no usable link yet
+    link_status: str
+    evidence_type: str
+    region: str
+    year: int | None
+    is_manufacturer: bool
+    low: float
+    high: float
+    unit: str
+    baseline: str
+    derivation: str
+    value_status: str
+    used_in_range: bool
 
 
 @dataclass(frozen=True)
-class FarmProfile:
-    farm_id: str
-    fuel_type: str
-    total_litres: float
-    # Working fuel per field job (measured); "transport" adds road transport (allocated).
-    job_litres: Mapping[str, float]
-    # Litres-weighted mean engine load while working, per job.
-    working_load_pct: Mapping[str, float]
-    # Working fuel per job on the fields that were ploughed (allocated: field boundaries are derived).
-    ploughed_field_litres: Mapping[str, float]
-    ploughed_fields: int
-    tractors: tuple[Tractor, ...]
-    facts: Mapping[str, object] = field(default_factory=dict)
-    source_ids: tuple[str, ...] = (TELEMETRY_SOURCE,)
-
-
-@dataclass(frozen=True)
-class RankedIntervention:
-    rank: int
+class InterventionResult:
     intervention_id: str
     name: str
-    status: str  # applies | conditional | not_applicable
-    reason: str
-    litres_saved: Figure | None
-    co2e_avoided_kg: Figure | None
-    cost_saved_gbp: Figure | None  # None when the price it needs is not sourced yet
+    state: str  # feasible | needs_info | not_feasible
+    reason: str | None
+    missing_inputs: tuple[str, ...]
+    litres_saved_low: float | None
+    litres_saved_high: float | None
+    co2e_avoided_low: float | None
+    co2e_avoided_high: float | None
+    robustness: str  # strong | moderate | limited
     n_sources: int
-    source_ids: tuple[str, ...]
-    context_source_ids: tuple[str, ...]  # manufacturer claims: shown, not counted in the range
-    overlaps_with: tuple[str, ...]
-    needs: str | None  # the unknown farm fact this depends on (feeds what_would_improve)
-    evidence_status: str
+    relative_width: float | None
+    label: str
     how: str
+    overlaps: tuple[str, ...]
+    evidence: tuple[Evidence, ...]
+
+
+@dataclass(frozen=True)
+class _Row:
+    state: str
+    reason: str | None = None
+    missing: str | None = None
+    litres: tuple[float, float] | None = None
+    co2e: tuple[float, float] | None = None
+
+
+@lru_cache(maxsize=1)
+def _operations() -> pd.DataFrame:
+    return pd.read_csv(REF / "ref_operations.csv").set_index("operation_code")
+
+
+@lru_cache(maxsize=1)
+def _sources() -> pd.DataFrame:
+    return pd.read_csv(REF / "ref_sources.csv").set_index("source_id")
 
 
 @lru_cache(maxsize=1)
 def _coefficients() -> pd.DataFrame:
-    rows = pd.read_csv(REF / "ref_interventions.csv")
-    rows["rules"] = rows.applicability.map(json.loads)
-    makers = set(pd.read_csv(REF / "ref_sources.csv").query("is_manufacturer").source_id)
-    rows["is_manufacturer"] = rows.source_id.isin(makers)
-    return rows
+    return pd.read_csv(REF / "ref_interventions.csv")
 
 
-@lru_cache(maxsize=1)
-def _categories() -> dict[str, str]:
-    return pd.read_csv(REF / "ref_operations.csv").set_index("operation_code").category.to_dict()
+def _is_manufacturer(source_id: str) -> bool:
+    return bool(_sources().loc[source_id, "is_manufacturer"])
 
 
-def _pct_range(rows: pd.DataFrame) -> tuple[float, float]:
-    """Spread across independent studies: the lowest low to the highest high."""
-    return float(rows.low.min()) / 100, float(rows.high.max()) / 100
+def _litres_in(ctx: FarmContext, categories: list[str]) -> float:
+    cat = _operations().category
+    return sum(l for op, l in ctx.litres_by_op.items() if cat.get(op) in categories)
 
 
-def _eligible_rows(op: str, load: float | None, rows: pd.DataFrame) -> pd.DataFrame:
-    rows = rows[rows.rules.map(lambda r: _categories().get(op) in r.get("operation_category", []))
-                | rows.rules.map(lambda r: "operation_category" not in r)]
-    if rows.empty or not rows.rules.iloc[0].get("load_pct_max"):
-        return rows
-    if op not in DRAWBAR_OPERATIONS or load is None:
-        return rows.iloc[0:0]
-    # Use the evidence for the nearest load level at or above this job's mean load.
-    caps = rows.rules.map(lambda r: r["load_pct_max"])
-    fitting = caps[caps >= load]
-    return rows[caps == fitting.min()] if not fitting.empty else rows.iloc[0:0]
+def _drawbar_litres(ctx: FarmContext, load_max: float) -> float:
+    ops = _operations()
+    return sum(l for op, l in ctx.litres_by_op.items()
+               if ops.drive_type.get(op) == "drawbar" and ctx.mean_load_by_op.get(op, 1e9) <= load_max)
 
 
-def _check(rules: dict, farm: FarmProfile) -> tuple[str, str, str | None]:
-    """(status, reason, needs) from the applicability rules."""
-    if "fuel_type" in rules and farm.fuel_type not in rules["fuel_type"]:
-        return "not_applicable", f"Applies to diesel only; this farm uses {farm.fuel_type}.", None
-    op = rules.get("requires_operation")
-    if op and farm.job_litres.get(op, 0) <= 0:
-        return "not_applicable", f"No {op} recorded, so there is no {op} to replace.", None
-    machine = dict(rules.get("machine", {}))
-    kw_max = machine.pop("rated_kw_max", None)
-    if kw_max is not None and not any(t.rated_kw <= kw_max for t in farm.tractors):
-        smallest = min(t.rated_kw for t in farm.tractors)
-        return ("not_applicable", f"The evidence covers tractors up to {kw_max:g} kW; the smallest tractor "
-                f"here is {smallest:g} kW.", None)
-    wanted = dict(machine)
-    if "unknown_input" in rules:
-        wanted[rules["unknown_input"]] = False  # e.g. tyre pressure not yet checked
-    for fact, value in wanted.items():
-        known = farm.facts.get(fact)
-        if known is None:
-            return "conditional", f"Depends on a fact we don't have: {FACT_QUESTIONS.get(fact, fact)}", fact
-        if known != value:
-            return "not_applicable", f"Already in place: {FACT_QUESTIONS.get(fact, fact)} ({known}).", None
-    if op:
-        return "applies", f"You plough on {farm.ploughed_fields} fields.", None
-    if "fuel_type" in rules:
-        return "applies", "Your tractors run on diesel; check with your dealer that each engine is approved for it.", None
-    if "load_pct_max" in rules:
-        return ("applies", f"Some drawbar jobs run at or below {rules['load_pct_max']}% mean engine load; "
-                "the figures list which.", None)
-    return "applies", "The conditions in the evidence hold for this farm.", None
+def _apply(ctx: FarmContext, c) -> _Row:
+    app = json.loads(c.applicability)
+    machine = app.get("machine", {})
+
+    required = app.get("requires_operation")
+    if required and ctx.litres_by_op.get(required, 0) <= 0:
+        return _Row("not_feasible", f"You did no {required.replace('_', ' ')}, and this idea replaces it.")
+    if "fuel_type" in app and ctx.fuel_type not in app["fuel_type"]:
+        return _Row("not_feasible", f"This idea is for farms using {' or '.join(app['fuel_type']).replace('_', ' ')}; "
+                                        f"yours uses {ctx.fuel_type.replace('_', ' ')}.")
+
+    missing = None
+    key = app.get("unknown_input")
+    if key:
+        answer = ctx.known.get(key)
+        if answer is True:
+            return _Row("not_feasible", ALREADY_DONE[key])
+        missing = key if answer is None else missing
+    if "has_ctis" in machine:
+        answer = ctx.known.get("has_ctis")
+        if answer is True:
+            return _Row("not_feasible", "One of your tractors already has this system, so there is nothing new to gain.")
+        missing = "has_ctis" if answer is None else missing
+    if "ballast_type" in machine:
+        answer = ctx.known.get("ballast_type")
+        if answer is not None and answer != machine["ballast_type"]:
+            return _Row("not_feasible", "You have no liquid weight in your tyres, so there is nothing to take out.")
+        missing = "ballast_type" if answer is None else missing
+
+    if "rated_kw_max" in machine:
+        small = [t for t, kw in ctx.tractor_kw.items() if kw <= machine["rated_kw_max"]]
+        if not small:
+            return _Row("not_feasible", f"The research only covers small tractors, up to {machine['rated_kw_max']:g} kW. "
+                                        f"Your smallest tractor is {min(ctx.tractor_kw.values())} kW, so this does not apply to your farm.")
+        base = sum(ctx.litres_by_tractor[t] for t in small)
+    elif "load_pct_max" in app:
+        base = _drawbar_litres(ctx, app["load_pct_max"])
+        if base <= 0:
+            return _Row("not_feasible", f"None of your towed jobs (like ploughing) ran at an engine load of "
+                                        f"{app['load_pct_max']:g}% or less, so this does not apply to your farm.")
+    elif "fuel_type" in app:
+        base = ctx.total_litres
+    else:
+        base = _litres_in(ctx, app["operation_category"])
+        if base <= 0:
+            return _Row("not_feasible", f"You did no {' or '.join(app['operation_category']).replace('_', ' ')} work.")
+
+    state = "needs_info" if missing else "feasible"
+    factor = wtw_factor(ctx.fuel_type, EF_YEAR).kg_per_unit
+    if c.effect_type == "fuel_reduction_pct":
+        litres = (base * c.low / 100, base * c.high / 100)
+        return _Row(state, missing=missing, litres=litres, co2e=(litres[0] * factor, litres[1] * factor))
+    if c.effect_type == "litres_change_pct":  # HVO: more litres, far lower emission factor
+        old = emissions_kg(base, ctx.fuel_type, EF_YEAR, "estimated").kg_co2e
+        new = emissions_kg(base * (1 + c.value / 100), "hvo", EF_YEAR, "estimated").kg_co2e
+        return _Row(state, missing=missing, litres=(-base * c.value / 100,) * 2, co2e=(old - new,) * 2)
+    if c.effect_type == "ghg_reduction_pct":  # electric tractor: the source states GHG, not litres
+        total = emissions_kg(base, ctx.fuel_type, EF_YEAR, "estimated").kg_co2e
+        return _Row(state, missing=missing, co2e=(total * c.low / 100, total * c.high / 100))
+    raise ValueError(f"unhandled effect type {c.effect_type}")
 
 
-def _price_figure(litres_low: float, litres_high: float, sources: tuple[str, ...]) -> Figure:
-    p = fuel_price_range()
-    return Figure(None, "GBP", "estimated",
-                  f"{litres_low:,.0f} to {litres_high:,.0f} L x GBP {p.low:g}-{p.high:g}/L (Defra UKAMMG gas oil, "
-                  f"{p.from_month} to {p.to_month})", source_ids=sources + (p.source_id,),
-                  low=litres_low * p.low, high=litres_high * p.high)
+def _robustness(coefs: pd.DataFrame) -> tuple[str, int]:
+    src = _sources()
+    independent = {s for s in coefs.source_id if not src.loc[s, "is_manufacturer"] and src.loc[s, "evidence_type"] != "news"}
+    n = len(independent)
+    return ("strong" if n >= 3 else "moderate" if n == 2 else "limited"), n
 
 
-def _fuel_saving(rows: pd.DataFrame, farm: FarmProfile, rules: dict):
-    """Per job: litres x the % range of the evidence rows that cover it. Returns (low, high, jobs)."""
-    base = farm.ploughed_field_litres if rules.get("requires_operation") else farm.job_litres
-    low = high = 0.0
-    jobs = []
-    for op, litres in base.items():
-        hits = _eligible_rows(op, farm.working_load_pct.get(op), rows)
-        if hits.empty or litres <= 0:
-            continue
-        lo, hi = _pct_range(hits)
-        low, high = low + litres * lo, high + litres * hi
-        pct = f"{100 * lo:.1f}%" if lo == hi else f"{100 * lo:.1f}-{100 * hi:.1f}%"
-        jobs.append(f"{op} {litres:,.0f} L x {pct}")
-    return low, high, jobs
+def _text(value) -> str:
+    return "" if pd.isna(value) else str(value)
 
 
-def _figures(iid: str, rows: pd.DataFrame, farm: FarmProfile):
-    """(litres_saved, co2e_avoided, cost_saved, how) for an intervention that applies or is conditional."""
-    rules, effect = rows.rules.iloc[0], rows.effect_type.iloc[0]
-    sources = farm.source_ids + tuple(rows.source_id.unique())
-    go = wtw_factor(FUEL, EF_YEAR)
-    status = f"Coefficients are {rows.value_status.iloc[0].replace('_', ' ')}, not yet checked against the primary source."
-    co2_sources = sources + (go.source_id,)
-
-    if effect == "fuel_reduction_pct":
-        low, high, jobs = _fuel_saving(rows, farm, rules)
-        if not jobs:
-            return None
-        basis = ("working fuel on ploughed fields (allocated)" if rules.get("requires_operation")
-                 else "working fuel per job (measured)")
-        if any(j.startswith("transport ") for j in jobs):
-            basis += "; transport includes road transport (allocated)"
-        how = (f"{'; '.join(jobs)}. Base: {basis}; counts working fuel only, so it is conservative. "
-               f"Range spans {rows.source_id.nunique()} source(s). {status}")
-        if rules.get("load_pct_max"):
-            how += " Uses each job's mean engine load, so part-load time within a job is approximate."
-        return (Figure(None, "L", "estimated", how, sources, low, high),
-                Figure(None, "kg CO2e", "estimated", f"{low:,.0f} to {high:,.0f} L x {go.kg_per_unit:g} kg CO2e/L "
-                       f"(UK GHG CF {EF_YEAR}, well-to-wheel)", co2_sources, low * go.kg_per_unit, high * go.kg_per_unit),
-                _price_figure(low, high, sources), how)
-
-    if effect == "litres_change_pct":  # HVO: an emission-factor switch with slightly more litres
-        pct = float(rows.value.iloc[0]) / 100
-        hvo = wtw_factor("hvo", EF_YEAR)
-        litres = farm.total_litres
-        avoided = litres * go.kg_per_unit - litres * (1 + pct) * hvo.kg_per_unit
-        how = (f"HVO uses {100 * pct:.1f}% more litres: {litres:,.0f} L becomes {litres * (1 + pct):,.0f} L. "
-               f"CO2e: {litres:,.0f} L x {go.kg_per_unit:g} minus {litres * (1 + pct):,.0f} L x {hvo.kg_per_unit:g} "
-               f"kg CO2e/L (UK GHG CF {EF_YEAR}, well-to-wheel; biogenic CO2 outside scopes). HVO price is not "
-               f"sourced yet, so no cost figure. {status}")
-        return (Figure(-litres * pct, "L", "estimated", how, sources, -litres * pct, -litres * pct),
-                Figure(avoided, "kg CO2e", "estimated", how, co2_sources + (hvo.source_id,), avoided, avoided),
-                None, how)
-
-    if effect == "ghg_reduction_pct":  # electric tractor replaces eligible tractors' diesel
-        kw_max = rules["machine"]["rated_kw_max"]
-        litres = sum(t.litres for t in farm.tractors if t.rated_kw <= kw_max)
-        lo, hi = _pct_range(rows)
-        kg = litres * go.kg_per_unit
-        how = (f"{litres:,.0f} L of diesel on tractors up to {kw_max:g} kW; GHG {100 * lo:.1f}-{100 * hi:.1f}% lower "
-               f"including electricity. Electricity price is not sourced yet, so no cost figure. {status}")
-        return (Figure(None, "L", "estimated", how, sources, litres, litres),
-                Figure(None, "kg CO2e", "estimated", how, co2_sources, kg * lo, kg * hi), None, how)
-
-    raise ValueError(f"unknown effect type {effect} for {iid}")
+def _year(value) -> int | None:
+    return None if pd.isna(value) else int(value)
 
 
-def _evaluate(iid: str, rows: pd.DataFrame, farm: FarmProfile) -> RankedIntervention:
-    counted = rows[~rows.is_manufacturer & (rows.unit != "l_per_ha")]
-    context = tuple(rows[rows.is_manufacturer | (rows.unit == "l_per_ha")].source_id.unique())
-    status, reason, needs = _check(counted.rules.iloc[0], farm)
-    figs = _figures(iid, counted, farm) if status != "not_applicable" else None
-    if status != "not_applicable" and figs is None:
-        status, reason = "not_applicable", "No job on this farm meets the conditions in the evidence."
-    litres, co2e, cost, how = figs or (None, None, None, reason)
-    return RankedIntervention(0, iid, rows.intervention_name.iloc[0], status, reason, litres, co2e, cost,
-                              int(counted.source_id.nunique()), tuple(counted.source_id.unique()), context,
-                              OVERLAPS.get(iid, ()), needs, str(counted.value_status.iloc[0]), how)
+def _evidence(coefs: pd.DataFrame) -> tuple[Evidence, ...]:
+    src = _sources()
+    return tuple(Evidence(
+        coef_id=c.coef_id, source_id=c.source_id, title=src.loc[c.source_id, "title"], url=_text(src.loc[c.source_id, "url"]), link_status=_text(src.loc[c.source_id, "link_status"]),
+        evidence_type=src.loc[c.source_id, "evidence_type"], region=_text(src.loc[c.source_id, "region"]),
+        year=_year(src.loc[c.source_id, "year"]), is_manufacturer=bool(src.loc[c.source_id, "is_manufacturer"]),
+        low=float(c.low), high=float(c.high), unit=c.unit, baseline=c.baseline, derivation=c.derivation,
+        value_status=c.value_status, used_in_range=not _is_manufacturer(c.source_id),
+    ) for c in coefs.itertuples())
 
 
-def _robustness(r: RankedIntervention) -> tuple:
-    """Applies before conditional before not applicable; then the most certain CO2e saving; then more sources."""
-    floor = r.co2e_avoided_kg.low if r.co2e_avoided_kg else 0.0
-    return STATUS_ORDER.index(r.status), -floor, -r.n_sources
+def _width(low: float | None, high: float | None) -> float | None:
+    if low is None or high is None or low + high == 0:
+        return None
+    return (high - low) / ((high + low) / 2)
 
 
-def rank_interventions(farm: FarmProfile) -> list[RankedIntervention]:
-    rows = _coefficients()
-    out = sorted((_evaluate(iid, g, farm) for iid, g in rows.groupby("intervention_id", sort=False)), key=_robustness)
-    return [RankedIntervention(**{**vars(r), "rank": i}) for i, r in enumerate(out, 1)]
+STRENGTH_TEXT = {
+    "strong": "3 or more separate sources back it.",
+    "moderate": "2 separate sources back it.",
+    "limited": "only one source, or only claims by a maker, backs it.",
+}
 
 
-def farm_a_profile(facts: Mapping[str, object] | None = None) -> FarmProfile:
-    rows = farm_a_rows()
-    work = rows[rows.activity_class == "field_work"]
-    job = work.groupby("operation_code").litres.sum().to_dict()
-    job["transport"] = job.get("transport", 0.0) + float(rows[rows.activity_class == "road_transport"].litres.sum())
-    weighted = work.assign(w=work.litres * work.mean_load_pct).groupby("operation_code")[["w", "litres"]].sum()
-    ploughed = set(work[(work.operation_code == "ploughing") & work.field_id.notna()].field_id)
-    tractors = rows.groupby("tractor_id").litres.sum()
-    return FarmProfile(
-        farm_id="a", fuel_type=FUEL, total_litres=float(rows.litres.sum()),
-        job_litres={k: float(v) for k, v in job.items()},
-        working_load_pct=(weighted.w / weighted.litres).dropna().to_dict(),
-        ploughed_field_litres=work[work.field_id.isin(ploughed)].groupby("operation_code").litres.sum().to_dict(),
-        ploughed_fields=len(ploughed),
-        tractors=tuple(Tractor(f"Tractor {t[-1]}, {TRACTOR_KW[t]} kW", TRACTOR_KW[t], float(l))
-                       for t, l in tractors.items()),
-        facts=dict(facts or {}),
+def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: int, robustness: str) -> str:
+    if state == "not_feasible":
+        return reason
+    first = used.iloc[0]
+    if first.effect_type == "litres_change_pct":
+        return bullets(
+            "HVO is a diesel made from waste oils.",
+            f"Engines burn **about {first.value:g}% more** of it, but each litre releases **far less CO2**.",
+            f"We worked out the CO2 from UK government figures for {EF_YEAR}, not from a study's percentage.",
+        )
+    lows = [r.litres[0] for r in chosen if r.litres]
+    highs = [r.litres[1] for r in chosen if r.litres]
+    if lows:
+        what = f"{min(lows):,.0f} to {max(highs):,.0f} litres of fuel a year"
+    else:
+        what = f"{min(r.co2e[0] for r in chosen) / 1000:.1f} to {max(r.co2e[1] for r in chosen) / 1000:.1f} tonnes of CO2 a year"
+    lines = [
+        "Researchers measured how much fuel this idea saves.",
+        "We applied their **lowest and highest results** to the fuel your farm used on the matching work.",
+        f"That gives **{what}**.",
+        f"The evidence is **{robustness}**: {STRENGTH_TEXT[robustness]}",
+    ]
+    if state == "needs_info":
+        lines.append("It only applies if the answer to our question fits your farm.")
+    return bullets(*lines)
+
+
+def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame) -> InterventionResult:
+    # Manufacturer claims are shown as evidence but never set the range (CLAUDE.md section 6).
+    used = coefs[[not _is_manufacturer(s) for s in coefs.source_id]]
+    rows = [_apply(ctx, c) for c in used.itertuples()]
+    feasible = [r for r in rows if r.state == "feasible"]
+    needs = [r for r in rows if r.state == "needs_info"]
+    chosen, state = (feasible, "feasible") if feasible else (needs, "needs_info") if needs else ([], "not_feasible")
+    reason = rows[0].reason if state == "not_feasible" else None
+
+    litres = [r.litres for r in chosen if r.litres]
+    co2e = [r.co2e for r in chosen if r.co2e]
+    litres_low = min(l[0] for l in litres) if litres else None
+    litres_high = max(l[1] for l in litres) if litres else None
+    co2e_low = min(c[0] for c in co2e) if co2e else None
+    co2e_high = max(c[1] for c in co2e) if co2e else None
+    robustness, n_sources = _robustness(coefs)
+    width = _width(litres_low, litres_high) if litres else _width(co2e_low, co2e_high)
+
+    return InterventionResult(
+        intervention_id=intervention_id, name=coefs.intervention_name.iloc[0], state=state, reason=reason,
+        missing_inputs=tuple(dict.fromkeys(r.missing for r in chosen if r.missing)) if state == "needs_info" else (),
+        litres_saved_low=litres_low, litres_saved_high=litres_high, co2e_avoided_low=co2e_low, co2e_avoided_high=co2e_high,
+        robustness=robustness, n_sources=n_sources, relative_width=width, label="estimated",
+        how=_how(state, reason, chosen, used, n_sources, robustness),
+        overlaps=OVERLAPS.get(intervention_id, ()), evidence=_evidence(coefs),
     )
+
+
+def evaluate(ctx: FarmContext) -> list[InterventionResult]:
+    return [_evaluate_one(ctx, iv, g) for iv, g in _coefficients().groupby("intervention_id", sort=False)]
+
+
+def rank_interventions(ctx: FarmContext) -> list[InterventionResult]:
+    return sorted(evaluate(ctx), key=lambda r: (
+        STATE_ORDER[r.state], ROBUST_ORDER[r.robustness], 1e9 if r.relative_width is None else r.relative_width, r.name))
+
+
+def required_operation(intervention_id: str) -> str | None:
+    rows = _coefficients()
+    first = rows[rows.intervention_id == intervention_id].applicability.iloc[0]
+    return json.loads(first).get("requires_operation")

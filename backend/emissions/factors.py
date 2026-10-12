@@ -32,6 +32,7 @@ def _table() -> pd.DataFrame:
     return pd.read_csv(EF_CSV)
 
 
+@lru_cache(maxsize=None)
 def wtw_factor(fuel_type: str, year: int) -> Factor:
     rows = _table()
     rows = rows[(rows.fuel_type == fuel_type) & (rows.year == year) & (rows.component != EXCLUDED_COMPONENT)]

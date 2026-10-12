@@ -1,25 +1,20 @@
-from fastapi import FastAPI, HTTPException
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException, Query
 
 from backend.emissions.data import farm_a_breakdown, farm_a_totals
-from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW
+from backend.emissions.farm_summary import TRACTOR_KW
 from backend.emissions.pain_points import above_range, farm_a_ratings
-from backend.ranking.interventions import farm_a_profile, rank_interventions
+from backend.emissions.provenance import PROVENANCE
+from backend.emissions.sources import all_sources
+from backend.tools.generate_report import generate_report
+from backend.tools.rank_interventions import rank_interventions
+from backend.tools.set_goal import set_goal
+from backend.tools.what_would_improve import what_would_improve
 
 app = FastAPI(title="FieldCarbon API")
 
 GROUPINGS = {"operation", "tractor", "field"}
-
-PROVENANCE = {
-    "dataset": "Agricultural Load Cycles: Tractor Mission Profiles From Recorded GNSS and CAN Bus Data, "
-               "Götz K. (2025), Zenodo, doi:10.5281/zenodo.14619787; article: Götz K., Kusuma A., Dörfler A., "
-               "Lienkamp M., Data in Brief 60 (2025) 111494, doi:10.1016/j.dib.2025.111494",
-    "licence": "CC-BY-4.0",
-    "attribution": "Technical University of Munich. Changes by FieldCarbon: tractor brands removed, "
-                   "frozen-logger stretches excluded, data aggregated, per-field figures allocated by GPS geometry.",
-    "emission_factors": f"UK GHG Conversion Factors {EF_YEAR}, gas oil, well-to-wheel",
-    "demo_data": True,
-}
-
 
 def _require_farm_a(farm_id: str) -> None:
     if farm_id != "a":
@@ -58,8 +53,40 @@ def get_pain_points(farm_id: str):
     return {"ratings": ratings, "above_range": above_range(ratings), "not_working": not_working}
 
 
+def _answers(tyre_pressure_checked: bool | None, has_ctis: bool | None, ballast_type: str | None) -> dict:
+    """The farmer's answers; an unanswered question is simply absent."""
+    given = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
+    return {k: v for k, v in given.items() if v is not None}
+
+
 @app.get("/api/farms/{farm_id}/interventions")
-def get_interventions(farm_id: str):
+def get_interventions(farm_id: str, tyre_pressure_checked: bool | None = None, has_ctis: bool | None = None,
+                      ballast_type: Literal["liquid", "none"] | None = None):
     _require_farm_a(farm_id)
-    return {"interventions": rank_interventions(farm_a_profile()),
-            "note": "Savings act on overlapping fuel, so they are not added up."}
+    return rank_interventions(farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+@app.get("/api/sources")
+def get_sources():
+    return all_sources()
+
+
+@app.get("/api/farms/{farm_id}/goal")
+def get_goal(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+             has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return set_goal(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+@app.get("/api/farms/{farm_id}/sharpen")
+def get_sharpen(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+                has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return what_would_improve(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+@app.get("/api/farms/{farm_id}/report")
+def get_report(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+               has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return generate_report(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))

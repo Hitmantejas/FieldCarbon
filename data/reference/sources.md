@@ -9,8 +9,9 @@ what is still open.
 |---|---|---|
 | `ref_emission_factors.csv` | UK GHG CF 2025 + 2026, one row per component (Scope 1, WTT, T&D) | Read from official flat files 2026-10-08 |
 | `ref_fuel_use_rates.csv` | Iowa A3-27 (rev. Feb 2026) and Purdue AE-110 (1980), diesel, L/ha | Read from sources 2026-10-08; 1 gal/ac = 9.354 L/ha |
-| `ref_operations.csv` | TUM work types → operation codes → rate rows, with `match_quality` | Our mapping (direct / closest / composite / none) |
+| `ref_operations.csv` | TUM work types → operation codes → rate rows, with `match_quality` and `drive_type` (drawbar / pto / none) | Our mapping (direct / closest / composite / none). `drive_type` is our own classification, used only to apply the drawbar-only condition of the shift-up evidence; PTO-run jobs are treated as not eligible |
 | `ref_interventions.csv` | Intervention coefficients from the problem-statement research table | `from_problem_statement` until checked against primary source |
+| `ref_intervention_costs.csv` | Cost evidence for 5 interventions (CTIS, HVO, no-till, reduced tillage, tyre gauge); sign convention: positive = extra cost, negative = saving | Researched 2026-10-10; weak and dated; HVO and gauge rows `needs_primary_check` |
 | `ref_fuel_prices.csv` | Red diesel p/litre per month, Sep 2025–Aug 2026 (Jul 2026 not published) | Read from UKAMMG PDFs 2026-10-08; VAT basis and underlying source not stated in reports |
 
 ## Method notes
@@ -47,3 +48,17 @@ Telemetry: Götz, K. (2025). *Agricultural Load Cycles: Tractor Mission Profiles
 and CAN Bus Data* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.14619787 — and Götz K., Kusuma
 A., Dörfler A., Lienkamp M. (2025), Data in Brief 60, 111494. Changes: brand names removed, data
 cleaned, aggregated by operation, machine and field.
+
+## Intervention costs (added 2026-10-10)
+- **Priced:** CTIS (2022 trade press), HVO premium (council report, not opened), no-till and reduced
+  tillage (2006 Farmers Weekly / TAG tables and an AHDB research page), tyre gauge (retail listing).
+- **Not priced, and never shown as zero:** liquid ballast (forum posts only), shift-up / throttle-down
+  (the Virginia Tech page is withdrawn; nothing sourced says what training costs), electric tractor
+  (evidence covers under 22 kW only, so it is not feasible for this farm anyway).
+- **Cost types differ on purpose:** `capex_one_off` (payback possible), `running_cost_extra_per_litre`
+  and `operating_cost_per_area_change` (a yearly change in running cost, no payback). Tillage rows
+  are **savings per hectare of establishment** and come from 2006 and ~2003 data: use them as a
+  direction and rough size, not a current figure. Buying a drill is not priced.
+- **Needs a real quote:** HVO (ask a fuel supplier; red diesel duty is cut from 10.18p to 6.48p/L from
+  15 June to end 2026 and may cover biofuels, unconfirmed) and any CTIS or drill purchase.
+- Wisconsin custom rates were dropped: they price one drilling pass only, not the whole system.
