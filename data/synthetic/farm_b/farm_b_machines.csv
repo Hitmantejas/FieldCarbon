@@ -1,0 +1,6 @@
+machine_id,name,rated_kw,fuel_type,label
+tractor_1,"Tractor 1, 77 kW",77,gas_oil,user-provided
+tractor_2,"Tractor 2, 104 kW",104,gas_oil,user-provided
+tractor_3,"Tractor 3, 140 kW",140,gas_oil,user-provided
+tractor_4,"Tractor 4, 163 kW",163,gas_oil,user-provided
+tractor_5,"Tractor 5, 174 kW",174,gas_oil,user-provided
