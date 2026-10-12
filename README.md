@@ -135,9 +135,9 @@ https://doi.org/10.1016/j.dib.2025.111494.
 
 ## How to see it
 
-- Start the backend server in one terminal using :
- .venv\Scripts\python -m uvicorn backend.api.main:app --port 8080.
-- Start the web page in another: 
-  cd frontend, 
-  npm run dev.
-- Open http://localhost:5173.
+Start the backend server in one terminal using :
+-  .venv\Scripts\python -m uvicorn backend.api.main:app --port 8080.
+Start the web page in another: 
+-  cd frontend, 
+-  npm run dev.
+Open http://localhost:5173.
