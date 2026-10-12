@@ -5,15 +5,15 @@ from pathlib import Path
 import pandas as pd
 
 from backend.emissions.factors import emissions_kg
+from backend.tools.contracts import Figure, weakest
 
 REF = Path(__file__).resolve().parents[2] / "data" / "reference"
 AGG = Path(__file__).resolve().parents[2] / "data" / "aggregated"
 
-FUEL = "gas_oil"  # red diesel; TUM is a 2024 season, so the 2025 factor set (CLAUDE.md section 6)
+FUEL = "gas_oil"  # red diesel; TUM is a 2024 season, so the 2025 factor set
 EF_YEAR = 2025
-
-# Weakest label wins (CLAUDE.md section 5).
-LABEL_STRENGTH = ["measured", "allocated", "estimated"]
+TELEMETRY_SOURCE = "tum_alc_data"
+EXCLUDED_CLASS = "data_gap"  # frozen logger stretches: reported separately, never counted
 
 # Rated power from the TUM article, Table 1; brands are anonymised.
 TRACTOR_KW = {"tractor_1": 77, "tractor_2": 104, "tractor_3": 140, "tractor_4": 163, "tractor_5": 174}
@@ -24,16 +24,6 @@ CLASS_NAMES = {
     "idle": "Idling",
     "offroad_unassigned": "Off-road, unassigned",
 }
-
-
-@dataclass(frozen=True)
-class Figure:
-    value: float | None  # None for a range-only figure such as cost
-    unit: str
-    label: str
-    how: str
-    low: float | None = None
-    high: float | None = None
 
 
 @dataclass(frozen=True)
@@ -72,19 +62,16 @@ def fuel_price_range() -> PriceRange:
                       p.price_month.min()[:7], p.price_month.max()[:7], p.source_id.iloc[0])
 
 
-def _weakest(labels) -> str:
-    return max(labels, key=LABEL_STRENGTH.index)
-
-
 def _figures(litres: float, label: str, litres_how: str) -> tuple[Figure, Figure, Figure]:
     price = fuel_price_range()
     e = emissions_kg(litres, FUEL, EF_YEAR, label)
     return (
-        Figure(litres, "L", label, litres_how),
-        Figure(e.kg_co2e, "kg CO2e", label, e.formula),
+        Figure(litres, "L", label, litres_how, source_ids=(TELEMETRY_SOURCE,)),
+        Figure(e.kg_co2e, "kg CO2e", label, e.formula, source_ids=(TELEMETRY_SOURCE, e.factor.source_id)),
         Figure(None, "GBP", "estimated",
                f"{litres:g} L x GBP {price.low:g}-{price.high:g}/L (Defra UKAMMG gas oil, {price.from_month} to "
                f"{price.to_month}; TUM dates are anonymised, so a price range is used; VAT basis not stated)",
+               source_ids=(TELEMETRY_SOURCE, price.source_id),
                low=litres * price.low, high=litres * price.high),
     )
 
@@ -92,7 +79,8 @@ def _figures(litres: float, label: str, litres_how: str) -> tuple[Figure, Figure
 def summarise(rows: pd.DataFrame) -> Summary:
     litres, co2e, cost = _figures(float(rows.litres.sum()), "measured",
                                   "Engine fuel-rate (J1939) integrated over time, TUM Agricultural Load Cycles")
-    return Summary(litres, co2e, cost, float(rows.hours.sum()))
+    # Engine hours leave out frozen logger stretches; those are reported separately as excluded hours.
+    return Summary(litres, co2e, cost, float(rows[rows.activity_class != EXCLUDED_CLASS].hours.sum()))
 
 
 def _key_and_name(rows: pd.DataFrame, by: str) -> pd.DataFrame:
@@ -118,8 +106,10 @@ def breakdown(rows: pd.DataFrame, by: str) -> list[BreakdownRow]:
     total = rows.litres.sum()
     out = []
     for key, g in rows.groupby("key"):
+        # A tractor's own total is measured directly; its split by activity does not change it.
         # Per-field figures stay allocated even when litres are measured: boundaries have no ground truth.
-        label = "allocated" if by == "field" else _weakest(g.attribution_label)
+        # By operation, the weakest label of the attributed rows wins.
+        label = {"tractor": "measured", "field": "allocated"}.get(by) or weakest(g.attribution_label)
         litres, co2e, cost = _figures(float(g.litres.sum()), label,
                                       f"Measured telemetry litres attributed by {by} ({label})")
         out.append(BreakdownRow(key, g.name.iloc[0], litres, co2e, cost, float(g.hours.sum()),

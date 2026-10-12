@@ -33,6 +33,13 @@ const MATCH_NOTE: Record<Rating["match_quality"], string | null> = {
   none: null,
 };
 
+// Purdue AE-110 is a second opinion on the Iowa band; disagreement lowers confidence, it never hides the job.
+const AGREEMENT: Record<string, string> = {
+  true: "Both rate tables put you above typical.",
+  false: "Only one of two rate tables puts you above typical, so we are less sure about this one.",
+  null: "Only one rate table covers this job.",
+};
+
 function BandTag({ band }: { band: Band }) {
   return (
     <span className={`inline-block whitespace-nowrap px-2 py-1 font-mono text-xs uppercase tracking-widest ${BAND_FORM[band]}`}>
@@ -76,12 +83,14 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
           {above.count > 0 ? (
             <>
               <span className="font-bold">
-                {above.count} {above.count === 1 ? "job" : "jobs"} above the typical range.
-              </span>{" "}
+                {above.count} {above.count === 1 ? "job" : "jobs"} above the typical range
+              </span>
+              {", "}
+              both rate tables agree on {above.count_sources_agree}.{" "}
               <span className="bg-mark px-2 py-0.5 num text-on-mark">
                 {litres(above.litres_low)} to {litres(above.litres_high)} L
               </span>{" "}
-              at stake.
+              at stake <Stamp label={above.label} />
             </>
           ) : (
             <span className="font-bold">No job is above its typical range.</span>
@@ -114,10 +123,14 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
                   <span className="num mt-2 block text-sm">
                     You {r.l_per_ha!.toFixed(1)} L/ha. Typical {range(r)}.
                   </span>
-                  <span className="mt-2 block">
-                    About <span className="num">{litres(r.litres_at_stake_low)} to {litres(r.litres_at_stake_high)} L</span>{" "}
-                    over {r.hectares.toFixed(0)} ha.
+                  <span className="mt-2 flex flex-wrap items-center gap-3">
+                    <span>
+                      About <span className="num">{litres(r.litres_at_stake_low)} to {litres(r.litres_at_stake_high)} L</span>{" "}
+                      over {r.hectares.toFixed(0)} ha.
+                    </span>
+                    <Stamp label={r.litres_at_stake_label} />
                   </span>
+                  <span className="mt-2 block text-sm">{AGREEMENT[String(r.sources_agree)]}</span>
                   <span className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
                     <Stamp label={r.label} />
                     {MATCH_NOTE[r.match_quality]}

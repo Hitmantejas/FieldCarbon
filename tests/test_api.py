@@ -43,6 +43,21 @@ def test_pain_points_endpoint():
     assert bands["ploughing"] == "above_typical"
 
 
+def test_summary_hours_exclude_frozen_data_and_attribution_is_complete():
+    body = client.get("/api/farms/a/summary").json()
+    assert body["excluded_hours"] > 90 and body["hours"] < 800    # 95.7 h excluded, not double counted
+    assert "10.5281/zenodo.14619787" in body["provenance"]["dataset"]
+    assert "Götz" in body["provenance"]["dataset"]
+    assert body["litres"]["source_ids"] == ["tum_alc_data"]
+
+
+def test_pain_points_show_where_the_two_sources_agree():
+    body = client.get("/api/farms/a/pain-points").json()
+    agree = {r["operation_code"]: r["sources_agree"] for r in body["ratings"]}
+    assert agree["ploughing"] is False and agree["seedbed_combination"] is True
+    assert body["above_range"]["label"] == "estimated"
+
+
 def test_pain_points_carry_plain_explanations_and_a_summary():
     body = client.get("/api/farms/a/pain-points").json()
     assert all(r["how"] for r in body["ratings"])

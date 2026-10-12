@@ -8,7 +8,7 @@ Re-runnable: existing bucket/dataset are reused, objects synced, tables replaced
   python infra/load_gcp.py --apply --steps verify,export
 
 Steps: preflight, bucket, upload, dataset, ddl, load_reference, load_telemetry, load_provenance,
-       aggregate, verify, export
+       aggregate, views, verify, export
 """
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ REF = ROOT / "data" / "reference"
 AGG = ROOT / "data" / "aggregated"
 DDL = ROOT / "backend" / "emissions" / "ddl" / "001_tables.sql"
 AGG_SQL = ROOT / "backend" / "emissions" / "views" / "010_farm_a_aggregation.sql"
+VIEWS_SQL = ROOT / "backend" / "emissions" / "views" / "020_emissions_views.sql"
 
 PROJECT = "ai-hackathon-india"
 REGION = "us-central1"
@@ -40,7 +41,7 @@ LABELS = "app=fieldcarbon"
 REF_TABLES = ["ref_sources", "ref_emission_factors", "ref_fuel_use_rates", "ref_operations",
               "ref_interventions", "ref_fuel_prices"]
 STEPS = ["preflight", "bucket", "upload", "dataset", "ddl", "load_reference", "load_telemetry",
-         "load_provenance", "aggregate", "verify", "export"]
+         "load_provenance", "aggregate", "views", "verify", "export"]
 
 
 class Runner:
@@ -189,6 +190,11 @@ def load_provenance(r: Runner) -> None:
 
 def aggregate(r: Runner) -> None:
     r.sql(render(AGG_SQL))
+
+
+def views(r: Runner) -> None:
+    # Calculated views (litres x emission factor in BigQuery); they read farm_a_operations, so run after aggregate.
+    r.sql(render(VIEWS_SQL))
 
 
 def verify(r: Runner) -> None:
