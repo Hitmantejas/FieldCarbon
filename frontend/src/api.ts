@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 export type Label = "measured" | "allocated" | "estimated" | "excluded";
 
+// Farm A: real telemetry (Tier 1). Farm B: the same farm through receipts and a farm profile (Tier 3).
+export type FarmId = "a" | "b";
+
 export interface Figure {
   value: number | null;
   unit: string;
@@ -25,10 +28,20 @@ export interface Summary {
   litres: Figure;
   co2e_kg: Figure;
   cost_gbp: Figure;
-  hours: number;
+  hours: number | null; // receipts carry no engine hours
   tractors: string[];
-  excluded_hours: number;
-  provenance: { dataset: string; licence: string; attribution: string; emission_factors: string; demo_data: boolean };
+  excluded_hours: number | null;
+  receipts?: number;
+  review_litres?: number;
+  provenance: {
+    dataset: string;
+    licence?: string;
+    attribution?: string;
+    emission_factors: string;
+    fuel_use_rates?: string;
+    data_source?: string;
+    demo_data: boolean;
+  };
 }
 
 export interface BreakdownRow {
@@ -37,7 +50,7 @@ export interface BreakdownRow {
   litres: Figure;
   co2e_kg: Figure;
   cost_gbp: Figure;
-  hours: number;
+  hours: number | null;
   share_pct: number;
 }
 
@@ -62,9 +75,11 @@ export interface Rating {
 }
 
 export interface PainPoints {
+  available?: boolean; // false for receipts only: rating jobs against the rates that made the estimate is circular
+  reason?: string;
   ratings: Rating[];
-  above_range: { count: number; litres_low: number; litres_high: number; count_sources_agree: number; label: Label };
-  not_working: { litres: number; total_litres: number; share_pct: number; label: Label };
+  above_range: { count: number; litres_low: number; litres_high: number; count_sources_agree: number; label: Label } | null;
+  not_working: { litres: number; litres_low?: number; litres_high?: number; total_litres: number; share_pct: number; label: Label };
 }
 
 export interface SourceInfo {
@@ -185,7 +200,8 @@ export interface Sharpen {
 
 export interface Report {
   meta: { title: string; farm: string; demo_data: boolean; generated_at: string; statement: string };
-  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; engine_hours: number; excluded_hours: number };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; engine_hours: number | null; excluded_hours: number | null };
+  pain_points_note?: string;
   where_it_went: { name: string; share_pct: number; litres: Figure }[];
   pain_points: {
     name: string;
@@ -226,6 +242,7 @@ export type State<T> = { data?: T; error?: string };
 export function useApi<T>(path: string): State<T> {
   const [state, setState] = useState<State<T>>({});
   useEffect(() => {
+    setState({}); // a new path (another farm) must never show the previous answer
     const ac = new AbortController();
     fetch(path, { signal: ac.signal })
       .then((r) => {

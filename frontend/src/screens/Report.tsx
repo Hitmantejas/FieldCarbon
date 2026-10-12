@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { query, useApi, type Answers, type Report as ReportData } from "../api";
+import { query, useApi, type Answers, type FarmId, type Report as ReportData } from "../api";
 import { gbpFull, goalText, litres } from "../format";
 import { QUESTIONS, plain } from "../names";
 import { costLine, tonnesSpan, span } from "../planText";
@@ -34,8 +34,8 @@ function Line({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export function Report({ pct, answers }: { pct: number | null; answers: Answers }) {
-  const { data: r, error } = useApi<ReportData>(`/api/farms/a/report${query({ target_pct: pct ?? undefined, ...answers })}`);
+export function Report({ farm, pct, answers }: { farm: FarmId; pct: number | null; answers: Answers }) {
+  const { data: r, error } = useApi<ReportData>(`/api/farms/${farm}/report${query({ target_pct: pct ?? undefined, ...answers })}`);
 
   if (error && !r) {
     return (
@@ -91,13 +91,17 @@ export function Report({ pct, answers }: { pct: number | null; answers: Answers 
             <span className="num">{span(r.totals.cost_gbp, gbpFull)}</span>
             <Stamp label={r.totals.cost_gbp.label} />
           </Line>
-          <Line label="Time worked">
-            <span className="num">{litres(r.totals.engine_hours)} hours</span>
-          </Line>
+          {r.totals.engine_hours !== null && (
+            <Line label="Time worked">
+              <span className="num">{litres(r.totals.engine_hours)} hours</span>
+            </Line>
+          )}
         </ul>
-        <p className="mt-3 max-w-[65ch] text-sm">
-          We left out {litres(r.totals.excluded_hours)} hours where the recorder froze.
-        </p>
+        {r.totals.excluded_hours !== null && (
+          <p className="mt-3 max-w-[65ch] text-sm">
+            We left out {litres(r.totals.excluded_hours)} hours where the recorder froze.
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="went-h" className={section} style={step(5)}>
@@ -105,7 +109,12 @@ export function Report({ pct, answers }: { pct: number | null; answers: Answers 
         <ul>
           {r.where_it_went.map((w) => (
             <Line key={w.name} label={w.name}>
-              <span className="num">{litres(w.litres.value!)} litres</span>
+              <span className="num">
+                {w.litres.low !== null && w.litres.high !== null && w.litres.low !== w.litres.high
+                  ? `${litres(w.litres.low)} to ${litres(w.litres.high)}`
+                  : litres(w.litres.value!)}{" "}
+                litres
+              </span>
               <Stamp label={w.litres.label} />
             </Line>
           ))}
@@ -114,7 +123,7 @@ export function Report({ pct, answers }: { pct: number | null; answers: Answers 
 
       <section aria-labelledby="pain-r-h" className={section} style={step(6)}>
         <SectionHead id="pain-r-h" title="Jobs using more fuel than usual" tone="mark" note={`${r.pain_points.length}`} />
-        {r.pain_points.length === 0 && <p>No job is above its typical range.</p>}
+        {r.pain_points.length === 0 && <p>{r.pain_points_note ?? "No job is above its typical range."}</p>}
         <ul>
           {r.pain_points.map((p) => (
             <li key={p.name} className="break-inside-avoid border-b border-rule py-4 last:border-b-0">

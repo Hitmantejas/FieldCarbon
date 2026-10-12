@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { query, useApi, type Answers, type Goal, type GoalIdea, type Intervention } from "../api";
+import { query, useApi, type Answers, type FarmId, type Goal, type GoalIdea, type Intervention } from "../api";
 import { goalText, gbpFull, litres } from "../format";
 import { IDEA, QUESTION_FOR, QUESTIONS, plain } from "../names";
 import { costLine, costShort, sizeText, span, tonnesSpan } from "../planText";
@@ -70,6 +70,12 @@ function IdeaCard({ item, idea, target, scale, names, answers, unsure, onAnswer,
       </div>
 
       {maybe && field && <QuestionBox field={field} answer={answers[field]} unsure={unsure[field]} onAnswer={onAnswer} />}
+      {maybe && item.missing_inputs.includes("engine_load") && (
+        <p className="mt-3 border-2 border-dashed border-ink p-3">
+          We cannot tell from receipts how hard your towed jobs work the engine. Engine data from the tractor would show
+          whether this applies.
+        </p>
+      )}
       <YourAnswer item={item} answers={answers} onAnswer={onAnswer} />
 
       {reach && (
@@ -181,15 +187,16 @@ function IdeaCard({ item, idea, target, scale, names, answers, unsure, onAnswer,
 }
 
 interface PlanProps extends Common {
+  farm: FarmId;
   onNext: () => void;
   unsure: Partial<Record<keyof Answers, boolean>>;
   pct: number | null;
   setPct: (n: number) => void;
 }
 
-export function Plan({ pct, setPct, answers, unsure, onAnswer, onNext }: PlanProps) {
-  const ideas = useApi<Intervention[]>(`/api/farms/a/interventions${query({ ...answers })}`);
-  const goal = useApi<Goal>(`/api/farms/a/goal${query({ target_pct: pct ?? undefined, ...answers })}`);
+export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: PlanProps) {
+  const ideas = useApi<Intervention[]>(`/api/farms/${farm}/interventions${query({ ...answers })}`);
+  const goal = useApi<Goal>(`/api/farms/${farm}/goal${query({ target_pct: pct ?? undefined, ...answers })}`);
   // null = not typed in; a typed value that is not a preset is shown in the box and counts as the chosen goal.
   const [custom, setCustom] = useState<string | null>(null);
   const [opened, setOpened] = useState<Opened | null>(null);

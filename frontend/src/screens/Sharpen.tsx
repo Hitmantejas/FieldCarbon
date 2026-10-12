@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { query, useApi, type Answers, type Sharpen as SharpenData, type SharpenQuestion } from "../api";
+import { query, useApi, type Answers, type FarmId, type Sharpen as SharpenData, type SharpenQuestion } from "../api";
 import { litres } from "../format";
 import { QUESTIONS, plain } from "../names";
 import { span } from "../planText";
@@ -13,6 +13,7 @@ import { Stamp } from "../components/Stamp";
 const step = (i: number) => ({ "--i": i }) as CSSProperties;
 
 interface Props {
+  farm: FarmId;
   pct: number | null;
   answers: Answers;
   unsure: Partial<Record<keyof Answers, boolean>>;
@@ -23,8 +24,8 @@ interface Props {
 const answerText = (field: keyof Answers, value: boolean | string) =>
   [QUESTIONS[field].yes, QUESTIONS[field].no].find((o) => o.value === value)?.label ?? String(value);
 
-export function Sharpen({ pct, answers, unsure, onAnswer, onNext }: Props) {
-  const { data, error } = useApi<SharpenData>(`/api/farms/a/sharpen${query({ target_pct: pct ?? undefined, ...answers })}`);
+export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props) {
+  const { data, error } = useApi<SharpenData>(`/api/farms/${farm}/sharpen${query({ target_pct: pct ?? undefined, ...answers })}`);
 
   if (error && !data) {
     return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useApi, type Answers, type PainPoints, type Summary } from "./api";
+import { useApi, type Answers, type FarmId, type PainPoints, type Summary } from "./api";
 import { Docket, type StopId } from "./components/Docket";
 import { Farm } from "./screens/Farm";
 import { Pain } from "./screens/Pain";
@@ -10,13 +10,15 @@ import { SourcesProvider } from "./sources";
 
 export default function App() {
   const [stop, setStop] = useState<StopId>("farm");
+  // Both farms are the same real farm, so the goal and the answers carry over when switching.
+  const [farm, setFarm] = useState<FarmId>("a");
   // The goal and the farmer's answers live here so they survive moving between screens.
   const [pct, setPct] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   // "Not sure" is kept too, but it is the absence of an answer, so it never goes to the API.
   const [unsure, setUnsure] = useState<Partial<Record<keyof Answers, boolean>>>({});
-  const summary = useApi<Summary>("/api/farms/a/summary");
-  const pain = useApi<PainPoints>("/api/farms/a/pain-points");
+  const summary = useApi<Summary>(`/api/farms/${farm}/summary`);
+  const pain = useApi<PainPoints>(`/api/farms/${farm}/pain-points`);
 
   const onAnswer = (field: keyof Answers, value: boolean | string | undefined) => {
     setAnswers((a) => {
@@ -34,20 +36,23 @@ export default function App() {
   };
 
   const s = summary.data;
-  const attribution = s ? `${s.provenance.dataset}. ${s.provenance.licence}. ${s.provenance.attribution}` : undefined;
+  const p = s?.provenance;
+  const attribution = p
+    ? [p.dataset, p.licence, p.attribution, p.fuel_use_rates, p.data_source && `Source: ${p.data_source}`].filter(Boolean).join(". ")
+    : undefined;
 
   return (
     <SourcesProvider>
-      <Docket current={stop} onGo={setStop} attribution={attribution}>
-        {stop === "farm" && <Farm summary={summary} pain={pain} onNext={() => setStop("pain")} />}
+      <Docket current={stop} onGo={setStop} farm={farm} onFarm={setFarm} attribution={attribution}>
+        {stop === "farm" && <Farm farm={farm} summary={summary} pain={pain} onNext={() => setStop("pain")} />}
         {stop === "pain" && <Pain pain={pain} onNext={() => setStop("plan")} />}
         {stop === "plan" && (
-          <Plan pct={pct} setPct={setPct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("sharpen")} />
+          <Plan farm={farm} pct={pct} setPct={setPct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("sharpen")} />
         )}
         {stop === "sharpen" && (
-          <Sharpen pct={pct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("report")} />
+          <Sharpen farm={farm} pct={pct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("report")} />
         )}
-        {stop === "report" && <Report pct={pct} answers={answers} />}
+        {stop === "report" && <Report farm={farm} pct={pct} answers={answers} />}
       </Docket>
     </SourcesProvider>
   );

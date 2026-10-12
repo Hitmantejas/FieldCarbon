@@ -82,7 +82,37 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
   }
   if (!pain.data) return <p className="px-4 pb-6 text-ink-soft">Loading pain points...</p>;
 
-  const { ratings, above_range: above, not_working: idle } = pain.data;
+  if (pain.data.available === false) {
+    return (
+      <>
+        <section aria-labelledby="pain-h" className="print px-4 pb-6" style={step(3)}>
+          <h2 id="pain-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+            Pain points
+          </h2>
+          <div className="mt-4 border-2 border-dashed border-ink p-4">
+            <p className="font-bold">Not available for this view of the farm.</p>
+            <p className="mt-2 max-w-[65ch]">{pain.data.reason}</p>
+            <p className="mt-2 max-w-[65ch] text-ink-soft">
+              Your job split comes from typical fuel use per hectare, so comparing it with typical fuel use would only
+              repeat the estimate back to you.
+            </p>
+          </div>
+        </section>
+        <div className="no-print px-4 pb-6">
+          <button
+            onClick={onNext}
+            className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          >
+            Next: Plan
+            <Arrow />
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  const { ratings, not_working: idle } = pain.data;
+  const above = pain.data.above_range!;
   const flagged = ratings.filter((r) => r.band === "above_typical" || r.band === "well_above");
   const fine = ratings.filter((r) => r.band === "typical" || r.band === "below_typical");
   const unrated = ratings.filter((r) => r.band === "insufficient_data" || r.band === "no_reference");

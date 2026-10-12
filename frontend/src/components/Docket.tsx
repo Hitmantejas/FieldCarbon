@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import type { FarmId } from "../api";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type StopId = "farm" | "pain" | "plan" | "sharpen" | "report";
@@ -12,16 +13,24 @@ export const STOPS: { id: StopId; name: string; built: boolean }[] = [
   { id: "report", name: "Report", built: true },
 ];
 
+// Same real farm, two data tiers (CLAUDE.md section 5, Demo).
+export const FARMS: { id: FarmId; name: string; tier: string }[] = [
+  { id: "a", name: "Farm A", tier: "Telemetry" },
+  { id: "b", name: "Farm B", tier: "Receipts" },
+];
+
 const step = (i: number) => ({ "--i": i }) as CSSProperties;
 
 interface Props {
   current: StopId;
   onGo: (id: StopId) => void;
+  farm: FarmId;
+  onFarm: (id: FarmId) => void;
   attribution?: string;
   children: ReactNode;
 }
 
-export function Docket({ current, onGo, attribution, children }: Props) {
+export function Docket({ current, onGo, farm, onFarm, attribution, children }: Props) {
   const screen = useRef<HTMLDivElement>(null);
   const first = useRef(true);
 
@@ -47,9 +56,21 @@ export function Docket({ current, onGo, attribution, children }: Props) {
         >
           Demo data: illustrative
         </p>
-        <header className="print flex items-baseline justify-between px-4 pb-1 pt-5" style={step(1)}>
+        <header className="print flex flex-wrap items-end justify-between gap-3 px-4 pb-1 pt-5" style={step(1)}>
           <h1 className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide">FieldCarbon</h1>
-          <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Farm A</span>
+          <div role="group" aria-label="Which view of the farm" className="flex gap-1 font-mono text-xs uppercase tracking-widest">
+            {FARMS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => onFarm(f.id)}
+                aria-pressed={farm === f.id}
+                className={`btn-tab min-h-11 border-2 px-2 text-left leading-tight uppercase ${farm === f.id ? "border-ink bg-ink font-bold text-paper" : "border-rule text-ink-soft hover:border-ink"}`}
+              >
+                {f.name}
+                <span className="block text-[0.65rem] font-normal">{f.tier}</span>
+              </button>
+            ))}
+          </div>
         </header>
         <nav aria-label="Steps" className="print no-print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
           <ol className="flex min-w-max items-end gap-5 border-b-2 border-ink font-mono text-xs uppercase tracking-widest">

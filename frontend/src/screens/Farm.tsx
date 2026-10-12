@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
-import { useApi, type BreakdownRow, type PainPoints, type State, type Summary } from "../api";
+import { useApi, type BreakdownRow, type FarmId, type Figure, type PainPoints, type State, type Summary } from "../api";
 import { gbp, litres, pct, tonnes } from "../format";
+import { span } from "../planText";
 import { Arrow } from "../components/Arrow";
 import { CountUp } from "../components/CountUp";
 import { RangeBar, ShareBar } from "../components/RangeBar";
@@ -11,14 +12,18 @@ import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 const step = (i: number) => ({ "--i": i }) as CSSProperties;
 const TOP_ROWS = 7;
 
+// An estimated job split is a range; a measured or allocated one is a single number.
+const litresText = (f: Figure) => (f.low !== null && f.high !== null && f.low !== f.high ? span(f, litres) : litres(f.value!));
+
 interface Props {
+  farm: FarmId;
   summary: State<Summary>;
   pain: State<PainPoints>;
   onNext: () => void;
 }
 
-export function Farm({ summary, pain, onNext }: Props) {
-  const ops = useApi<BreakdownRow[]>("/api/farms/a/breakdown/operation");
+export function Farm({ farm, summary, pain, onNext }: Props) {
+  const ops = useApi<BreakdownRow[]>(`/api/farms/${farm}/breakdown/operation`);
   const [opened, setOpened] = useState<Opened | null>(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -56,8 +61,10 @@ export function Farm({ summary, pain, onNext }: Props) {
             </span>
           </button>
           <p className="mt-3 max-w-[65ch] text-ink-soft">
-            {s.farm.description}. {litres(s.hours)} engine hours; {litres(s.excluded_hours)} h of stuck logger data
-            left out.
+            {s.farm.description}.{" "}
+            {s.hours !== null
+              ? `${litres(s.hours)} engine hours; ${litres(s.excluded_hours ?? 0)} h of stuck logger data left out.`
+              : `Added up from ${s.receipts} fuel receipts. Receipts do not record engine hours.`}
           </p>
 
           <dl className="mt-6 space-y-5">
@@ -82,7 +89,7 @@ export function Farm({ summary, pain, onNext }: Props) {
                 onClick={() =>
                   setOpened({
                     title: "Fuel cost",
-                    shown: `${gbp(s.cost_gbp.low!)} to ${gbp(s.cost_gbp.high!)}`,
+                    shown: span(s.cost_gbp, gbp),
                     label: s.cost_gbp.label,
                     how: s.cost_gbp.how,
  sourceIds: s.cost_gbp.source_ids,
@@ -92,20 +99,23 @@ export function Farm({ summary, pain, onNext }: Props) {
               >
                 <dt className="font-bold">Fuel cost</dt>
                 <span className="leader" />
-                <dd className="num text-lg">
-                  {gbp(s.cost_gbp.low!)} to {gbp(s.cost_gbp.high!)}
-                </dd>
+                <dd className="num text-lg">{span(s.cost_gbp, gbp)}</dd>
               </button>
-              <div className="mt-2">
-                <RangeBar
-                  low={s.cost_gbp.low!}
-                  high={s.cost_gbp.high!}
-                  max={s.cost_gbp.high! * 1.15}
-                  description={`Cost range ${gbp(s.cost_gbp.low!)} to ${gbp(s.cost_gbp.high!)}`}
-                />
-              </div>
+              {s.cost_gbp.low !== s.cost_gbp.high && (
+                <div className="mt-2">
+                  <RangeBar
+                    low={s.cost_gbp.low!}
+                    high={s.cost_gbp.high!}
+                    max={s.cost_gbp.high! * 1.15}
+                    description={`Cost range ${gbp(s.cost_gbp.low!)} to ${gbp(s.cost_gbp.high!)}`}
+                  />
+                </div>
+              )}
               <p className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
-                <Stamp label={s.cost_gbp.label} /> A range, because the recording has no dates to pick a price from.
+                <Stamp label={s.cost_gbp.label} />{" "}
+                {s.cost_gbp.low !== s.cost_gbp.high
+                  ? "A range, because the recording has no dates to pick a price from."
+                  : "What you paid, from your receipts, before VAT."}
               </p>
             </div>
           </dl>
@@ -120,7 +130,10 @@ export function Farm({ summary, pain, onNext }: Props) {
               <CountUp to={pain.data.not_working.share_pct} format={pct} />
             </span>
             <span className="num text-sm text-ink-soft">
-              {litres(pain.data.not_working.litres)} of {litres(pain.data.not_working.total_litres)} L
+              {pain.data.not_working.litres_low !== undefined
+                ? `about ${litres(pain.data.not_working.litres_low)} to ${litres(pain.data.not_working.litres_high!)}`
+                : litres(pain.data.not_working.litres)}{" "}
+              of {litres(pain.data.not_working.total_litres)} L
             </span>
           </p>
           <div className="mt-3">
@@ -130,7 +143,9 @@ export function Farm({ summary, pain, onNext }: Props) {
             />
           </div>
           <p className="mt-3 max-w-[65ch]">
-            The tractor was running with a tool attached but not working, on the road, or idling.
+            {pain.data.not_working.litres_low !== undefined
+              ? "Travel between fields, idling and time with the tool not working: what is left after the field jobs. Receipts cannot show it directly, so this is estimated."
+              : "The tractor was running with a tool attached but not working, on the road, or idling."}
           </p>
         </section>
       )}
@@ -145,7 +160,7 @@ export function Farm({ summary, pain, onNext }: Props) {
                   onClick={() =>
                     setOpened({
                       title: r.name,
-                      shown: `${litres(r.litres.value!)} litres, ${pct(r.share_pct)}`,
+                      shown: `${litresText(r.litres)} litres, ${pct(r.share_pct)}`,
                       label: r.litres.label,
                       how: r.litres.how,
  sourceIds: r.litres.source_ids,
@@ -156,7 +171,7 @@ export function Farm({ summary, pain, onNext }: Props) {
                   <span className="flex items-end">
                     <span>{r.name}</span>
                     <span className="leader" />
-                    <span className="num">{litres(r.litres.value!)} L</span>
+                    <span className="num">{litresText(r.litres)} L</span>
                   </span>
                   <span className="mt-1 flex items-center gap-3">
                     <span className="block flex-1">
