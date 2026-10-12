@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from backend.emissions.factors import emissions_kg
+from backend.emissions.text import bullets, month_name
 from backend.tools.contracts import Figure, weakest
 
 REF = Path(__file__).resolve().parents[2] / "data" / "reference"
@@ -67,20 +68,40 @@ def _figures(litres: float, label: str, litres_how: str) -> tuple[Figure, Figure
     e = emissions_kg(litres, FUEL, EF_YEAR, label)
     return (
         Figure(litres, "L", label, litres_how, source_ids=(TELEMETRY_SOURCE,)),
-        Figure(e.kg_co2e, "kg CO2e", label, e.formula, source_ids=(TELEMETRY_SOURCE, e.factor.source_id)),
-        Figure(None, "GBP", "estimated",
-               f"{litres:g} L x GBP {price.low:g}-{price.high:g}/L (Defra UKAMMG gas oil, {price.from_month} to "
-               f"{price.to_month}; TUM dates are anonymised, so a price range is used; VAT basis not stated)",
-               source_ids=(TELEMETRY_SOURCE, price.source_id),
-               low=litres * price.low, high=litres * price.high),
+        Figure(e.kg_co2e, "kg CO2e", label, bullets(
+            f"**{litres:,.0f} litres** x **{e.factor.kg_per_unit:g} kg of CO2** for each litre of red diesel.",
+            f"UK government figures for {EF_YEAR} (UK GHG CF {EF_YEAR}), including the CO2 from making and moving the fuel.",
+        ), source_ids=(TELEMETRY_SOURCE, e.factor.source_id)),
+        Figure(None, "GBP", "estimated", bullets(
+            f"**{litres:,.0f} litres** x the price of red diesel.",
+            f"The price ranged from **£{price.low:.2f} to £{price.high:.2f} a litre** between "
+            f"{month_name(price.from_month)} and {month_name(price.to_month)}.",
+            "Your recording has no dates, so we use the whole price range.",
+            "The price data does not say whether VAT is included.",
+        ), source_ids=(TELEMETRY_SOURCE, price.source_id), low=litres * price.low, high=litres * price.high),
     )
 
 
 def summarise(rows: pd.DataFrame) -> Summary:
     litres, co2e, cost = _figures(float(rows.litres.sum()), "measured",
-                                  "Engine fuel-rate (J1939) integrated over time, TUM Agricultural Load Cycles")
+                                  bullets("Each tractor's **own fuel sensor** records how fast it burns fuel.",
+                                          "We add that up over the whole season, from a public research recording "
+                                          "(Technical University of Munich).",
+                                          "Stretches where the recording froze are **left out**."))
     # Engine hours leave out frozen logger stretches; those are reported separately as excluded hours.
     return Summary(litres, co2e, cost, float(rows[rows.activity_class != EXCLUDED_CLASS].hours.sum()))
+
+
+def _split_how(by: str, label: str) -> str:
+    if by == "tractor":
+        return bullets("Each tractor's litres come straight from **its own fuel sensor**.")
+    if by == "field":
+        return bullets("The fuel is **measured** by the tractor's sensor.",
+                       "Field boundaries are drawn from GPS tracks, so the split by field is **allocated**: less certain than the total.")
+    if label == "measured":
+        return bullets("The fuel is **measured** by the tractor's sensor.", "This job is labelled in the recording.")
+    return bullets("The fuel is **measured** by the tractor's sensor.",
+                   "We assigned it to this kind of time by rule, so it is **allocated**: less certain than the total.")
 
 
 def _key_and_name(rows: pd.DataFrame, by: str) -> pd.DataFrame:
@@ -111,7 +132,7 @@ def breakdown(rows: pd.DataFrame, by: str) -> list[BreakdownRow]:
         # By operation, the weakest label of the attributed rows wins.
         label = {"tractor": "measured", "field": "allocated"}.get(by) or weakest(g.attribution_label)
         litres, co2e, cost = _figures(float(g.litres.sum()), label,
-                                      f"Measured telemetry litres attributed by {by} ({label})")
+                                      _split_how(by, label))
         out.append(BreakdownRow(key, g.name.iloc[0], litres, co2e, cost, float(g.hours.sum()),
                                 100 * float(g.litres.sum()) / total))
     return sorted(out, key=lambda r: -r.litres.value)

@@ -88,11 +88,11 @@ def test_not_working_share_counts_only_unproductive_classes():
 
 def test_rating_explains_itself_in_plain_words():
     r = rating("ploughing", 100, 2130)
-    assert "21.3 L/ha" in r.how and "10.3 to 17.8" in r.how and "isu_a3_27" in r.how
+    assert "21.3 litres per hectare" in r.how and "10.3 to 17.8" in r.how and "Iowa State" in r.how
 
 
 def test_unrated_operations_say_why():
-    assert "minimum 5" in rating("ploughing", 1.0, 30).how
+    assert "at least 5" in rating("ploughing", 1.0, 30).how
     assert "No published" in rating("transport", 50, 500).how
 
 

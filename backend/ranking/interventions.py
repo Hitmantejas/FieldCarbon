@@ -7,6 +7,7 @@ import pandas as pd
 
 from backend.emissions.factors import emissions_kg, wtw_factor
 from backend.emissions.farm_summary import EF_YEAR
+from backend.emissions.text import bullets
 from backend.ranking.context import FarmContext
 
 REF = Path(__file__).resolve().parents[2] / "data" / "reference"
@@ -24,7 +25,7 @@ STATE_ORDER = {"feasible": 0, "needs_info": 1, "not_feasible": 2}
 ROBUST_ORDER = {"strong": 0, "moderate": 1, "limited": 2}
 
 # Farmer answers that rule an intervention out when True.
-ALREADY_DONE = {"tyre_pressure_checked": "You have already checked your tyre pressure."}
+ALREADY_DONE = {"tyre_pressure_checked": "You have already checked your tyre pressure, so there is little left for this idea to save you."}
 
 
 @dataclass(frozen=True)
@@ -127,12 +128,12 @@ def _apply(ctx: FarmContext, c) -> _Row:
     if "has_ctis" in machine:
         answer = ctx.known.get("has_ctis")
         if answer is True:
-            return _Row("not_feasible", "A central tyre inflation system is already fitted.")
+            return _Row("not_feasible", "One of your tractors already has this system, so there is nothing new to gain.")
         missing = "has_ctis" if answer is None else missing
     if "ballast_type" in machine:
         answer = ctx.known.get("ballast_type")
         if answer is not None and answer != machine["ballast_type"]:
-            return _Row("not_feasible", "There is no liquid ballast in the tyres.")
+            return _Row("not_feasible", "You have no liquid weight in your tyres, so there is nothing to take out.")
         missing = "ballast_type" if answer is None else missing
 
     if "rated_kw_max" in machine:
@@ -201,9 +202,9 @@ def _width(low: float | None, high: float | None) -> float | None:
 
 
 STRENGTH_TEXT = {
-    "strong": "Strong evidence means three or more separate sources back the idea.",
-    "moderate": "Moderate evidence means two separate sources back the idea.",
-    "limited": "Limited evidence means only one source, or only claims by a maker.",
+    "strong": "3 or more separate sources back it.",
+    "moderate": "2 separate sources back it.",
+    "limited": "only one source, or only claims by a maker, backs it.",
 }
 
 
@@ -212,21 +213,26 @@ def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: in
         return reason
     first = used.iloc[0]
     if first.effect_type == "litres_change_pct":
-        return (f"HVO is a diesel made from waste oils. Engines burn about {first.value:g}% more of it, but each litre "
-                f"releases far less CO2. We worked out the CO2 from UK government figures for {EF_YEAR}, not from a "
-                "study's percentage.")
+        return bullets(
+            "HVO is a diesel made from waste oils.",
+            f"Engines burn **about {first.value:g}% more** of it, but each litre releases **far less CO2**.",
+            f"We worked out the CO2 from UK government figures for {EF_YEAR}, not from a study's percentage.",
+        )
     lows = [r.litres[0] for r in chosen if r.litres]
     highs = [r.litres[1] for r in chosen if r.litres]
     if lows:
         what = f"{min(lows):,.0f} to {max(highs):,.0f} litres of fuel a year"
     else:
         what = f"{min(r.co2e[0] for r in chosen) / 1000:.1f} to {max(r.co2e[1] for r in chosen) / 1000:.1f} tonnes of CO2 a year"
-    text = (f"Researchers measured the fuel this idea saves. We applied their lowest and highest results to the fuel "
-            f"your farm used on the matching work. That gives {what}. {n_sources} separate "
-            f"{'source was' if n_sources == 1 else 'sources were'} used. {STRENGTH_TEXT[robustness]}")
+    lines = [
+        "Researchers measured how much fuel this idea saves.",
+        "We applied their **lowest and highest results** to the fuel your farm used on the matching work.",
+        f"That gives **{what}**.",
+        f"The evidence is **{robustness}**: {STRENGTH_TEXT[robustness]}",
+    ]
     if state == "needs_info":
-        text += " It only applies if the answer to our question fits your farm."
-    return text
+        lines.append("It only applies if the answer to our question fits your farm.")
+    return bullets(*lines)
 
 
 def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame) -> InterventionResult:

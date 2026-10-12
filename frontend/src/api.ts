@@ -124,6 +124,42 @@ export interface Intervention {
   notes: string;
 }
 
+export interface GoalIdea {
+  intervention_id: string;
+  name: string;
+  state: Intervention["state"];
+  robustness: Intervention["robustness"];
+  n_sources: number;
+  missing_inputs: string[];
+  verdict: "reaches" | "might_reach" | "falls_short" | "not_applicable";
+  reach: Figure | null;
+  warning: string | null;
+}
+
+// The farmer's answers; an unanswered question is simply missing.
+export interface Answers {
+  tyre_pressure_checked?: boolean;
+  has_ctis?: boolean;
+  ballast_type?: "liquid" | "none";
+}
+
+export function query(params: Record<string, string | number | boolean | undefined>): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== undefined) p.set(k, String(v));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
+export interface Goal {
+  target_pct: number;
+  suggested_pct: number;
+  suggested_how: string;
+  target_co2e: Figure;
+  target_litres: Figure;
+  counts: Record<GoalIdea["verdict"], number>;
+  ideas: GoalIdea[];
+}
+
 export type State<T> = { data?: T; error?: string };
 
 export function useApi<T>(path: string): State<T> {

@@ -1,9 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from typing import Literal
+
+from fastapi import FastAPI, HTTPException, Query
 
 from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW, breakdown, farm_a_rows, summarise
 from backend.emissions.pain_points import above_range, farm_a_ratings
 from backend.emissions.sources import all_sources
 from backend.tools.rank_interventions import rank_interventions
+from backend.tools.set_goal import set_goal
 
 app = FastAPI(title="FieldCarbon API")
 
@@ -59,12 +62,26 @@ def get_pain_points(farm_id: str):
     return {"ratings": ratings, "above_range": above_range(ratings), "not_working": not_working}
 
 
+def _answers(tyre_pressure_checked: bool | None, has_ctis: bool | None, ballast_type: str | None) -> dict:
+    """The farmer's answers; an unanswered question is simply absent."""
+    given = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
+    return {k: v for k, v in given.items() if v is not None}
+
+
 @app.get("/api/farms/{farm_id}/interventions")
-def get_interventions(farm_id: str):
+def get_interventions(farm_id: str, tyre_pressure_checked: bool | None = None, has_ctis: bool | None = None,
+                      ballast_type: Literal["liquid", "none"] | None = None):
     _require_farm_a(farm_id)
-    return rank_interventions(farm_id)
+    return rank_interventions(farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
 
 
 @app.get("/api/sources")
 def get_sources():
     return all_sources()
+
+
+@app.get("/api/farms/{farm_id}/goal")
+def get_goal(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+             has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return set_goal(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))

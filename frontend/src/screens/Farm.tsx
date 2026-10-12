@@ -4,6 +4,7 @@ import { gbp, litres, pct, tonnes } from "../format";
 import { Arrow } from "../components/Arrow";
 import { CountUp } from "../components/CountUp";
 import { RangeBar, ShareBar } from "../components/RangeBar";
+import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 
@@ -38,12 +39,7 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {s && (
         <section aria-labelledby="fuel-h" className="print px-4 pb-6" style={step(3)}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="fuel-h" className="font-mono text-sm uppercase tracking-widest">
-              Fuel used
-            </h2>
-            <Stamp label={s.litres.label} />
-          </div>
+          <SectionHead id="fuel-h" title="Fuel used" tone="solid" aside={<Stamp label={s.litres.label} />} />
           <button
             onClick={() =>
               setOpened({ title: "Fuel used", shown: `${litres(s.litres.value!)} litres`, label: s.litres.label, how: s.litres.how,
@@ -118,12 +114,7 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {pain.data && (
         <section aria-labelledby="idle-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="idle-h" className="font-mono text-sm uppercase tracking-widest">
-              Fuel not doing work
-            </h2>
-            <Stamp label={pain.data.not_working.label} />
-          </div>
+          <SectionHead id="idle-h" title="Fuel not doing work" tone="mark" aside={<Stamp label={pain.data.not_working.label} />} />
           <p className="mt-2 flex items-baseline gap-3">
             <span className="bg-mark px-2 font-display text-6xl font-extrabold leading-none text-on-mark">
               <CountUp to={pain.data.not_working.share_pct} format={pct} />
@@ -146,9 +137,7 @@ export function Farm({ summary, pain, onNext }: Props) {
 
       {ops.data && (
         <section aria-labelledby="ops-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
-          <h2 id="ops-h" className="mb-3 font-mono text-sm uppercase tracking-widest">
-            Where it went
-          </h2>
+          <SectionHead id="ops-h" title="Where it went" tone="dashed" />
           <ul>
             {(showAll ? ops.data : ops.data.slice(0, TOP_ROWS)).map((r) => (
               <li key={r.key} className="border-b border-rule">

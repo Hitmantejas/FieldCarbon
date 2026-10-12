@@ -86,3 +86,12 @@ def test_sources_endpoint_resolves_every_source_a_figure_cites():
 def test_sources_have_no_nan_so_the_json_is_valid():
     body = client.get("/api/sources").text
     assert "NaN" not in body
+
+
+def test_goal_endpoint_defaults_to_the_suggested_goal_and_validates_the_target():
+    default = client.get("/api/farms/a/goal").json()
+    assert default["target_pct"] == default["suggested_pct"]
+    assert client.get("/api/farms/a/goal?target_pct=20").json()["target_pct"] == 20
+    assert client.get("/api/farms/a/goal?target_pct=0").status_code == 422
+    assert client.get("/api/farms/a/goal?target_pct=95").status_code == 422
+    assert client.get("/api/farms/z/goal").status_code == 404

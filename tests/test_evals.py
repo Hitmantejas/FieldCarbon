@@ -6,9 +6,10 @@ import pytest
 
 from backend.tools.calculate_roi import calculate_roi
 from backend.tools.rank_interventions import rank_interventions
+from backend.tools.set_goal import set_goal
 
 CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text())["cases"]
-TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_roi}
+TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_roi, "set_goal": set_goal}
 
 
 def check(case: dict, output, spec: dict) -> None:
@@ -24,6 +25,10 @@ def check(case: dict, output, spec: dict) -> None:
         assert fig is not None and fig["source_ids"] and fig["low"] <= fig["high"]
     elif kind == "no_payback":
         assert output["figures"]["payback_years"] is None
+    elif kind == "verdict":
+        assert next(i for i in output["ideas"] if i["intervention_id"] == spec["intervention_id"])["verdict"] == spec["equals"]
+    elif kind == "target_is_sourced":
+        assert output["target_co2e"]["source_ids"] and output["target_co2e"]["label"] == "measured"
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
     else:

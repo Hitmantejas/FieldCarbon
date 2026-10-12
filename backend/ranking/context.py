@@ -19,7 +19,7 @@ class FarmContext:
     known: dict[str, object] = field(default_factory=dict)  # farmer-provided answers, e.g. tyre_pressure_checked
 
 
-def farm_a_context() -> FarmContext:
+def farm_a_context(known: dict[str, object] | None = None) -> FarmContext:
     rows = pd.read_csv(AGG / "farm_a_operations_summary.csv")
     work = rows[(rows.activity_class == "field_work") & rows.operation_code.notna()].copy()
     work["load_hours"] = work.mean_load_pct * work.hours
@@ -32,4 +32,5 @@ def farm_a_context() -> FarmContext:
         tractor_kw=dict(TRACTOR_KW),
         litres_by_tractor=rows.groupby("tractor_id").litres.sum().to_dict(),
         total_litres=float(rows.litres.sum()),
+        known=known or {},
     )

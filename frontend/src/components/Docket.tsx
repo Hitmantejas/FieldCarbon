@@ -1,13 +1,12 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type StopId = "farm" | "pain" | "goal" | "plan" | "sharpen" | "report";
+export type StopId = "farm" | "pain" | "plan" | "sharpen" | "report";
 
 // Stops follow the farmer's path (CLAUDE.md section 7). Only built stops are live; the rest are struck.
 export const STOPS: { id: StopId; name: string; built: boolean }[] = [
   { id: "farm", name: "Your farm", built: true },
   { id: "pain", name: "Pain points", built: true },
-  { id: "goal", name: "Goal", built: false },
   { id: "plan", name: "Plan", built: true },
   { id: "sharpen", name: "Sharpen", built: false },
   { id: "report", name: "Report", built: false },

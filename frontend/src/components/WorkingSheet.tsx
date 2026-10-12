@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import type { Evidence, Label } from "../api";
 import { linkText, useSources } from "../sources";
 import { Stamp } from "./Stamp";
@@ -6,6 +6,7 @@ import { Stamp } from "./Stamp";
 export interface Opened {
   title: string;
   shown: string;
+  facts?: [string, string][]; // shown as a small table instead of one line
   label: Label;
   how: string;
   sourceIds?: string[];
@@ -26,6 +27,31 @@ const UNIT_TEXT: Record<string, string> = {
   l_per_ha: "litres saved per hectare",
 };
 const words = (u: string) => UNIT_TEXT[u] ?? u.replace(/_/g, " ");
+
+// The explanations are short bullets; **text** marks the facts worth noticing.
+function Bold({ text }: { text: string }) {
+  return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}</>;
+}
+
+function Rich({ text }: { text: string }) {
+  const lines = text.split("\n");
+  if (lines.every((l) => l.startsWith("- "))) {
+    return (
+      <ul className="mt-2 list-disc space-y-2 pl-5">
+        {lines.map((l, i) => (
+          <li key={i} className="max-w-[65ch]">
+            <Bold text={l.slice(2)} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <p className="mt-1 max-w-[65ch]">
+      <Bold text={text} />
+    </p>
+  );
+}
 
 function SourceList({ ids }: { ids: string[] }) {
   const sources = useSources();
@@ -103,10 +129,21 @@ export function WorkingSheet({ opened, onClose }: { opened: Opened | null; onClo
             <h2 id="working-title" className="font-display text-3xl font-bold uppercase leading-none">{opened.title}</h2>
             <Stamp label={opened.label} />
           </div>
-          <p className="num text-xl">{opened.shown}</p>
+          {opened.facts ? (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
+              {opened.facts.map(([k, v]) => (
+                <Fragment key={k}>
+                  <dt className="font-bold">{k}</dt>
+                  <dd className="num">{v}</dd>
+                </Fragment>
+              ))}
+            </dl>
+          ) : (
+            <p className="num text-xl">{opened.shown}</p>
+          )}
           <div>
             <h3 className="font-mono text-xs uppercase tracking-widest text-ink-soft">How this was worked out</h3>
-            <p className="mt-1 max-w-[65ch]">{opened.how}</p>
+            <Rich text={opened.how} />
           </div>
           {opened.evidence && opened.evidence.length > 0 && (
             <div>

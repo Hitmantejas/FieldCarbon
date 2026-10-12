@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from backend.emissions.text import bullets
+
 REF = Path(__file__).resolve().parents[2] / "data" / "reference"
 AGG = Path(__file__).resolve().parents[2] / "data" / "aggregated"
 
@@ -102,20 +104,32 @@ def _side(l_per_ha: float, ref: Reference) -> str:
     return "below" if l_per_ha < ref.low else "within" if l_per_ha <= ref.high else "above"
 
 
+SOURCE_NAMES = {"isu_a3_27": "Iowa State University", "purdue_ae110": "Purdue University"}
+
+
+def _names(ids) -> str:
+    return ", ".join(SOURCE_NAMES.get(i, i) for i in ids)
+
+
 def _explain(hectares: float, litres: float, lph: float, ref: Reference, match_quality: str,
              second: Reference | None, agree: bool | None) -> str:
-    joined = ", two jobs added together" if match_quality == "composite" else ""
+    joined = ", with two jobs added together" if match_quality == "composite" else ""
     if second is None:
-        opinion = "No second rate table covers this job, so this rests on one source."
+        opinion = "No second table covers this job, so this rating rests on **one source**."
     else:
-        verdict = "agrees" if agree else "does not agree, so treat this rating with less confidence"
-        opinion = (f"Second opinion: {', '.join(second.source_ids)} gives {second.low:.1f} to {second.high:.1f} L/ha "
-                   f"(older table, +-{second.band_pct:g}%); it puts you {_side(lph, second)} its range and {verdict}.")
-    return (
-        f"{litres:,.0f} L of working fuel over {hectares:.1f} ha = {lph:.1f} L/ha. Typical range "
-        f"{ref.low:.1f} to {ref.high:.1f} L/ha ({', '.join(ref.source_ids)}{joined}; where no range is published, "
-        f"+-{ref.band_pct:g}% around the typical rate). {opinion} Area comes from the GPS track and implement width, "
-        "so this is allocated, not measured. The reference rates leave out field travel, so treat it as a guide."
+        verdict = ("This table agrees with the first one." if agree else
+                   "This table **does not agree** with the first one, so we are less sure about this rating.")
+        opinion = (f"A second, older table ({_names(second.source_ids)}) gives **{second.low:.1f} to {second.high:.1f} litres "
+                   f"per hectare**. You are {_side(lph, second)} that range. {verdict}")
+    return bullets(
+        f"**{litres:,.0f} litres** of fuel were used on this job, over **{hectares:.1f} hectares**. "
+        f"That is **{lph:.1f} litres per hectare**.",
+        f"The typical range for this job is **{ref.low:.1f} to {ref.high:.1f} litres per hectare**, from "
+        f"{_names(ref.source_ids)}{joined}.",
+        f"Where a table gives no range, we use **{ref.band_pct:g}% either side** of its typical figure.",
+        opinion,
+        "The area comes from your tractor's GPS track and the width of the tool, so it is **allocated, not measured**.",
+        "The typical figures leave out driving between fields, so treat this as a guide.",
     )
 
 
@@ -126,11 +140,11 @@ def _rate(op: str, hectares: float, litres: float) -> OperationRating:
                   reference=ref, match_quality=meta.match_quality, label="allocated",
                   l_per_ha=None, litres_at_stake_low=0.0, litres_at_stake_high=0.0)
     if ref is None:
-        return OperationRating(band="no_reference", how="No published fuel rate per hectare exists for this job, "
-                               "so it cannot be rated.", **common)
+        return OperationRating(band="no_reference", how=bullets("No published fuel rate per hectare exists for this job, "
+                                           "so it **cannot be rated**."), **common)
     if hectares < MIN_RATED_HA:
-        return OperationRating(band="insufficient_data", how=f"Only {hectares:.1f} ha recorded for this job "
-                               f"(minimum {MIN_RATED_HA:g} ha), too little to compare fuel use per hectare fairly.",
+        return OperationRating(band="insufficient_data", how=bullets(f"Only **{hectares:.1f} hectares** were recorded for this job. We need "
+                                           f"**at least {MIN_RATED_HA:g}** to compare fuel use per hectare fairly."),
                                **common)
     lph = litres / hectares
     # Only a farm above the typical range has anything at stake; inside it the spread is normal variation.
