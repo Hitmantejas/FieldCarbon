@@ -2,6 +2,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 
+from backend.emissions import tier3
 from backend.emissions.data import farm_a_breakdown, farm_a_totals
 from backend.emissions.farm_summary import TRACTOR_KW
 from backend.emissions.pain_points import above_range, farm_a_ratings
@@ -21,8 +22,32 @@ def _require_farm_a(farm_id: str) -> None:
         raise HTTPException(404, f"unknown farm {farm_id}")
 
 
+FARM_B_PROVENANCE = {
+    "dataset": "Farm B: the same farm as Farm A seen through fuel receipts and a farm profile only "
+               "(data/synthetic/farm_b). Receipts are synthetic; their diesel litres add up to Farm A's measured fuel.",
+    "emission_factors": PROVENANCE["emission_factors"],
+    "fuel_use_rates": "Iowa State University Extension A3-27 (2026), fuel required for field operations",
+    "demo_data": True,
+}
+
+
+def _farm_b_summary():
+    t = tier3.receipt_totals()
+    s = tier3.summarise(t)
+    return {
+        "farm": {"id": "b", "name": "Farm B", "tier": 3,
+                 "description": "Same farm, receipts and a farm profile only"},
+        "litres": s.litres, "co2e_kg": s.co2e_kg, "cost_gbp": s.cost_gbp, "hours": None,
+        "tractors": [f"Tractor {t[-1]}, {kw} kW" for t, kw in TRACTOR_KW.items()],
+        "excluded_hours": None, "receipts": t.documents, "review_litres": t.review_litres,
+        "provenance": {**FARM_B_PROVENANCE, "data_source": t.data_source},
+    }
+
+
 @app.get("/api/farms/{farm_id}/summary")
 def get_summary(farm_id: str):
+    if farm_id == "b":
+        return _farm_b_summary()
     _require_farm_a(farm_id)
     totals = farm_a_totals()
     s = totals.summary
@@ -40,6 +65,10 @@ def get_summary(farm_id: str):
 
 @app.get("/api/farms/{farm_id}/breakdown/{by}")
 def get_breakdown(farm_id: str, by: str):
+    if farm_id == "b":
+        if by != "operation":
+            raise HTTPException(404, f"Farm B has receipts only: they do not say which {by} used the fuel")
+        return tier3.breakdown_by_operation()
     _require_farm_a(farm_id)
     if by not in GROUPINGS:
         raise HTTPException(404, f"cannot group by {by}")
