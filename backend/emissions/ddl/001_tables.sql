@@ -94,11 +94,15 @@ CREATE TABLE IF NOT EXISTS `${dataset}.receipts_raw` (
   prompt_version STRING, extracted JSON, field_confidence JSON, extracted_at TIMESTAMP
 );
 
+ALTER TABLE `${dataset}.receipts_raw` ADD COLUMN IF NOT EXISTS location STRING;  -- Vertex AI endpoint used
+
+-- One row per receipt line (rules R1-R8, docs/receipt_validation_rules.md). Only accepted lines count.
 CREATE TABLE IF NOT EXISTS `${dataset}.receipts_validated` (
-  receipt_id STRING NOT NULL, farm_id STRING NOT NULL, delivery_date DATE, supplier_anon STRING,
-  litres FLOAT64, fuel_type STRING, unit_price FLOAT64, total FLOAT64, currency STRING,
-  status STRING,                       -- accepted | corrected | rejected
-  errors ARRAY<STRING>, validated_by STRING, validated_at TIMESTAMP
+  receipt_id STRING NOT NULL, line_no INT64 NOT NULL, farm_id STRING NOT NULL, supplier STRING,
+  doc_number STRING, delivery_date DATE, product STRING, fuel_type STRING, litres FLOAT64,
+  unit_price_gbp FLOAT64, line_net_gbp FLOAT64,
+  outcome STRING NOT NULL,             -- accepted | accepted_with_warning | needs_review | excluded
+  reasons ARRAY<STRING>, duplicate_of STRING, rules_version STRING, validated_at TIMESTAMP
 );
 
 -- ===== Telemetry (Farm A, all 5 TUM tractors; brand columns dropped at load) =====
