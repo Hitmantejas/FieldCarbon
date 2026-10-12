@@ -48,3 +48,10 @@ def test_pain_points_carry_plain_explanations_and_a_summary():
     assert all(r["how"] for r in body["ratings"])
     assert body["above_range"]["count"] >= 1
     assert body["above_range"]["litres_low"] <= body["above_range"]["litres_high"]
+
+
+def test_interventions_endpoint_ranks_and_cites():
+    body = client.get("/api/farms/a/interventions").json()
+    assert [i["state"] for i in body] == sorted((i["state"] for i in body), key=["feasible", "needs_info", "not_feasible"].index)
+    assert all(i["evidence"] and i["how"] and "roi" in i for i in body)
+    assert client.get("/api/farms/z/interventions").status_code == 404
