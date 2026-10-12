@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 
-from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW, breakdown, farm_a_rows, summarise
+from backend.emissions.data import farm_a_breakdown, farm_a_totals
+from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW
 from backend.emissions.pain_points import above_range, farm_a_ratings
 
 app = FastAPI(title="FieldCarbon API")
@@ -27,9 +28,8 @@ def _require_farm_a(farm_id: str) -> None:
 @app.get("/api/farms/{farm_id}/summary")
 def get_summary(farm_id: str):
     _require_farm_a(farm_id)
-    rows = farm_a_rows()
-    s = summarise(rows)
-    excluded_h = float(rows[rows.activity_class == "data_gap"].hours.sum())
+    totals = farm_a_totals()
+    s = totals.summary
     return {
         "farm": {"id": "a", "name": "Farm A", "tier": 1, "description": "Real telemetry, 5 tractors, one season"},
         "litres": s.litres,
@@ -37,8 +37,8 @@ def get_summary(farm_id: str):
         "cost_gbp": s.cost_gbp,
         "hours": s.hours,
         "tractors": [f"Tractor {t[-1]}, {kw} kW" for t, kw in TRACTOR_KW.items()],
-        "excluded_hours": excluded_h,
-        "provenance": PROVENANCE,
+        "excluded_hours": totals.excluded_hours,
+        "provenance": {**PROVENANCE, "data_source": totals.data_source},
     }
 
 
@@ -47,7 +47,7 @@ def get_breakdown(farm_id: str, by: str):
     _require_farm_a(farm_id)
     if by not in GROUPINGS:
         raise HTTPException(404, f"cannot group by {by}")
-    return breakdown(farm_a_rows(), by)
+    return farm_a_breakdown(by)
 
 
 @app.get("/api/farms/{farm_id}/pain-points")

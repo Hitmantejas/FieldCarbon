@@ -83,21 +83,34 @@ def summarise(rows: pd.DataFrame) -> Summary:
     return Summary(litres, co2e, cost, float(rows[rows.activity_class != EXCLUDED_CLASS].hours.sum()))
 
 
+@lru_cache(maxsize=1)
+def _operation_names() -> dict[str, str]:
+    return pd.read_csv(REF / "ref_operations.csv").set_index("operation_code").display_name.to_dict()
+
+
+def display_name(by: str, key: str) -> str:
+    """Plain-language name for a breakdown key; shared by the CSV and BigQuery paths."""
+    if by == "operation":
+        return _operation_names().get(key) or CLASS_NAMES.get(key, key)
+    if by == "tractor":
+        return f"Tractor {key[-1]}, {TRACTOR_KW[key]} kW"
+    if by == "field":
+        return key
+    raise ValueError(f"cannot group by {by}")
+
+
 def _key_and_name(rows: pd.DataFrame, by: str) -> pd.DataFrame:
     rows = rows.copy()
     if by == "operation":
-        ops = pd.read_csv(REF / "ref_operations.csv").set_index("operation_code").display_name
         working = (rows.activity_class == "field_work") & rows.operation_code.notna()
         rows["key"] = rows.operation_code.where(working, rows.activity_class)
-        rows["name"] = rows.key.map(ops).fillna(rows.key.map(CLASS_NAMES))
     elif by == "tractor":
         rows["key"] = rows.tractor_id
-        rows["name"] = rows.key.map(lambda t: f"Tractor {t[-1]}, {TRACTOR_KW[t]} kW")
     elif by == "field":
         rows["key"] = rows.field_id.fillna("unassigned")
-        rows["name"] = rows.key
     else:
         raise ValueError(f"cannot group by {by}")
+    rows["name"] = rows.key.map(lambda k: display_name(by, k))
     return rows
 
 
