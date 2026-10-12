@@ -67,6 +67,63 @@ export interface PainPoints {
   not_working: { litres: number; total_litres: number; share_pct: number; label: Label };
 }
 
+export interface SourceInfo {
+  source_id: string;
+  title: string;
+  publisher_or_authors: string | null;
+  year: number | null;
+  url: string | null;
+  evidence_type: string;
+  region: string | null;
+  is_manufacturer: boolean;
+  link_status: string;
+}
+
+export interface Evidence {
+  coef_id: string;
+  source_id: string;
+  title: string;
+  url: string;
+  link_status: string;
+  evidence_type: string;
+  region: string;
+  year: number | null;
+  is_manufacturer: boolean;
+  low: number;
+  high: number;
+  unit: string;
+  baseline: string;
+  value_status: string;
+  used_in_range: boolean;
+}
+
+export interface PlanFigures {
+  litres_saved: Figure | null;
+  co2e_avoided_kg: Figure | null;
+  fuel_gbp_saved: Figure | null;
+  cost: Figure | null;
+  payback_years: Figure | null;
+  running_cost_change_gbp: Figure | null;
+}
+
+export interface Intervention {
+  intervention_id: string;
+  name: string;
+  state: "feasible" | "needs_info" | "not_feasible";
+  reason: string | null;
+  missing_inputs: string[];
+  robustness: "strong" | "moderate" | "limited";
+  n_sources: number;
+  label: Label;
+  how: string;
+  overlaps: string[];
+  evidence: Evidence[];
+  figures: PlanFigures;
+  cost_kind: "capex_one_off" | "running_cost_extra_per_litre" | "operating_cost_per_area_change" | null;
+  cost_note: string;
+  notes: string;
+}
+
 export type State<T> = { data?: T; error?: string };
 
 export function useApi<T>(path: string): State<T> {

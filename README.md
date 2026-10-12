@@ -132,3 +132,12 @@ https://doi.org/10.1016/j.dib.2025.111494.
 **Limitations:**
 - The farm is in Germany, but the report uses UK emission factors and prices and US fuel-use rates.
   These choices are stated in every report.
+
+## How to see it
+
+- Start the backend server in one terminal using :
+ .venv\Scripts\python -m uvicorn backend.api.main:app --port 8080.
+- Start the web page in another: 
+  cd frontend, 
+  npm run dev.
+- Open http://localhost:5173.

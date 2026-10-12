@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW, breakdown, farm_a_rows, summarise
 from backend.emissions.pain_points import above_range, farm_a_ratings
+from backend.emissions.sources import all_sources
 from backend.tools.rank_interventions import rank_interventions
 
 app = FastAPI(title="FieldCarbon API")
@@ -62,3 +63,8 @@ def get_pain_points(farm_id: str):
 def get_interventions(farm_id: str):
     _require_farm_a(farm_id)
     return rank_interventions(farm_id)
+
+
+@app.get("/api/sources")
+def get_sources():
+    return all_sources()

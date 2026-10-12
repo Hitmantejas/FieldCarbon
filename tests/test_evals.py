@@ -20,10 +20,10 @@ def check(case: dict, output, spec: dict) -> None:
     elif kind == "state":
         assert next(i for i in output if i["intervention_id"] == spec["intervention_id"])["state"] == spec["equals"]
     elif kind == "has_range":
-        low, high = output[spec["field"] + "_low"], output[spec["field"] + "_high"]
-        assert low is not None and high is not None and low <= high
+        fig = output["figures"][spec["field"]]
+        assert fig is not None and fig["source_ids"] and fig["low"] <= fig["high"]
     elif kind == "no_payback":
-        assert output["payback_years_low"] is None and output["payback_years_high"] is None
+        assert output["figures"]["payback_years"] is None
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
     else:

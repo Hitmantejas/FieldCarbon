@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import type { Band, PainPoints, Rating, State } from "../api";
 import { litres, pct } from "../format";
+import { Arrow } from "../components/Arrow";
 import { BandRange } from "../components/BandRange";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
@@ -50,10 +51,16 @@ function BandTag({ band }: { band: Band }) {
 
 const range = (r: Rating) => `${r.reference!.low.toFixed(1)} to ${r.reference!.high.toFixed(1)}`;
 
-export function Pain({ pain }: { pain: State<PainPoints> }) {
+export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => void }) {
   const [opened, setOpened] = useState<Opened | null>(null);
   const open = (r: Rating, shown: string) =>
-    setOpened({ title: r.display_name, shown, label: r.label, how: r.how });
+    setOpened({
+      title: r.display_name,
+      shown,
+      label: r.label,
+      how: r.how,
+      sourceIds: [...new Set([...(r.reference?.source_ids ?? []), ...(r.second_opinion?.source_ids ?? [])])],
+    });
 
   if (pain.error) {
     return (
@@ -108,7 +115,7 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
               <li key={r.operation_code} className="border-b border-rule py-5 last:border-b-0">
                 <button
                   onClick={() => open(r, `${r.l_per_ha!.toFixed(1)} L/ha, typical ${range(r)}`)}
-                  className="block w-full text-left"
+                  className="btn-row block w-full text-left"
                 >
                   <span className="flex items-start justify-between gap-3">
                     <span className="text-lg font-bold">{r.display_name}</span>
@@ -165,7 +172,7 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
               <li key={r.operation_code} className="border-b border-rule">
                 <button
                   onClick={() => open(r, `${r.l_per_ha!.toFixed(1)} L/ha, typical ${range(r)}`)}
-                  className="flex min-h-11 w-full items-end py-2 text-left"
+                  className="btn-row flex min-h-11 w-full items-end py-2 text-left"
                 >
                   <span>{r.display_name}</span>
                   <span className="leader" />
@@ -188,7 +195,7 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
               <li key={r.operation_code} className="border-b border-rule">
                 <button
                   onClick={() => open(r, BAND_TEXT[r.band])}
-                  className="flex min-h-11 w-full items-end py-2 text-left"
+                  className="btn-row flex min-h-11 w-full items-end py-2 text-left"
                 >
                   <span>{r.display_name}</span>
                   <span className="leader" />
@@ -202,11 +209,11 @@ export function Pain({ pain }: { pain: State<PainPoints> }) {
 
       <div className="px-4 pb-6">
         <button
-          disabled
-          className="flex min-h-14 w-full items-center justify-between border-2 border-ink px-4 font-mono text-sm uppercase tracking-widest text-ink-soft"
+          onClick={onNext}
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
         >
-          <span className="line-through decoration-2">Next: Set a goal</span>
-          <span>Next step</span>
+          Next: Plan
+          <Arrow />
         </button>
       </div>
 

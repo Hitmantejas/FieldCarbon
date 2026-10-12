@@ -112,9 +112,10 @@ def _apply(ctx: FarmContext, c) -> _Row:
 
     required = app.get("requires_operation")
     if required and ctx.litres_by_op.get(required, 0) <= 0:
-        return _Row("not_feasible", f"This farm did no {required.replace('_', ' ')}, which this change replaces.")
+        return _Row("not_feasible", f"You did no {required.replace('_', ' ')}, and this idea replaces it.")
     if "fuel_type" in app and ctx.fuel_type not in app["fuel_type"]:
-        return _Row("not_feasible", f"The evidence covers {', '.join(app['fuel_type'])}; this farm uses {ctx.fuel_type}.")
+        return _Row("not_feasible", f"This idea is for farms using {' or '.join(app['fuel_type']).replace('_', ' ')}; "
+                                        f"yours uses {ctx.fuel_type.replace('_', ' ')}.")
 
     missing = None
     key = app.get("unknown_input")
@@ -137,19 +138,20 @@ def _apply(ctx: FarmContext, c) -> _Row:
     if "rated_kw_max" in machine:
         small = [t for t, kw in ctx.tractor_kw.items() if kw <= machine["rated_kw_max"]]
         if not small:
-            return _Row("not_feasible", f"The evidence covers tractors up to {machine['rated_kw_max']:g} kW; "
-                                        f"the smallest tractor here is {min(ctx.tractor_kw.values())} kW.")
+            return _Row("not_feasible", f"The research only covers small tractors, up to {machine['rated_kw_max']:g} kW. "
+                                        f"Your smallest tractor is {min(ctx.tractor_kw.values())} kW, so this does not apply to your farm.")
         base = sum(ctx.litres_by_tractor[t] for t in small)
     elif "load_pct_max" in app:
         base = _drawbar_litres(ctx, app["load_pct_max"])
         if base <= 0:
-            return _Row("not_feasible", f"No drawbar job ran at or below {app['load_pct_max']:g}% load on this farm.")
+            return _Row("not_feasible", f"None of your towed jobs (like ploughing) ran at an engine load of "
+                                        f"{app['load_pct_max']:g}% or less, so this does not apply to your farm.")
     elif "fuel_type" in app:
         base = ctx.total_litres
     else:
         base = _litres_in(ctx, app["operation_category"])
         if base <= 0:
-            return _Row("not_feasible", f"No {' or '.join(app['operation_category']).replace('_', ' ')} was recorded.")
+            return _Row("not_feasible", f"You did no {' or '.join(app['operation_category']).replace('_', ' ')} work.")
 
     state = "needs_info" if missing else "feasible"
     factor = wtw_factor(ctx.fuel_type, EF_YEAR).kg_per_unit
@@ -198,21 +200,32 @@ def _width(low: float | None, high: float | None) -> float | None:
     return (high - low) / ((high + low) / 2)
 
 
+STRENGTH_TEXT = {
+    "strong": "Strong evidence means three or more separate sources back the idea.",
+    "moderate": "Moderate evidence means two separate sources back the idea.",
+    "limited": "Limited evidence means only one source, or only claims by a maker.",
+}
+
+
 def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: int, robustness: str) -> str:
     if state == "not_feasible":
         return reason
-    if used.iloc[0].effect_type == "litres_change_pct":
-        return (f"{used.iloc[0].derivation}. Emissions come from the UK GHG {EF_YEAR} well-to-wheel factors "
-                f"for gas oil and HVO, not from a source percentage.")
+    first = used.iloc[0]
+    if first.effect_type == "litres_change_pct":
+        return (f"HVO is a diesel made from waste oils. Engines burn about {first.value:g}% more of it, but each litre "
+                f"releases far less CO2. We worked out the CO2 from UK government figures for {EF_YEAR}, not from a "
+                "study's percentage.")
     lows = [r.litres[0] for r in chosen if r.litres]
     highs = [r.litres[1] for r in chosen if r.litres]
-    what = (f"{min(lows):,.0f} to {max(highs):,.0f} L a year" if lows else
-            f"{min(r.co2e[0] for r in chosen):,.0f} to {max(r.co2e[1] for r in chosen):,.0f} kg CO2e a year")
-    text = (f"{len(chosen)} published figure(s) from {n_sources} independent source(s), applied to this farm's own "
-            f"litres, give {what}: the smallest published low to the largest published high. "
-            f"Evidence strength: {robustness}.")
+    if lows:
+        what = f"{min(lows):,.0f} to {max(highs):,.0f} litres of fuel a year"
+    else:
+        what = f"{min(r.co2e[0] for r in chosen) / 1000:.1f} to {max(r.co2e[1] for r in chosen) / 1000:.1f} tonnes of CO2 a year"
+    text = (f"Researchers measured the fuel this idea saves. We applied their lowest and highest results to the fuel "
+            f"your farm used on the matching work. That gives {what}. {n_sources} separate "
+            f"{'source was' if n_sources == 1 else 'sources were'} used. {STRENGTH_TEXT[robustness]}")
     if state == "needs_info":
-        text += " This only holds if the missing detail below turns out to apply."
+        text += " It only applies if the answer to our question fits your farm."
     return text
 
 

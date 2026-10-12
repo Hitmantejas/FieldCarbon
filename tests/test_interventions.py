@@ -100,7 +100,7 @@ def test_shift_up_uses_only_drawbar_jobs_under_each_load_limit():
 def test_shift_up_not_feasible_when_no_drawbar_job_is_light_enough():
     ctx = replace(BASE, mean_load_by_op={**BASE.mean_load_by_op, "ploughing": 90.0, "cultivating_deep": 85.0})
     r = get(ctx, "shift_up_throttle_down")
-    assert r.state == "not_feasible" and "drawbar" in r.reason
+    assert r.state == "not_feasible" and "towed" in r.reason
 
 
 def test_hvo_is_computed_from_the_emission_factor_table_not_a_source_percentage():

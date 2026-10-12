@@ -16,6 +16,7 @@ class Cost:
     currency: str
     unit: str
     source_ids: tuple[str, ...]
+    derivation: str
     value_status: str  # needs_primary_check if any contributing row still does
 
 
@@ -35,6 +36,7 @@ class Roi:
     payback_years_high: float | None
     running_cost_change_gbp_low: float | None  # positive = costs more, negative = saves
     running_cost_change_gbp_high: float | None
+    hectares: float | None  # ploughed area a per-hectare cost change is applied to
     notes: str
 
 
@@ -51,7 +53,7 @@ def _cost_for(intervention_id: str) -> Cost | None:
     rows = rows[rows.cost_type == rows.cost_type.iloc[0]]
     status = "needs_primary_check" if (rows.value_status == "needs_primary_check").any() else "checked"
     return Cost(rows.cost_type.iloc[0], float(rows.low.min()), float(rows.high.max()), rows.currency.iloc[0],
-                rows.unit.iloc[0], tuple(rows.source_id), status)
+                rows.unit.iloc[0], tuple(rows.source_id), " | ".join(rows.derivation), status)
 
 
 def _bounds(values: list[float]) -> tuple[float, float]:
@@ -61,7 +63,8 @@ def _bounds(values: list[float]) -> tuple[float, float]:
 def calculate_roi(result: InterventionResult, ctx: FarmContext) -> Roi:
     empty = dict(litres_saved_low=None, litres_saved_high=None, co2e_avoided_kg_low=None, co2e_avoided_kg_high=None,
                  fuel_gbp_saved_low=None, fuel_gbp_saved_high=None, cost=None, payback_years_low=None,
-                 payback_years_high=None, running_cost_change_gbp_low=None, running_cost_change_gbp_high=None)
+                 payback_years_high=None, running_cost_change_gbp_low=None, running_cost_change_gbp_high=None,
+                 hectares=None)
     if result.state == "not_feasible":
         return Roi(result.intervention_id, result.state, cost_note="Not applicable to this farm.", notes=result.reason, **empty)
 
@@ -71,7 +74,8 @@ def calculate_roi(result: InterventionResult, ctx: FarmContext) -> Roi:
         fuel = _bounds([l * p for l in (result.litres_saved_low, result.litres_saved_high) for p in (price.low, price.high)])
 
     cost = _cost_for(result.intervention_id)
-    notes = ["One season of this farm's data is treated as a year."]
+    notes = ["We treat your one recorded season as a year."]
+    hectares = None
     payback = (None, None)
     running = (None, None)
     if cost is None:
@@ -83,14 +87,14 @@ def calculate_roi(result: InterventionResult, ctx: FarmContext) -> Roi:
         elif cost.kind == "operating_cost_per_area_change":
             hectares = ctx.hectares_by_op.get(required_operation(result.intervention_id), 0.0)
             running = (cost.low * hectares, cost.high * hectares)
-            notes.append("Establishment savings already include the fuel saving: do not add the two together.")
+            notes.append("The diesel you save is already counted in this figure.")
         elif cost.kind == "running_cost_extra_per_litre":
             extra, new = -result.litres_saved_low, ctx.total_litres - result.litres_saved_low
             running = _bounds([extra * p + new * prem for p in (price.low, price.high) for prem in (cost.low, cost.high)])
-            notes.append("Extra litres at the diesel price plus the premium on every litre. Duty and RTFC credits can change it.")
+            notes.append("Duty changes and fuel credits can move the price, so ask a supplier for a quote.")
 
     return Roi(
         result.intervention_id, result.state, result.litres_saved_low, result.litres_saved_high,
         result.co2e_avoided_low, result.co2e_avoided_high, fuel[0], fuel[1], cost, note, payback[0], payback[1],
-        running[0], running[1], " ".join(notes),
+        running[0], running[1], hectares, " ".join(notes),
     )

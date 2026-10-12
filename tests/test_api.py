@@ -68,5 +68,21 @@ def test_pain_points_carry_plain_explanations_and_a_summary():
 def test_interventions_endpoint_ranks_and_cites():
     body = client.get("/api/farms/a/interventions").json()
     assert [i["state"] for i in body] == sorted((i["state"] for i in body), key=["feasible", "needs_info", "not_feasible"].index)
-    assert all(i["evidence"] and i["how"] and "roi" in i for i in body)
+    assert all(i["evidence"] and i["how"] and "figures" in i for i in body)
     assert client.get("/api/farms/z/interventions").status_code == 404
+
+
+def test_sources_endpoint_resolves_every_source_a_figure_cites():
+    sources = {s["source_id"]: s for s in client.get("/api/sources").json()}
+    assert sources["tum_alc_data"]["title"] and sources["uk_ghg_2025"]["link_status"]
+    cited = set()
+    for item in client.get("/api/farms/a/interventions").json():
+        for fig in item["figures"].values():
+            cited |= set(fig["source_ids"]) if fig else set()
+        cited |= {e["source_id"] for e in item["evidence"]}
+    assert cited <= set(sources)
+
+
+def test_sources_have_no_nan_so_the_json_is_valid():
+    body = client.get("/api/sources").text
+    assert "NaN" not in body

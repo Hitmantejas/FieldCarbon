@@ -8,7 +8,7 @@ export const STOPS: { id: StopId; name: string; built: boolean }[] = [
   { id: "farm", name: "Your farm", built: true },
   { id: "pain", name: "Pain points", built: true },
   { id: "goal", name: "Goal", built: false },
-  { id: "plan", name: "Plan", built: false },
+  { id: "plan", name: "Plan", built: true },
   { id: "sharpen", name: "Sharpen", built: false },
   { id: "report", name: "Report", built: false },
 ];
@@ -60,7 +60,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
                   <button
                     onClick={() => onGo(s.id)}
                     aria-current={s.id === current ? "step" : undefined}
-                    className={`inline-flex min-h-11 items-end border-b-4 pb-2 uppercase ${s.id === current ? "border-ink font-bold" : "border-transparent text-ink-soft hover:border-rule"}`}
+                    className={`btn-tab inline-flex min-h-11 items-end border-b-4 pb-2 uppercase ${s.id === current ? "border-ink font-bold" : "border-transparent text-ink-soft hover:border-rule"}`}
                   >
                     {s.name}
                   </button>

@@ -82,3 +82,40 @@ dialog.sheet::backdrop { background: color-mix(in oklab, var(--desk) 70%, transp
 @media (prefers-reduced-motion: reduce) {
   .print, .span-in { animation: none; }
 }
+
+/* Clickable things say so: a hand cursor, a hover, and a press. Tailwind's base resets buttons to the arrow. */
+button:not(:disabled), [role="switch"], summary, a[href] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+.btn-outline, .btn-solid, .btn-row, .btn-link, .btn-tab {
+  transition: background-size 0.3s var(--ease-print), background-color 0.2s, color 0.2s, border-color 0.2s,
+    transform 0.1s ease-out, text-decoration-thickness 0.15s;
+}
+/* Outlined: ink rises from the bottom like a print head. Longhands keep any background colour. */
+.btn-outline {
+  background-image: linear-gradient(var(--ink), var(--ink));
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 0%;
+}
+.btn-solid svg { transition: transform 0.25s var(--ease-print); }
+/* Rows grow 0.5rem into the section padding so the hover tint has room; content does not move. */
+.btn-row { margin-inline: -0.5rem; padding-inline: 0.5rem; width: calc(100% + 1rem); }
+.btn-link { text-decoration-thickness: 1px; }
+
+@media (hover: hover) {
+  .btn-outline:hover:not(:disabled) { background-size: 100% 100%; color: var(--paper); }
+  .btn-solid:hover:not(:disabled) { background-color: var(--mark); color: var(--on-mark); }
+  .btn-solid:hover:not(:disabled) svg { transform: translateX(5px); }
+  .btn-row:hover:not(:disabled) { background-color: color-mix(in oklab, var(--ink) 7%, transparent); }
+  .btn-link:hover { text-decoration-thickness: 4px; }
+  .btn-tab:hover:not([aria-current]) { color: var(--ink); border-color: var(--ink); }
+}
+/* Press: a quick stamp. */
+.btn-outline:active:not(:disabled), .btn-solid:active:not(:disabled) { transform: translateY(2px) rotate(-0.4deg); }
+.btn-row:active:not(:disabled) { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-outline, .btn-solid, .btn-row, .btn-link, .btn-tab, .btn-solid svg { transition: none; }
+  .btn-outline:active, .btn-solid:active, .btn-row:active { transform: none; }
+}

@@ -48,7 +48,7 @@ def test_tillage_cost_change_is_per_hectare_over_the_ploughed_area_and_includes_
     r = roi(BASE, "no_till")
     assert (r.running_cost_change_gbp_low, r.running_cost_change_gbp_high) == pytest.approx((-100 * 50, -40 * 50))
     assert r.payback_years_low is None  # a drill purchase is not priced
-    assert "fuel" in r.notes.lower()   # do not add to the fuel saving
+    assert "diesel you save is already counted" in r.notes  # the fuel saving is inside this figure
 
 
 def test_reduced_tillage_combines_both_cost_sources():
