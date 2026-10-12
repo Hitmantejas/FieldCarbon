@@ -12,8 +12,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 
-from backend.emissions.farm_summary import (EXCLUDED_CLASS, TELEMETRY_SOURCE, BreakdownRow, Summary, breakdown,
-                                            display_name, farm_a_rows, summarise)
+from backend.emissions.farm_summary import (EXCLUDED_CLASS, TELEMETRY_SOURCE, TOTAL_LITRES_HOW, BreakdownRow, Summary,
+                                            breakdown, co2e_lines, cost_lines, display_name, farm_a_rows,
+                                            split_how, summarise)
+from backend.emissions.text import bullets
 from backend.tools.contracts import Figure
 
 PROJECT = os.environ.get("FIELDCARBON_PROJECT", "ai-hackathon-india")
@@ -72,18 +74,20 @@ def _settings(query: Query) -> dict:
     return rows[0]
 
 
+def _computed_in(view: str) -> str:
+    return f"Calculated in BigQuery (view {view})."
+
+
 def _bq_figures(row: dict, label: str, litres_how: str, view: str, s: dict) -> tuple[Figure, Figure, Figure]:
     litres = float(row["litres"])
     return (
         Figure(litres, "L", label, litres_how, source_ids=(TELEMETRY_SOURCE,)),
         Figure(float(row["co2e_kg"]), "kg CO2e", label,
-               f"{litres:g} L x {s['kgco2e_per_l']:g} kg CO2e/L (UK GHG CF {s['ef_year']}, well-to-wheel), "
-               f"computed in BigQuery view {view}",
+               bullets(*co2e_lines(litres, s["kgco2e_per_l"], s["ef_year"]), _computed_in(view)),
                source_ids=(TELEMETRY_SOURCE, s["ef_source_id"])),
         Figure(None, "GBP", "estimated",
-               f"{litres:g} L x GBP {s['price_low']:g}-{s['price_high']:g}/L (Defra UKAMMG gas oil, "
-               f"{s['from_month']} to {s['to_month']}; TUM dates are anonymised, so a price range is used; "
-               f"VAT basis not stated), computed in BigQuery view {view}",
+               bullets(*cost_lines(litres, s["price_low"], s["price_high"], s["from_month"], s["to_month"]),
+                       _computed_in(view)),
                source_ids=(TELEMETRY_SOURCE, s["price_source_id"]),
                low=float(row["cost_gbp_low"]), high=float(row["cost_gbp_high"])),
     )
@@ -96,8 +100,7 @@ def _bq_totals(query: Query) -> FarmTotals:
         raise RuntimeError(f"v_farm_a_summary returned {len(rows)} rows, expected 1")
     r = rows[0]
     litres, co2e, cost = _bq_figures(
-        r, r["label"], "Engine fuel-rate (J1939) integrated over time, TUM Agricultural Load Cycles",
-        "v_farm_a_summary", _settings(query))
+        r, r["label"], TOTAL_LITRES_HOW, "v_farm_a_summary", _settings(query))
     return FarmTotals(Summary(litres, co2e, cost, float(r["hours"])), float(r["excluded_hours"]),
                       f"BigQuery calculated views ({PROJECT}.{DATASET})")
 
@@ -108,8 +111,7 @@ def _bq_breakdown(by: str, query: Query) -> tuple[BreakdownRow, ...]:
     s = _settings(query)
     out = []
     for r in query(f"SELECT * FROM {_view(view)}"):
-        litres, co2e, cost = _bq_figures(r, r["label"], f"Measured telemetry litres attributed by {by} "
-                                         f"({r['label']})", view, s)
+        litres, co2e, cost = _bq_figures(r, r["label"], split_how(by, r["label"]), view, s)
         out.append(BreakdownRow(r["key"], display_name(by, r["key"]), litres, co2e, cost, float(r["hours"]),
                                 float(r["share_pct"])))
     return tuple(sorted(out, key=lambda b: -b.litres.value))

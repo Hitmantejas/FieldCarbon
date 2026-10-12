@@ -96,9 +96,10 @@ def _is_manufacturer(source_id: str) -> bool:
     return bool(_sources().loc[source_id, "is_manufacturer"])
 
 
-def _litres_in(ctx: FarmContext, categories: list[str]) -> float:
+def _litres_in(ctx: FarmContext, categories: list[str], ploughed_only: bool = False) -> float:
     cat = _operations().category
-    return sum(l for op, l in ctx.litres_by_op.items() if cat.get(op) in categories)
+    litres = ctx.ploughed_litres_by_op if ploughed_only and ctx.ploughed_litres_by_op is not None else ctx.litres_by_op
+    return sum(l for op, l in litres.items() if cat.get(op) in categories)
 
 
 def _drawbar_litres(ctx: FarmContext, load_max: float) -> float:
@@ -150,7 +151,7 @@ def _apply(ctx: FarmContext, c) -> _Row:
     elif "fuel_type" in app:
         base = ctx.total_litres
     else:
-        base = _litres_in(ctx, app["operation_category"])
+        base = _litres_in(ctx, app["operation_category"], ploughed_only=bool(required))
         if base <= 0:
             return _Row("not_feasible", f"You did no {' or '.join(app['operation_category']).replace('_', ' ')} work.")
 
@@ -228,6 +229,8 @@ def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: in
         "Researchers measured how much fuel this idea saves.",
         "We applied their **lowest and highest results** to the fuel your farm used on the matching work.",
         f"That gives **{what}**.",
+        *(["We only counted the **fields you ploughed**: fields already worked without a plough have little "
+           "left to gain."] if json.loads(first.applicability).get("requires_operation") else []),
         f"The evidence is **{robustness}**: {STRENGTH_TEXT[robustness]}",
     ]
     if state == "needs_info":

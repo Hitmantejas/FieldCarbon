@@ -181,3 +181,25 @@ def test_farm_a_context_from_the_real_aggregates():
     assert states["electric_tractor"] == "not_feasible"
     assert states["reduced_tillage"] == "feasible"
     assert states["correct_tyre_pressure"] == "needs_info"
+
+
+def test_tillage_counts_only_the_fields_that_were_ploughed():
+    # Deep cultivating on a field never ploughed is already conservation tillage: nothing to replace there.
+    ctx = replace(BASE, ploughed_litres_by_op={"ploughing": 1000.0, "cultivating_deep": 200.0,
+                                               "seed_drill_combination": 300.0})
+    till = get(ctx, "reduced_tillage")
+    assert till.litres_saved_low == pytest.approx(0.12 * 1200)
+    assert till.litres_saved_high == pytest.approx(0.594 * 1200)
+    assert "fields you ploughed" in till.how
+    assert get(ctx, "no_till").litres_saved_low == pytest.approx(0.667 * 1500)
+    # Other interventions keep using all the farm's working fuel.
+    tyres = with_known(tyre_pressure_checked=False)
+    assert get(replace(tyres, ploughed_litres_by_op=ctx.ploughed_litres_by_op), "correct_tyre_pressure") \
+        .litres_saved_low == get(tyres, "correct_tyre_pressure").litres_saved_low
+
+
+def test_farm_a_tillage_base_is_the_ploughed_fields():
+    ctx = farm_a_context()
+    ploughed = ctx.ploughed_litres_by_op
+    assert ploughed["ploughing"] == pytest.approx(ctx.litres_by_op["ploughing"], rel=0.01)
+    assert ploughed["cultivating_deep"] < 0.5 * ctx.litres_by_op["cultivating_deep"]

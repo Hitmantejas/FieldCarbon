@@ -63,31 +63,41 @@ def fuel_price_range() -> PriceRange:
                       p.price_month.min()[:7], p.price_month.max()[:7], p.source_id.iloc[0])
 
 
+# Plain-language "how" lines, shared by the CSV path here and the BigQuery path in data.py.
+TOTAL_LITRES_HOW = bullets("Each tractor's **own fuel sensor** records how fast it burns fuel.",
+                           "We add that up over the whole season, from a public research recording "
+                           "(Technical University of Munich).",
+                           "Stretches where the recording froze are **left out**.")
+
+
+def co2e_lines(litres: float, kg_per_l: float, year: int) -> list[str]:
+    return [f"**{litres:,.0f} litres** x **{kg_per_l:g} kg of CO2** for each litre of red diesel.",
+            f"UK government figures for {year} (UK GHG CF {year}), including the CO2 from making and moving the fuel."]
+
+
+def cost_lines(litres: float, low: float, high: float, from_month: str, to_month: str) -> list[str]:
+    return [f"**{litres:,.0f} litres** x the price of red diesel.",
+            f"The price ranged from **£{low:.2f} to £{high:.2f} a litre** between "
+            f"{month_name(from_month)} and {month_name(to_month)}.",
+            "Your recording has no dates, so we use the whole price range.",
+            "The price data does not say whether VAT is included."]
+
+
 def _figures(litres: float, label: str, litres_how: str) -> tuple[Figure, Figure, Figure]:
     price = fuel_price_range()
     e = emissions_kg(litres, FUEL, EF_YEAR, label)
     return (
         Figure(litres, "L", label, litres_how, source_ids=(TELEMETRY_SOURCE,)),
-        Figure(e.kg_co2e, "kg CO2e", label, bullets(
-            f"**{litres:,.0f} litres** x **{e.factor.kg_per_unit:g} kg of CO2** for each litre of red diesel.",
-            f"UK government figures for {EF_YEAR} (UK GHG CF {EF_YEAR}), including the CO2 from making and moving the fuel.",
-        ), source_ids=(TELEMETRY_SOURCE, e.factor.source_id)),
-        Figure(None, "GBP", "estimated", bullets(
-            f"**{litres:,.0f} litres** x the price of red diesel.",
-            f"The price ranged from **£{price.low:.2f} to £{price.high:.2f} a litre** between "
-            f"{month_name(price.from_month)} and {month_name(price.to_month)}.",
-            "Your recording has no dates, so we use the whole price range.",
-            "The price data does not say whether VAT is included.",
-        ), source_ids=(TELEMETRY_SOURCE, price.source_id), low=litres * price.low, high=litres * price.high),
+        Figure(e.kg_co2e, "kg CO2e", label, bullets(*co2e_lines(litres, e.factor.kg_per_unit, EF_YEAR)),
+               source_ids=(TELEMETRY_SOURCE, e.factor.source_id)),
+        Figure(None, "GBP", "estimated",
+               bullets(*cost_lines(litres, price.low, price.high, price.from_month, price.to_month)),
+               source_ids=(TELEMETRY_SOURCE, price.source_id), low=litres * price.low, high=litres * price.high),
     )
 
 
 def summarise(rows: pd.DataFrame) -> Summary:
-    litres, co2e, cost = _figures(float(rows.litres.sum()), "measured",
-                                  bullets("Each tractor's **own fuel sensor** records how fast it burns fuel.",
-                                          "We add that up over the whole season, from a public research recording "
-                                          "(Technical University of Munich).",
-                                          "Stretches where the recording froze are **left out**."))
+    litres, co2e, cost = _figures(float(rows.litres.sum()), "measured", TOTAL_LITRES_HOW)
     # Engine hours leave out frozen logger stretches; those are reported separately as excluded hours.
     return Summary(litres, co2e, cost, float(rows[rows.activity_class != EXCLUDED_CLASS].hours.sum()))
 
@@ -108,7 +118,7 @@ def display_name(by: str, key: str) -> str:
     raise ValueError(f"cannot group by {by}")
 
 
-def _split_how(by: str, label: str) -> str:
+def split_how(by: str, label: str) -> str:
     if by == "tractor":
         return bullets("Each tractor's litres come straight from **its own fuel sensor**.")
     if by == "field":
@@ -145,7 +155,7 @@ def breakdown(rows: pd.DataFrame, by: str) -> list[BreakdownRow]:
         # By operation, the weakest label of the attributed rows wins.
         label = {"tractor": "measured", "field": "allocated"}.get(by) or weakest(g.attribution_label)
         litres, co2e, cost = _figures(float(g.litres.sum()), label,
-                                      _split_how(by, label))
+                                      split_how(by, label))
         out.append(BreakdownRow(key, g.name.iloc[0], litres, co2e, cost, float(g.hours.sum()),
                                 100 * float(g.litres.sum()) / total))
     return sorted(out, key=lambda r: -r.litres.value)

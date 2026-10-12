@@ -39,7 +39,7 @@ TRACTORS = [f"tractor_{i}" for i in range(1, 6)]
 LABELS = "app=fieldcarbon"
 
 REF_TABLES = ["ref_sources", "ref_emission_factors", "ref_fuel_use_rates", "ref_operations",
-              "ref_interventions", "ref_fuel_prices"]
+              "ref_interventions", "ref_intervention_costs", "ref_fuel_prices"]
 STEPS = ["preflight", "bucket", "upload", "dataset", "ddl", "load_reference", "load_telemetry",
          "load_provenance", "aggregate", "views", "verify", "export"]
 

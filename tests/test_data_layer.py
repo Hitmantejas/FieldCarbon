@@ -68,3 +68,12 @@ def test_unknown_grouping_is_rejected_on_both_paths():
     for src in ("csv", "bigquery"):
         with pytest.raises(ValueError):
             data.farm_a_breakdown("colour", src, query=fake_query)
+
+
+def test_bigquery_explanations_match_the_csv_wording_plus_where_it_was_calculated():
+    bq = data.farm_a_totals("bigquery", query=fake_query).summary
+    csv = data.farm_a_totals("csv").summary
+    assert bq.litres.how == csv.litres.how
+    assert bq.co2e_kg.how.splitlines()[-1] == "- Calculated in BigQuery (view v_farm_a_summary)."
+    row = data.farm_a_breakdown("tractor", "bigquery", query=fake_query)[0]
+    assert row.litres.how == data.farm_a_breakdown("tractor", "csv")[0].litres.how

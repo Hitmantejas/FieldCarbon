@@ -93,7 +93,7 @@
         {
           "type": "verdict",
           "intervention_id": "reduced_tillage",
-          "equals": "might_reach"
+          "equals": "falls_short"
         },
         {
           "type": "verdict",
