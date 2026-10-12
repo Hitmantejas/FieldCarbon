@@ -7,8 +7,17 @@ export interface Figure {
   unit: string;
   label: Label;
   how: string;
+  source_ids: string[];
   low: number | null;
   high: number | null;
+}
+
+export interface Reference {
+  low: number;
+  typical: number;
+  high: number;
+  band_pct: number;
+  source_ids: string[];
 }
 
 export interface Summary {
@@ -41,17 +50,20 @@ export interface Rating {
   hectares: number;
   litres: number;
   l_per_ha: number | null;
-  reference: { low: number; typical: number; high: number; band_pct: number; source_ids: string[] } | null;
+  reference: Reference | null;
   litres_at_stake_low: number;
   litres_at_stake_high: number;
   match_quality: "direct" | "closest" | "composite" | "none";
   label: Label;
   how: string;
+  second_opinion: Reference | null;
+  sources_agree: boolean | null;
+  litres_at_stake_label: Label;
 }
 
 export interface PainPoints {
   ratings: Rating[];
-  above_range: { count: number; litres_low: number; litres_high: number };
+  above_range: { count: number; litres_low: number; litres_high: number; count_sources_agree: number; label: Label };
   not_working: { litres: number; total_litres: number; share_pct: number; label: Label };
 }
 

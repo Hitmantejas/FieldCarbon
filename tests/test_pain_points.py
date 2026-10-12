@@ -96,6 +96,40 @@ def test_unrated_operations_say_why():
     assert "No published" in rating("transport", 50, 500).how
 
 
+def test_purdue_is_a_second_opinion_not_the_band():
+    ref = reference_range("ploughing", "purdue")    # 17.30 L/ha, no published range, +-50%
+    assert (ref.low, ref.typical, ref.high) == pytest.approx((17.30 * 0.5, 17.30, 17.30 * 1.5))
+    assert ref.source_ids == ("purdue_ae110",)
+    assert reference_range("transport", "purdue") is None
+
+
+def test_sources_agree_only_when_both_put_you_on_the_same_side():
+    disagree = rating("ploughing", 100, 2130)   # 21.3: above Iowa (17.77), within Purdue (25.95)
+    assert disagree.band == "above_typical" and disagree.sources_agree is False
+    assert "does not agree" in disagree.how
+    agree = rating("ploughing", 100, 2700)      # 27.0: above both
+    assert agree.band == "well_above" and agree.sources_agree is True
+    assert "agrees" in agree.how
+
+
+def test_no_second_opinion_when_rating_is_not_possible():
+    r = rating("ploughing", 1.0, 30)
+    assert r.second_opinion is None and r.sources_agree is None
+
+
+def test_litres_at_stake_are_estimates():
+    r = rating("ploughing", 100, 2130)
+    assert r.label == "allocated"                    # the L/ha itself
+    assert r.litres_at_stake_label == "estimated"    # measured litres x published band
+    assert above_range([r]).label == "estimated"
+
+
+def test_above_range_counts_how_many_both_sources_flag():
+    df = pd.concat([farm("ploughing", 100, 2130), farm("seedbed_combination", 20, 480)])  # 21.3 and 24.0 L/ha
+    s = above_range(rate_operations(df))
+    assert s.count == 2 and s.count_sources_agree == 1   # seedbed is above Purdue's top too (5.61 + 50% = 8.4)
+
+
 def test_above_range_summary_adds_up_only_the_pain_points():
     df = pd.concat([farm("ploughing", 100, 2130), farm("mowing", 50, 100), farm("fertilizing", 50, 40)])
     s = above_range(rate_operations(df))

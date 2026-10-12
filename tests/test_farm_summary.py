@@ -37,10 +37,29 @@ def test_operation_breakdown_separates_non_working_time():
     assert "data_gap" not in rows  # zero litres: excluded time is reported elsewhere
 
 
-def test_breakdown_label_is_the_weakest_of_its_inputs():
+def test_operation_breakdown_label_is_the_weakest_of_its_inputs():
+    rows = {r.key: r for r in breakdown(ROWS, "operation")}
+    assert rows["ploughing"].litres.label == "measured"                 # labelled field work
+    assert rows["implement_nonproductive"].litres.label == "allocated"  # attributed by rule
+
+
+def test_tractor_totals_are_measured_even_with_allocated_activity():
+    # A tractor's own litres come straight from its fuel-rate signal; the activity split does not weaken them.
     rows = {r.key: r for r in breakdown(ROWS, "tractor")}
     assert rows["tractor_1"].litres.label == "measured"
-    assert rows["tractor_2"].litres.label == "allocated"
+    assert rows["tractor_2"].litres.label == "measured"
+
+
+def test_engine_hours_leave_out_frozen_data():
+    assert summarise(ROWS).hours == pytest.approx(7.0)   # 12 h in total, of which 5 h data_gap
+
+
+def test_every_figure_cites_its_sources():
+    s = summarise(ROWS)
+    assert s.litres.source_ids == ("tum_alc_data",)
+    assert s.co2e_kg.source_ids == ("tum_alc_data", "uk_ghg_2025")
+    assert s.cost_gbp.source_ids == ("tum_alc_data", "defra_ukammg")
+    assert all(r.litres.source_ids for r in breakdown(ROWS, "field"))
 
 
 def test_field_breakdown_is_always_allocated_and_keeps_unassigned():
