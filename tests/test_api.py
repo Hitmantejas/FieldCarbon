@@ -63,3 +63,14 @@ def test_pain_points_carry_plain_explanations_and_a_summary():
     assert all(r["how"] for r in body["ratings"])
     assert body["above_range"]["count"] >= 1
     assert body["above_range"]["litres_low"] <= body["above_range"]["litres_high"]
+
+
+def test_interventions_endpoint_ranks_with_labels_and_sources():
+    body = client.get("/api/farms/a/interventions").json()
+    items = body["interventions"]
+    assert [i["rank"] for i in items] == list(range(1, len(items) + 1))
+    assert items[-1]["intervention_id"] == "electric_tractor" and items[-1]["status"] == "not_applicable"
+    for i in items:
+        if i["co2e_avoided_kg"]:
+            assert i["co2e_avoided_kg"]["label"] == "estimated" and i["co2e_avoided_kg"]["source_ids"]
+    assert "not added up" in body["note"]

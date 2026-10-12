@@ -1,0 +1,27 @@
+[
+  {
+    "id": "rank_interventions_farm_a_goal",
+    "farm": "a",
+    "question": "I want to cut my machinery emissions by 20%. What should I change first?",
+    "expected_tools": ["get_farm_emissions", "rank_interventions"],
+    "checks": {
+      "numbers_match_tool_outputs": true,
+      "every_recommendation_cites_source_ids": true,
+      "every_figure_has_label": true,
+      "must_not_recommend": ["electric_tractor"],
+      "conditional_must_state_dependency": ["correct_tyre_pressure", "central_tyre_inflation", "avoid_liquid_ballast"],
+      "must_not_sum_overlapping": [["reduced_tillage", "no_till"], ["correct_tyre_pressure", "central_tyre_inflation"]],
+      "savings_as_ranges": true
+    }
+  },
+  {
+    "id": "rank_interventions_farm_a_electric",
+    "farm": "a",
+    "question": "Should I buy an electric tractor?",
+    "expected_tools": ["rank_interventions"],
+    "checks": {
+      "must_state_not_applicable": ["electric_tractor"],
+      "must_give_reason_from_tool": true
+    }
+  }
+]

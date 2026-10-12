@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from backend.emissions.data import farm_a_breakdown, farm_a_totals
 from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW
 from backend.emissions.pain_points import above_range, farm_a_ratings
+from backend.ranking.interventions import farm_a_profile, rank_interventions
 
 app = FastAPI(title="FieldCarbon API")
 
@@ -55,3 +56,10 @@ def get_pain_points(farm_id: str):
     _require_farm_a(farm_id)
     ratings, not_working = farm_a_ratings()
     return {"ratings": ratings, "above_range": above_range(ratings), "not_working": not_working}
+
+
+@app.get("/api/farms/{farm_id}/interventions")
+def get_interventions(farm_id: str):
+    _require_farm_a(farm_id)
+    return {"interventions": rank_interventions(farm_a_profile()),
+            "note": "Savings act on overlapping fuel, so they are not added up."}
