@@ -160,6 +160,67 @@ export interface Goal {
   ideas: GoalIdea[];
 }
 
+export interface SharpenOutcome {
+  answer: boolean | string;
+  applies: boolean;
+  verdict: GoalIdea["verdict"];
+  litres_saved: Figure | null;
+}
+
+export interface SharpenQuestion {
+  field: keyof Answers;
+  intervention_id: string;
+  name: string;
+  outcomes: SharpenOutcome[];
+  matters_for_goal: boolean;
+  swing: Figure;
+}
+
+export interface Sharpen {
+  target_pct: number;
+  top: keyof Answers | null;
+  questions: SharpenQuestion[];
+  still_uncertain: string[];
+}
+
+export interface Report {
+  meta: { title: string; farm: string; demo_data: boolean; generated_at: string; statement: string };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; engine_hours: number; excluded_hours: number };
+  where_it_went: { name: string; share_pct: number; litres: Figure }[];
+  pain_points: {
+    name: string;
+    band: Band;
+    you_l_per_ha: number;
+    typical_low: number;
+    typical_high: number;
+    hectares: number;
+    sources_agree: boolean | null;
+    at_stake: Figure;
+  }[];
+  plan: {
+    goal: { target_pct: number; target_co2e: Figure; target_litres: Figure };
+    ideas: {
+      intervention_id: string;
+      name: string;
+      robustness: Intervention["robustness"];
+      n_sources: number;
+      verdict: GoalIdea["verdict"];
+      reach: Figure | null;
+      figures: PlanFigures;
+      how: string;
+      cost_kind: Intervention["cost_kind"];
+      overlaps: string[];
+    }[];
+    waiting: number;
+  };
+  answers: Answers;
+  limits: string[];
+  labels: { label: Label; meaning: string }[];
+  method: string;
+  attribution: { dataset: string; licence: string; attribution: string; emission_factors: string };
+  sources: SourceInfo[];
+}
+
 export type State<T> = { data?: T; error?: string };
 
 export function useApi<T>(path: string): State<T> {

@@ -178,6 +178,7 @@ def not_working_share(summary: pd.DataFrame) -> NotWorkingShare:
     return NotWorkingShare(litres=idle, total_litres=total, share_pct=100 * idle / total, label="allocated")
 
 
+@lru_cache(maxsize=1)
 def farm_a_ratings() -> tuple[list[OperationRating], NotWorkingShare]:
     return (
         rate_operations(pd.read_csv(AGG / "farm_a_field_files.csv")),

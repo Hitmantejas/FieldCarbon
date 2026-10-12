@@ -138,5 +138,6 @@ def breakdown(rows: pd.DataFrame, by: str) -> list[BreakdownRow]:
     return sorted(out, key=lambda r: -r.litres.value)
 
 
+@lru_cache(maxsize=1)
 def farm_a_rows() -> pd.DataFrame:
     return pd.read_csv(AGG / "farm_a_operations_summary.csv")

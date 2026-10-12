@@ -1,7 +1,9 @@
 import { useState, type CSSProperties } from "react";
-import { query, useApi, type Answers, type Figure, type Goal, type GoalIdea, type Intervention } from "../api";
-import { goalText, gbpFull, litres, pctText } from "../format";
+import { query, useApi, type Answers, type Goal, type GoalIdea, type Intervention } from "../api";
+import { goalText, gbpFull, litres } from "../format";
 import { IDEA, QUESTION_FOR, QUESTIONS, plain } from "../names";
+import { costLine, costShort, sizeText, span, tonnesSpan } from "../planText";
+import { Arrow } from "../components/Arrow";
 import { GoalBar } from "../components/GoalBar";
 import { QuestionBox } from "../components/QuestionBox";
 import { SectionHead } from "../components/SectionHead";
@@ -15,65 +17,6 @@ const PRESETS = [10, 20, 30, 50];
 
 // The tillage ideas have no yield figures in any source we hold.
 const NO_YIELD_FIGURE = new Set(["reduced_tillage", "no_till"]);
-
-const span = (f: Figure, fmt: (n: number) => string) =>
-  f.low === f.high ? fmt(f.low!) : `${fmt(f.low!)} to ${fmt(f.high!)}`;
-
-const tonnesSpan = (f: Figure) => {
-  const t = (kg: number) => (kg / 1000).toFixed(1);
-  return f.low === f.high ? t(f.low!) : `${t(f.low!)} to ${t(f.high!)}`;
-};
-
-const sizeText = (low: number, high: number) =>
-  low === high ? `about ${pctText(low)}%` : `${pctText(low)}% to ${pctText(high)}%`;
-
-function yearsText(low: number, high: number): string {
-  const one = (n: number) => (n < 1 ? "under a year" : `${Math.round(n)} ${Math.round(n) === 1 ? "year" : "years"}`);
-  if (high < 1) return "under a year";
-  if (low >= 1 && Math.round(low) === Math.round(high)) return one(low);
-  return low < 1 ? `under a year to ${one(high)}` : `${Math.round(low)} to ${one(high)}`;
-}
-
-const perUnit = (f: Figure) => f.unit.replace(/^GBP /, "").replace(", retrofit", "");
-
-// Working the land and sowing: the cost falls when the figures are negative.
-function landCost(low: number, high: number): { sentence: string; short: string } {
-  const noEquipment = "It does not count the cost of any new equipment, such as a drill: we have no price for that.";
-  if (high <= 0) {
-    const amount = `${high === 0 ? `up to ${gbpFull(-low)}` : `${gbpFull(-high)} to ${gbpFull(-low)}`} a year`;
-    return {
-      sentence: `Could cut the cost of working the land and sowing by ${amount}. This includes the fuel you save. ${noEquipment}`,
-      short: `Cuts yearly costs by ${amount}`,
-    };
-  }
-  const amount = `${gbpFull(Math.max(low, 0))} to ${gbpFull(high)} a year`;
-  return { sentence: `Could raise the cost of working the land and sowing by ${amount}. ${noEquipment}`, short: `Raises yearly costs by ${amount}` };
-}
-
-// The short figure shown at the top of the cost sheet.
-function costShort(item: Intervention): string {
-  const f = item.figures;
-  if (item.cost_kind === "capex_one_off") return `${span(f.cost!, gbpFull)} ${perUnit(f.cost!)}`;
-  const run = f.running_cost_change_gbp!;
-  if (item.cost_kind === "operating_cost_per_area_change") return landCost(run.low!, run.high!).short;
-  return `${gbpFull(run.low!)} to ${gbpFull(run.high!)} more a year`;
-}
-
-function costLine(item: Intervention): string {
-  const f = item.figures;
-  if (!f.cost) return "We do not have a price for this yet.";
-  if (item.cost_kind === "capex_one_off") {
-    const buy = `Costs about ${span(f.cost, gbpFull)} ${perUnit(f.cost)}.`;
-    if (!f.payback_years) return buy;
-    const time = yearsText(f.payback_years.low!, f.payback_years.high!);
-    return time === "under a year"
-      ? `${buy} It would pay for itself in under a year.`
-      : `${buy} It would take about ${time} of fuel savings to pay for itself.`;
-  }
-  const run = f.running_cost_change_gbp!;
-  if (item.cost_kind === "operating_cost_per_area_change") return landCost(run.low!, run.high!).sentence;
-  return `Would cost you about ${gbpFull(run.low!)} to ${gbpFull(run.high!)} more a year. We only have a rough price for HVO: ask a fuel supplier for a quote.`;
-}
 
 const answerLabel = (field: keyof Answers, value: boolean | string) =>
   [QUESTIONS[field].yes, QUESTIONS[field].no].find((o) => o.value === value)?.label;
@@ -238,12 +181,13 @@ function IdeaCard({ item, idea, target, scale, names, answers, unsure, onAnswer,
 }
 
 interface PlanProps extends Common {
+  onNext: () => void;
   unsure: Partial<Record<keyof Answers, boolean>>;
   pct: number | null;
   setPct: (n: number) => void;
 }
 
-export function Plan({ pct, setPct, answers, unsure, onAnswer }: PlanProps) {
+export function Plan({ pct, setPct, answers, unsure, onAnswer, onNext }: PlanProps) {
   const ideas = useApi<Intervention[]>(`/api/farms/a/interventions${query({ ...answers })}`);
   const goal = useApi<Goal>(`/api/farms/a/goal${query({ target_pct: pct ?? undefined, ...answers })}`);
   // null = not typed in; a typed value that is not a preset is shown in the box and counts as the chosen goal.
@@ -422,13 +366,13 @@ export function Plan({ pct, setPct, answers, unsure, onAnswer }: PlanProps) {
         Some of these ideas do the same job, so their savings do not add up.
       </p>
 
-      <div className="px-4 pb-6">
+      <div className="no-print px-4 pb-6">
         <button
-          disabled
-          className="flex min-h-14 w-full items-center justify-between border-2 border-ink px-4 font-mono text-sm uppercase tracking-widest text-ink-soft"
+          onClick={onNext}
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
         >
-          <span className="line-through decoration-2">Next: Sharpen</span>
-          <span>Next step</span>
+          Next: Sharpen
+          <Arrow />
         </button>
       </div>
 

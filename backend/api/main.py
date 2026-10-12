@@ -2,27 +2,18 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 
-from backend.emissions.farm_summary import EF_YEAR, TRACTOR_KW, breakdown, farm_a_rows, summarise
+from backend.emissions.farm_summary import TRACTOR_KW, breakdown, farm_a_rows, summarise
 from backend.emissions.pain_points import above_range, farm_a_ratings
+from backend.emissions.provenance import PROVENANCE
 from backend.emissions.sources import all_sources
+from backend.tools.generate_report import generate_report
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.set_goal import set_goal
+from backend.tools.what_would_improve import what_would_improve
 
 app = FastAPI(title="FieldCarbon API")
 
 GROUPINGS = {"operation", "tractor", "field"}
-
-PROVENANCE = {
-    "dataset": "Agricultural Load Cycles: Tractor Mission Profiles From Recorded GNSS and CAN Bus Data, "
-               "Götz K. (2025), Zenodo, doi:10.5281/zenodo.14619787; article: Götz K., Kusuma A., Dörfler A., "
-               "Lienkamp M., Data in Brief 60 (2025) 111494, doi:10.1016/j.dib.2025.111494",
-    "licence": "CC-BY-4.0",
-    "attribution": "Technical University of Munich. Changes by FieldCarbon: tractor brands removed, "
-                   "frozen-logger stretches excluded, data aggregated, per-field figures allocated by GPS geometry.",
-    "emission_factors": f"UK GHG Conversion Factors {EF_YEAR}, gas oil, well-to-wheel",
-    "demo_data": True,
-}
-
 
 def _require_farm_a(farm_id: str) -> None:
     if farm_id != "a":
@@ -85,3 +76,17 @@ def get_goal(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), 
              has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
     _require_farm_a(farm_id)
     return set_goal(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+@app.get("/api/farms/{farm_id}/sharpen")
+def get_sharpen(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+                has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return what_would_improve(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+@app.get("/api/farms/{farm_id}/report")
+def get_report(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+               has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    _require_farm_a(farm_id)
+    return generate_report(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))

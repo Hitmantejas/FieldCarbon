@@ -131,6 +131,41 @@
           "type": "every_recommendation_cites_source"
         }
       ]
+    },
+    {
+      "id": "sharpen-default",
+      "question": "What one thing would make my plan more certain?",
+      "expected_tools": [
+        "what_would_improve"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "top_question",
+          "equals": "tyre_pressure_checked"
+        },
+        {
+          "type": "question_count",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "report-default",
+      "question": "Give me a report I can share with a buyer.",
+      "expected_tools": [
+        "generate_report"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "report_traceable"
+        }
+      ]
     }
   ]
 }

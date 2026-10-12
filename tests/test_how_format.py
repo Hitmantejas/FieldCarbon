@@ -25,6 +25,8 @@ def hows():
         for figure in idea["figures"].values():
             if figure:
                 yield figure["how"]
+    for question in client.get("/api/farms/a/sharpen?target_pct=10").json()["questions"]:
+        yield question["swing"]["how"]
     goal = client.get("/api/farms/a/goal?target_pct=20").json()
     for figure in (goal["target_co2e"], goal["target_litres"]):
         yield figure["how"]

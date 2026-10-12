@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef } from "react";
 import type { Evidence, Label } from "../api";
 import { linkText, useSources } from "../sources";
+import { Rich } from "./Rich";
 import { Stamp } from "./Stamp";
 
 export interface Opened {
@@ -27,31 +28,6 @@ const UNIT_TEXT: Record<string, string> = {
   l_per_ha: "litres saved per hectare",
 };
 const words = (u: string) => UNIT_TEXT[u] ?? u.replace(/_/g, " ");
-
-// The explanations are short bullets; **text** marks the facts worth noticing.
-function Bold({ text }: { text: string }) {
-  return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}</>;
-}
-
-function Rich({ text }: { text: string }) {
-  const lines = text.split("\n");
-  if (lines.every((l) => l.startsWith("- "))) {
-    return (
-      <ul className="mt-2 list-disc space-y-2 pl-5">
-        {lines.map((l, i) => (
-          <li key={i} className="max-w-[65ch]">
-            <Bold text={l.slice(2)} />
-          </li>
-        ))}
-      </ul>
-    );
-  }
-  return (
-    <p className="mt-1 max-w-[65ch]">
-      <Bold text={text} />
-    </p>
-  );
-}
 
 function SourceList({ ids }: { ids: string[] }) {
   const sources = useSources();

@@ -207,7 +207,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
         </section>
       )}
 
-      <div className="px-4 pb-6">
+      <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
           className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"

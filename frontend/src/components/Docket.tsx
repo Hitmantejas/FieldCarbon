@@ -8,8 +8,8 @@ export const STOPS: { id: StopId; name: string; built: boolean }[] = [
   { id: "farm", name: "Your farm", built: true },
   { id: "pain", name: "Pain points", built: true },
   { id: "plan", name: "Plan", built: true },
-  { id: "sharpen", name: "Sharpen", built: false },
-  { id: "report", name: "Report", built: false },
+  { id: "sharpen", name: "Sharpen", built: true },
+  { id: "report", name: "Report", built: true },
 ];
 
 const step = (i: number) => ({ "--i": i }) as CSSProperties;
@@ -37,7 +37,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
 
   return (
     <div className="min-h-dvh bg-desk px-3 pb-16 pt-3 sm:px-6">
-      <div className="mx-auto flex max-w-[36rem] justify-end pb-3">
+      <div className="no-print mx-auto flex max-w-[36rem] justify-end pb-3">
         <ThemeToggle />
       </div>
       <main className="torn mx-auto max-w-[36rem] bg-paper text-ink shadow-[0_6px_18px_-8px_rgb(0_0_0/0.45)]">
@@ -51,7 +51,7 @@ export function Docket({ current, onGo, attribution, children }: Props) {
           <h1 className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide">FieldCarbon</h1>
           <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Farm A</span>
         </header>
-        <nav aria-label="Steps" className="print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
+        <nav aria-label="Steps" className="print no-print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
           <ol className="flex min-w-max items-end gap-5 border-b-2 border-ink font-mono text-xs uppercase tracking-widest">
             {STOPS.map((s) => (
               <li key={s.id}>

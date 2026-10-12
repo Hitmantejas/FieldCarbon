@@ -4,6 +4,8 @@ import { Docket, type StopId } from "./components/Docket";
 import { Farm } from "./screens/Farm";
 import { Pain } from "./screens/Pain";
 import { Plan } from "./screens/Plan";
+import { Report } from "./screens/Report";
+import { Sharpen } from "./screens/Sharpen";
 import { SourcesProvider } from "./sources";
 
 export default function App() {
@@ -39,7 +41,13 @@ export default function App() {
       <Docket current={stop} onGo={setStop} attribution={attribution}>
         {stop === "farm" && <Farm summary={summary} pain={pain} onNext={() => setStop("pain")} />}
         {stop === "pain" && <Pain pain={pain} onNext={() => setStop("plan")} />}
-        {stop === "plan" && <Plan pct={pct} setPct={setPct} answers={answers} unsure={unsure} onAnswer={onAnswer} />}
+        {stop === "plan" && (
+          <Plan pct={pct} setPct={setPct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("sharpen")} />
+        )}
+        {stop === "sharpen" && (
+          <Sharpen pct={pct} answers={answers} unsure={unsure} onAnswer={onAnswer} onNext={() => setStop("report")} />
+        )}
+        {stop === "report" && <Report pct={pct} answers={answers} />}
       </Docket>
     </SourcesProvider>
   );

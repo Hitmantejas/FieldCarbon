@@ -119,3 +119,17 @@ button:disabled { cursor: not-allowed; }
   .btn-outline, .btn-solid, .btn-row, .btn-link, .btn-tab, .btn-solid svg { transition: none; }
   .btn-outline:active, .btn-solid:active, .btn-row:active { transform: none; }
 }
+
+/* Printing the report: plain light paper, no controls, nothing animated or cut off. */
+@media print {
+  .no-print { display: none !important; }
+  :root, :root[data-theme="dark"] {
+    --desk: #fff; --paper: #fff; --ink: #000; --ink-soft: #333; --rule: #999;
+    --mark: oklch(91% 0.21 118); --on-mark: #000; color-scheme: light;
+  }
+  html, body { background: #fff; }
+  main.torn { box-shadow: none !important; max-width: none !important; }
+  .torn::after { display: none; }
+  .print, .span-in { animation: none !important; clip-path: none !important; transform: none !important; }
+  .bg-ink, .bg-mark { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
