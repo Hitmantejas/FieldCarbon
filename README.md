@@ -1,143 +1,170 @@
 # FieldCarbon
 
-**From farm fuel receipts to ranked climate action, with honest confidence.**
+**Where a farm-machinery fleet wastes fuel, what to change, and how sure we are. Every figure traceable.**
 
-FieldCarbon is a mobile-friendly AI agent for small and mid-sized farms. A farmer sets a goal, such as
-*"cut my machinery emissions by 20%"*. The agent returns a ranked action plan: what to change, what it
-costs and saves, how sure we are, and which extra piece of data would make us surer.
+FieldCarbon is a desktop web app for agricultural contractors and co-operatives that run tractors across
+many client farms. It shows fuel use and emissions by machine, job, field and client, checks the fuel
+paperwork against the fuel log, finds waste, and ranks what to change with honest confidence levels.
 
 Built for the Google Cloud AI Builder Cup 2026 (Sustainability & Social Impact track).
 
-> **Demo data: illustrative.** Results are computed from public research data and synthetic receipts.
-> They are not advice for a specific farm.
+> **Demo data: illustrative.** The fleet is built from three real public tractor datasets plus clearly
+> labelled synthetic records (clients, fuel deliveries, delivery-note images). Results are not advice
+> for a specific business.
+
+**Live demo:** TODO (Cloud Run URL) · **Video:** TODO · **Deck:** TODO
 
 ## Why it is different
 
-**Uncertainty is the product.** A farm's total fuel use is solid. The split by operation and the effect
-of each intervention are uncertain, and FieldCarbon says so:
+**Uncertainty is the product.** Fleet fuel totals are solid; splits by job, client and the effect of
+each change are less certain, and FieldCarbon says so.
 
-- **Every figure carries a label.** `measured` comes from telemetry, `allocated` from a logbook or
-  rules, and `estimated` from receipts plus standard rates.
-- **Every figure is traceable** to its source, emission factor (with version and year), calculation
-  and timestamp.
-- **Savings are ranges.** Each low–high range comes from published sources. Every recommendation cites
-  its evidence, and only actions that suit the farm's machinery are suggested.
-- **The AI never does the maths.** Gemini plans, calls tools and explains. All numbers come from
-  tested Python code and BigQuery SQL.
-- **"What would improve this answer?"** A deterministic sensitivity analysis names the one missing
-  data item that would most narrow the uncertainty.
+- **Every figure carries a label**, shown as text: `measured` (telemetry, metered fuel), `allocated`
+  (split by rules) or `estimated` (standard rates or published ranges).
+- **Every figure is traceable** to its sources, emission factor (with version and year) and calculation.
+- **Gemini never does the maths.** It reads documents, plans and explains. Every number comes from
+  tested Python or BigQuery SQL, and an auditor checks that each number in an answer matches a tool output.
+- **Savings are ranges** from published sources; every recommendation cites its evidence.
+- **"What would improve this answer?"** A deterministic sensitivity analysis names the one missing data
+  item that would most narrow the uncertainty.
 
-## Demo concept: one real farm, two views
+## What it does
 
-| View | Data | Label |
+| Screen | What the fleet manager sees |
+|---|---|
+| Overview | Fleet fuel, CO2e (well-to-wheel, UK GHG Conversion Factors 2025) and cost, by site and month |
+| Sites, Jobs, Clients | The same job compared across machines (L/ha, L/h, idle share); emissions per client farm |
+| Fuel control | Depot deliveries vs dispenses vs fuel burned; **delivery notes read by Gemini, checked against the fuel log** |
+| Opportunities, What if | Ranked interventions with cost, litres saved, payback range and evidence |
+| Reports | A traceable report a contractor can share with clients and buyers |
+
+## Gemini on Vertex AI
+
+| Role | What it does | Status |
 |---|---|---|
-| **Farm A** | Real CAN-bus and GNSS telemetry from 5 tractors (TUM Agricultural Load Cycles, 2024 season) | measured |
-| **Farm B** | The *same* farm seen only through fuel receipts, generated so their litres add up to Farm A's real fuel use | estimated |
+| **Document reading** | `gemini-3.5-flash` (multimodal) transcribes fuel receipts and tanker delivery notes, including handwritten, blurred, crumpled and skewed photos, into a fixed JSON schema. Rules R1–R8 then decide what counts ([rules](docs/receipt_validation_rules.md)); raw and validated rows are kept in BigQuery for provenance | **Done**: 38 documents read |
+| **Fleet analyst agent** | Google ADK agent that turns a question into tool calls and shows its working | TODO (in progress) |
+| **Auditor** | Strict, unit- and rounding-aware check that every number in an answer traces to a tool output; unfaithful answers are flagged | **Done** (offline); wiring into the agent in progress |
 
-Running the same goal on both views shows whether Farm B's estimated ranges contain Farm A's
-measured values. That is an honest test of our uncertainty.
+**Cost of reading documents** (token counts recorded by Vertex AI for each reading): 38 documents used
+114,120 tokens, about 3,000 per document (about 80% of the output side is the model's thinking).
+TODO: dollar cost at current Vertex AI pricing.
 
-## Status
+## Evaluation
 
-| Phase | Scope | Status |
-|---|---|---|
-| 1. Data foundation | Reference tables, BigQuery schema, telemetry preparation | **In progress.** Local data preparation is done; BigQuery load is next |
-| 0. Cloud Run skeleton | Container, health endpoint, deployment | Planned |
-| 2. Deterministic engine | Emissions, driver breakdown, intervention ranking, ROI, "what would improve" | Planned |
-| 3. Agent and chat UI | Gemini agent with tool calling, faithfulness checks, mobile UI | Planned |
-| 4. Receipts (Farm B) | Receipt images, Gemini extraction (raw and validated tables), estimated breakdown | Planned |
-| 5. Grounding and report | Vertex AI Search over open-access evidence, shareable traceable report | Planned |
-| 6. Evaluation and submission | Eval harness, results, demo video, deck | Planned |
+`python -m evals.run_all` writes [`evals/results/summary.md`](evals/results/summary.md):
 
-### Farm A telemetry after cleaning
+| Evaluation | Result |
+|---|---|
+| Tool eval cases | 30 of 30 pass |
+| Figures with a confidence label and sources | 100% of 657 |
+| Planted fuel problems found (A1–A3) | 3 of 3 |
+| Gemini reading accuracy, 24 farm receipts (every field) | 100% |
+| Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |
+| Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
+| Agent tool selection, faithfulness, label coverage | TODO (agent runs not yet recorded) |
 
-| Tractor | Rated power | Fuel (L) | Excluded as frozen data |
-|---|---|---|---|
-| Tractor 1 | 77 kW | 207.5 | none |
-| Tractor 2 | 104 kW | 2,065.5 | none |
-| Tractor 3 | 140 kW | 1,937.5 | 3.4 h |
-| Tractor 4 | 163 kW | 5,314.2 | 92.2 h |
-| Tractor 5 | 174 kW | 1,289.0 | none |
-| **Total** | | **10,813.7** | |
+How to read these honestly:
+- The documents are synthetic images we rendered (with damage effects), so 100% shows the pipeline
+  works; it is not a claim about every real-world receipt.
+- **Receipts-only vs telemetry:** the same real farm was estimated from fuel receipts alone (standard
+  fuel-use rates, no telemetry) and compared with its measured telemetry. 8 of 12 job types fell inside
+  the estimated ranges: receipts give a usable first picture, and telemetry is what makes it precise.
 
-**Frozen data.** Some stretches of the recordings repeat every signal for hours, including GPS
-position. One example shows 0 rpm while moving at 3.36 m/s. These are carried-forward values from
-logger gaps, not measurements, so they are excluded and reported rather than counted.
+## Architecture
 
-## Architecture (planned)
+```mermaid
+flowchart LR
+  subgraph Sources
+    T[Tractor telemetry<br/>3 public datasets]
+    D[Delivery notes and<br/>receipts photos]
+    R[Reference tables<br/>emission factors, rates,<br/>interventions, prices]
+  end
+  subgraph Google Cloud us-central1
+    GCS[(Cloud Storage<br/>fieldcarbon-*)]
+    BQ[(BigQuery<br/>dataset fieldcarbon)]
+    RUN[Cloud Run<br/>FastAPI + React]
+  end
+  G[Gemini on Vertex AI<br/>global endpoint]
+  T --> GCS --> BQ
+  D --> GCS
+  D -- image --> G -- transcription --> V[Rules R1-R8<br/>tested Python] --> BQ
+  R --> BQ
+  BQ --> TOOLS[Deterministic tools<br/>figures with label + sources]
+  TOOLS --> RUN
+  RUN -- question --> A[ADK analyst agent] -- tool calls --> TOOLS
+  A -- answer --> AUD[Auditor<br/>every number traced] --> RUN
+```
 
-- **Agent:** Google Agent Development Kit (ADK) on Gemini (Vertex AI), with tool calling
-- **Engine:** BigQuery (reference tables, input tables, calculated views; BigQuery GIS for fields) and
-  tested Python
-- **App:** FastAPI backend and a React + Vite + Tailwind frontend in one Cloud Run service
-- **Receipts:** Gemini multimodal extraction, keeping raw and validated tables for provenance
-- **Grounding:** Vertex AI Search over open-access evidence documents only
-- **Storage:** Cloud Storage for datasets and uploads
+- **Engine:** BigQuery (reference, input and telemetry tables; calculated views; BigQuery GIS for
+  fields) and tested Python. Every figure follows one contract: `{value, unit, label, how, source_ids, low, high}`.
+- **App:** FastAPI backend and React + Vite + Tailwind frontend in one Cloud Run service.
+- **Region:** data and services in `us-central1`; Gemini uses Vertex AI's `global` endpoint, where
+  `gemini-3.5-flash` is offered. Only synthetic documents and demo questions are sent to it.
 
 ## Repository layout
 
 ```
-backend/emissions/ddl/     BigQuery table definitions
-backend/emissions/views/   Aggregation and calculated views (SQL)
-data/prep/                 Download and clean the TUM telemetry
-data/reference/            Emission factors, fuel-use rates, interventions, prices, sources
-data/aggregated/           Small Farm A aggregates (no coordinates)
-tests/                     pytest for all deterministic logic
+backend/agent/       auditor (faithfulness), agent run recording
+backend/tools/       one module per tool; every figure carries a label and sources
+backend/receipts/    validation rules R1-R8 for read documents
+backend/emissions/   BigQuery DDL and views
+backend/api/         FastAPI endpoints
+frontend/            React desktop app
+data/fleet/          the illustrative fleet (see data/fleet/README.md)
+data/synthetic/      generators for receipt and delivery-note images, with ground truth
+data/reference/      emission factors, fuel-use rates, interventions, prices, sources
+evals/               eval cases, harness, results
+infra/               BigQuery / Cloud Storage loaders (dry run by default)
+tests/               pytest for all deterministic logic
 ```
 
 ## Setup
 
-Requires Python 3.12 or later.
+Requires Python 3.12 or later and Node.js.
 
 ```bash
 python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements-dev.txt   # Windows; use .venv/bin/python on macOS/Linux
 .venv/Scripts/python -m pytest -q
+.venv/Scripts/python -m evals.run_all
 ```
 
-Download and prepare the telemetry (about 2.8 GB, checksum-verified, stored in the gitignored `data/raw/`):
+Run locally (CSV mode, no cloud needed): start the API with
+`.venv/Scripts/python -m uvicorn backend.api.main:app --port 8080`, then in `frontend/` run `npm install`
+and `npm run dev`, and open http://localhost:5173.
 
-```bash
-.venv/Scripts/python data/prep/download_tum.py
-.venv/Scripts/python data/prep/prepare_tum.py
-```
+Rebuild the data from the public sources (optional; downloads are checksum-verified into the gitignored
+`data/raw/`): `data/prep/download_tum.py`, `data/prep/prepare_tum.py`, `data/prep/download_fleet.py`,
+then `python -m backend.fleet.build`. The preparation reads only CSV files from the dataset zips and never
+loads the `.pkl` files they also contain.
 
-The preparation script reads only the CSV files from the dataset zips. It never loads the `.pkl` files
-they also contain.
+Re-reading the documents with Gemini needs a Google Cloud project with Vertex AI and Application Default
+Credentials: `python infra/run_receipts.py --farm fleet --model gemini-3.5-flash --location global`
+(dry run; add `--apply`). Stored readings are reused, so this is not needed to run the app.
 
 ## Data sources and licences
 
 | Source | Used for | Licence |
 |---|---|---|
-| TUM Agricultural Load Cycles (Götz, 2025), [doi:10.5281/zenodo.14619787](https://doi.org/10.5281/zenodo.14619787) | Farm A telemetry | CC BY 4.0 |
-| UK Government GHG Conversion Factors 2025/2026 (DESNZ) | Emission factors (well-to-wheel) | Open Government Licence v3.0 |
+| TUM Agricultural Load Cycles (Götz, 2025), [doi:10.5281/zenodo.14619787](https://doi.org/10.5281/zenodo.14619787) | Site 1: 5 tractors, arable (telemetry) | CC BY 4.0 |
+| Rossi & Alemanno, tractor performances in vineyard operations (Mendeley Data) | Site 2: vineyard jobs | CC BY 4.0 |
+| Dana, Ozener & Tellioglu, Tümosan tillage CAN bus data (Mendeley Data) | Site 3: tillage jobs | CC BY 4.0 |
+| UK Government GHG Conversion Factors 2025 (DESNZ) | Emission factors (well-to-wheel) | Open Government Licence v3.0 |
 | Iowa State University Extension A3-27 (rev. 2026); Purdue Extension AE-110 (1980) | Fuel-use rates per operation | Cited, not redistributed |
-| Defra UK Agricultural Market Monitoring Group reports | Red diesel price range | Open Government Licence v3.0 |
+| Defra UK Agricultural Market Monitoring Group reports | Red diesel prices | Open Government Licence v3.0 |
 | Peer-reviewed, extension, thesis and manufacturer sources | Intervention effects | Cited, not redistributed |
 
-The full source list, with derivations and open issues, is in
-[`data/reference/sources.md`](data/reference/sources.md).
+Full source list with derivations: [`data/reference/sources.md`](data/reference/sources.md).
 
-**Attribution.** Telemetry: Götz, K. (2025). *Agricultural Load Cycles: Tractor Mission Profiles From
-Recorded GNSS and CAN Bus Data* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.14619787. Article:
-Götz K., Kusuma A., Dörfler A., Lienkamp M. (2025), *Data in Brief* 60, 111494.
-https://doi.org/10.1016/j.dib.2025.111494.
+**Attribution.** Götz, K. (2025). *Agricultural Load Cycles: Tractor Mission Profiles From Recorded GNSS
+and CAN Bus Data* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.14619787; article: Götz K., Kusuma A.,
+Dörfler A., Lienkamp M. (2025), *Data in Brief* 60, 111494. TODO: full citations for the vineyard and
+tillage datasets.
 
-**Changes made:**
-- tractor and implement brand names removed;
-- sentinel values and frozen stretches excluded;
-- data aggregated by operation, machine and field;
-- raw GPS coordinates not published.
+**Changes made:** data aggregated by job, machine and field; brand names removed; sentinel values and
+frozen logger stretches excluded (reported, not counted); dates shifted or assigned; fictional clients,
+operator pseudonyms, depots and deliveries added; no coordinates published.
 
-**Limitations:**
-- The farm is in Germany, but the report uses UK emission factors and prices and US fuel-use rates.
-  These choices are stated in every report.
-
-## How to see it
-
-Start the backend server in one terminal using :
--  .venv\Scripts\python -m uvicorn backend.api.main:app --port 8080.
-Start the web page in another: 
--  cd frontend, 
--  npm run dev.
-Open http://localhost:5173.
+**Limitations:** the sites are in Germany, Italy and Turkey, but the app uses UK emission factors and
+prices and US fuel-use rates; this is stated in every report. The fleet's company structure is invented.
