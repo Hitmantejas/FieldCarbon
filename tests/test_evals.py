@@ -10,6 +10,7 @@ from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
 from backend.tools.fleet_jobs import fleet_jobs
+from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_opportunities import fleet_opportunities
 from backend.tools.what_if import what_if
 from backend.tools.emissions_per_client import emissions_per_client
@@ -24,7 +25,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "what_would_improve": what_would_improve, "generate_report": generate_report,
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
-         "fleet_jobs": fleet_jobs, "fleet_opportunities": fleet_opportunities, "what_if": what_if}
+         "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if}
 
 
 def figures(node):

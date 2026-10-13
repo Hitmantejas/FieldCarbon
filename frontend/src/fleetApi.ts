@@ -163,3 +163,42 @@ export interface Jobs {
   rows: JobRow[];
   totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure } | null;
 }
+
+export type Scenario = "implement_not_working" | "peer_outliers" | "hvo";
+
+export interface WhatIf {
+  available: boolean;
+  is_scenario: true;
+  reason?: string;
+  scenario?: string;
+  assumption?: string;
+  litres_saved?: Figure;
+  co2e_avoided_kg?: Figure;
+  cost_saved_gbp?: Figure;
+}
+
+export interface ReportSource {
+  source_id: string;
+  title: string;
+  publisher_or_authors: string | null;
+  year: number | null;
+  url: string | null;
+  link_status: string;
+}
+
+export interface FleetReport {
+  meta: { title: string; period: string; demo_data: boolean; statement: string; generated_at: string; client: string | null };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; jobs: number; hours: number; area_ha: number };
+  by_site?: { key: string; name: string; litres: Figure; co2e_kg: Figure; share_pct: number }[];
+  by_client?: { client_id: string; name: string; litres: Figure; co2e_kg: Figure }[];
+  overhead?: { litres: Figure; breakdown: { key: string; name: string; litres: Figure }[] } | null;
+  unmatched_jobs?: { litres: Figure; jobs: number } | null;
+  findings?: { title: string; severity: Severity; litres: Figure }[];
+  ideas?: { intervention_id: string; name: string; robustness: "strong" | "moderate" | "limited"; n_sources: number; litres_saved: Figure | null; co2e_avoided_kg: Figure | null }[];
+  months?: ClientMonth[];
+  limits: string[];
+  labels: { label: Figure["label"]; meaning: string }[];
+  method: string;
+  attribution: string;
+  sources: ReportSource[];
+}

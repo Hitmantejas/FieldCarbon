@@ -272,6 +272,21 @@
       ]
     },
     {
+      "id": "fleet-report",
+      "question": "Prepare a report I can share with a client farm.",
+      "expected_tools": [
+        "fleet_report"
+      ],
+      "arguments": {
+        "client_id": "C09"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
       "id": "fleet-reconcile",
       "question": "Is any fuel unaccounted for?",
       "expected_tools": [

@@ -5,7 +5,9 @@ import { FuelControl } from "./screens/FuelControl";
 import { Jobs } from "./screens/Jobs";
 import { Opportunities } from "./screens/Opportunities";
 import { Overview } from "./screens/Overview";
+import { Reports } from "./screens/Reports";
 import { Sites } from "./screens/Sites";
+import { WhatIf } from "./screens/WhatIf";
 import { SourcesProvider } from "./sources";
 
 const ATTRIBUTION =
@@ -19,6 +21,8 @@ export default function App() {
         {screen === "overview" && <Overview />}
         {screen === "clients" && <Clients />}
         {screen === "jobs" && <Jobs />}
+        {screen === "whatif" && <WhatIf />}
+        {screen === "reports" && <Reports />}
         {screen === "sites" && <Sites />}
         {screen === "opportunities" && <Opportunities />}
         {screen === "control" && <FuelControl />}

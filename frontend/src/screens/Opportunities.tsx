@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Answers, Figure, Intervention } from "../api";
+import type { Answers, Intervention } from "../api";
 import { query, useApi } from "../api";
 import { QuestionBox } from "../components/QuestionBox";
 import { IDEA, QUESTION_FOR } from "../names";
@@ -9,30 +9,13 @@ import { StrengthTag } from "../components/StrengthTag";
 import { RangeBar } from "../components/RangeBar";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 import type { Benchmark, FleetOpportunities, FleetSummary } from "../fleetApi";
-import { gbpFull, litres, tonnes } from "../format";
+import { gbpFull, litres } from "../format";
+import { absRange, co2Text, litresText, moneyText } from "../ranges";
 
 function Loading({ what }: { what: string }) {
   return <p className="font-mono text-sm uppercase tracking-widest text-ink-soft">Loading {what}...</p>;
 }
 
-// A saving range in words. A negative litres figure means the idea burns more fuel (HVO), so we say that.
-function litresText(f: Figure | null): string {
-  if (!f || f.low == null || f.high == null) return "not worked out";
-  if (f.high < 0) return `${litres(-f.high)}${f.low === f.high ? "" : ` to ${litres(-f.low)}`} more litres`;
-  return f.low === f.high ? `${litres(f.low)} litres` : `${litres(f.low)} to ${litres(f.high)} litres`;
-}
-// Money: a negative figure is a cost, so we say "more" rather than show a minus sign.
-const absRange = (f: Figure, fmt: (n: number) => string) => {
-  const [a, b] = [Math.abs(f.low ?? 0), Math.abs(f.high ?? 0)].sort((x, y) => x - y);
-  return a === b ? fmt(a) : `${fmt(a)} to ${fmt(b)}`;
-};
-const co2Text = (f: Figure | null) => (f && f.low != null && f.high != null ? (f.low === f.high ? tonnes(f.low) : `${tonnes(f.low)} to ${tonnes(f.high)}`) + " CO2e" : "not worked out");
-const moneyText = (f: Figure | null) => {
-  if (!f || f.low == null || f.high == null) return "not worked out";
-  const [a, b] = [f.low, f.high];
-  const word = (n: number) => (n < 0 ? `-${gbpFull(-n)}` : gbpFull(n));
-  return a === b ? word(a) : `${word(a)} to ${word(b)}`;
-};
 const costText = (i: Intervention) => {
   const c = i.figures.cost;
   if (!c || c.low == null || c.high == null) return i.cost_note || "Cost not yet sourced";

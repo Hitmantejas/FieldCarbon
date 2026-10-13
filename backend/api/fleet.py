@@ -8,6 +8,7 @@ from backend.tools.detect_anomalies import detect_anomalies
 from backend.tools.emissions_per_client import emissions_per_client
 from backend.tools.fleet_jobs import fleet_jobs
 from backend.tools.fleet_opportunities import fleet_opportunities
+from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_summary import fleet_summary
 from backend.tools.reconcile_fuel import reconcile_fuel
 from backend.tools.what_if import what_if
@@ -65,3 +66,8 @@ def get_opportunities(site_id: str | None = None, tyre_pressure_checked: bool | 
 def get_what_if(change: Literal["implement_not_working", "peer_outliers", "hvo"], amount_pct: float = Query(gt=0, le=100),
                 site_id: str | None = None):
     return what_if(change, amount_pct, site_id)
+
+
+@router.get("/report")
+def get_report(client_id: str | None = None):
+    return fleet_report(client_id)
