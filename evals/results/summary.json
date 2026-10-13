@@ -1,9 +1,9 @@
 {
   "tool_cases": {
-    "cases": 29,
-    "passed": 29,
+    "cases": 30,
+    "passed": 30,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 653,
+    "figures_checked": 657,
     "failures": []
   },
   "agent_runs": {
@@ -150,6 +150,9 @@
       ],
       "note": "Farm B never sees telemetry: ranges come from receipts, the farm profile and Iowa A3-27 rates."
     },
-    "receipt_accuracy": "not run yet (Gemini endpoint pending)"
+    "receipt_accuracy": {
+      "b": "not run yet (Gemini endpoint pending)",
+      "fleet": "not run yet (Gemini endpoint pending)"
+    }
   }
 }

@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from backend.tools.calculate_roi import calculate_roi
+from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.data_quality import data_quality
@@ -27,7 +28,8 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "what_would_improve": what_would_improve, "generate_report": generate_report,
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
-         "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if}
+         "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
+         "check_delivery_notes": check_delivery_notes}
 
 
 def figures(node):

@@ -3,6 +3,7 @@ from typing import Literal
 from fastapi import APIRouter, Query
 
 from backend.tools.benchmark_peers import benchmark_peers
+from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
 from backend.tools.emissions_per_client import emissions_per_client
@@ -71,3 +72,8 @@ def get_what_if(change: Literal["implement_not_working", "peer_outliers", "hvo"]
 @router.get("/report")
 def get_report(client_id: str | None = None):
     return fleet_report(client_id)
+
+
+@router.get("/delivery-notes")
+def get_delivery_notes():
+    return check_delivery_notes()

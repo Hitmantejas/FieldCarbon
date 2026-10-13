@@ -571,6 +571,30 @@
         }
       ],
       "plain_language": true
+    },
+    {
+      "id": "fleet-delivery-notes",
+      "question": "Do our delivery notes match the fuel log?",
+      "expected_tools": [
+        "check_delivery_notes"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "entered_twice",
+          "doc_no": "DN-S2-0004"
+        },
+        {
+          "type": "finds",
+          "kind": "price_differs",
+          "doc_no": "DN-S1-0004"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 2
+        }
+      ]
     }
   ]
 }

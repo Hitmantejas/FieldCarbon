@@ -202,7 +202,8 @@ def _money(v: float) -> str:
     return f"{v:,.2f}"
 
 
-def _render_delivery_note(doc: Document, lines: list[Line], rng: random.Random):
+def _render_delivery_note(doc: Document, lines: list[Line], rng: random.Random, customer: str = FARM_NAME,
+                          delivered_to: str = "Farm yard tank"):
     from PIL import Image, ImageDraw
     img = Image.new("RGB", (900, 1180), (252, 252, 248))
     d = ImageDraw.Draw(img)
@@ -211,8 +212,8 @@ def _render_delivery_note(doc: Document, lines: list[Line], rng: random.Random):
     d.text((60, 55), doc.supplier, font=big, fill=(20, 20, 20))
     d.text((60, 98), "Bulk fuel deliveries - Unit 4, Mill Lane, Fenmarsh", font=small, fill=(60, 60, 60))
     d.text((60, 160), "DELIVERY NOTE / INVOICE", font=bold, fill=(20, 20, 20))
-    meta = [("Document no.", doc.doc_number), ("Date", doc.date), ("Customer", FARM_NAME),
-            ("Delivered to", "Farm yard tank")]
+    meta = [("Document no.", doc.doc_number), ("Date", doc.date), ("Customer", customer),
+            ("Delivered to", delivered_to)]
     for i, (k, v) in enumerate(meta):
         d.text((60, 210 + i * 38), k, font=reg, fill=(70, 70, 70))
         d.text((300, 210 + i * 38), v, font=bold, fill=(20, 20, 20))
@@ -321,9 +322,9 @@ RENDERERS = {"delivery_note": _render_delivery_note, "merchant_till": _render_ti
              "handwritten": _render_handwritten}
 
 
-def render(doc: Document, lines: list[Line], seed: int = SEED):
+def render(doc: Document, lines: list[Line], seed: int = SEED, **layout):
     rng = random.Random(f"{seed}-{doc.doc_id}")
-    img = RENDERERS[doc.doc_type](doc, [l for l in lines if l.doc_id == doc.doc_id], rng)
+    img = RENDERERS[doc.doc_type](doc, [l for l in lines if l.doc_id == doc.doc_id], rng, **layout)
     img = _photograph(img, doc.damage, rng)
     scale = 1000 / max(img.size)  # keep the committed images small
     return img.resize((math.floor(img.width * scale), math.floor(img.height * scale)))

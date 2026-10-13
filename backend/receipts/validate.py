@@ -39,6 +39,7 @@ class Settings:
     season_end: date
     price_low: float   # GBP/L, Defra min over the season
     price_high: float  # GBP/L, Defra max over the season
+    max_supply_l: float = MAX_SUPPLY_L  # largest believable single supply (a farm receipt, or a depot's capacity)
 
 
 @dataclass(frozen=True)
@@ -64,13 +65,24 @@ class ValidatedLine:
         return self.outcome in COUNTED
 
 
+def settings_for(start: date, end: date, max_supply_l: float = MAX_SUPPLY_L) -> Settings:
+    """Season and Defra price band for any reporting period (prices from the months inside it)."""
+    p = pd.read_csv(REF / "ref_fuel_prices.csv")
+    p = p[(p.fuel_type == "gas_oil") & (pd.to_datetime(p.price_month).dt.date.between(start, end))]
+    return Settings(start, end, float(p.price_per_litre.min()), float(p.price_per_litre.max()), max_supply_l)
+
+
 @lru_cache(maxsize=1)
 def default_settings() -> Settings:
-    p = pd.read_csv(REF / "ref_fuel_prices.csv")
-    p = p[p.fuel_type == "gas_oil"]
-    months = pd.to_datetime(p.price_month)
-    end = (months.max() + pd.offsets.MonthEnd(0)).date()
-    return Settings(months.min().date(), end, float(p.price_per_litre.min()), float(p.price_per_litre.max()))
+    """Farm B's season (its receipts run September 2025 to August 2026)."""
+    return settings_for(date(2025, 9, 1), date(2026, 8, 31))
+
+
+@lru_cache(maxsize=1)
+def fleet_settings() -> Settings:
+    """The fleet's company year (1 May 2025 to 30 April 2026); one supply can fill the largest depot."""
+    capacity = float(pd.read_csv(REF.parent / "fleet" / "depots.csv").capacity_l.max())
+    return settings_for(date(2025, 5, 1), date(2026, 4, 30), capacity)
 
 
 def fuel_type(product: str | None) -> str | None:
@@ -164,8 +176,8 @@ def _line(rid: str, farm_id: str, x: dict, no: int, line: dict, s: Settings,
         review.append("R1: product not recognised as a fuel")
     if line.get("quantity_unit") not in (None, "litres"):
         review.append(f"R3: quantity in {line.get('quantity_unit')}, only litres are supported")
-    if litres is None or not 0 < litres <= MAX_SUPPLY_L:
-        review.append(f"R3: litres missing or outside 0 to {MAX_SUPPLY_L:,} L")
+    if litres is None or not 0 < litres <= s.max_supply_l:
+        review.append(f"R3: litres missing or outside 0 to {s.max_supply_l:,.0f} L")
     if price_note:
         (warn if price is not None else review).append(f"R4: {price_note}")
     if litres and price is not None and net is not None:

@@ -14,35 +14,12 @@ from pathlib import Path
 import pandas as pd
 
 from backend.receipts.validate import ValidatedLine, counted_litres, validate
+from backend.receipts.ground_truth import ground_truth, ground_truth_extractions  # noqa: F401 (re-exported)
+from backend.tools.extract_receipt import FARM_RECEIPTS, SETTINGS
 
 ROOT = Path(__file__).resolve().parents[1]
 FARM_B = ROOT / "data" / "synthetic" / "farm_b"
 RESULTS = ROOT / "evals" / "results" / "receipt_accuracy.json"
-
-DOC_TYPES = {"delivery_note": "delivery_note", "merchant_till": "till_receipt", "handwritten": "handwritten_docket"}
-
-
-def ground_truth() -> tuple[pd.DataFrame, pd.DataFrame]:
-    docs = pd.read_csv(FARM_B / "ground_truth_documents.csv", keep_default_na=False)
-    lines = pd.read_csv(FARM_B / "ground_truth_lines.csv")
-    return docs, lines
-
-
-def ground_truth_extractions() -> dict[str, dict]:
-    """What a perfect reading of each image would return (used as the scoring baseline in tests)."""
-    docs, lines = ground_truth()
-    out = {}
-    for d in docs.itertuples():
-        out[d.doc_id] = {
-            "doc_type": DOC_TYPES[d.doc_type], "supplier": d.supplier, "doc_number": d.doc_number, "date": d.date,
-            "currency": "GBP", "net": d.net_gbp, "vat_rate_pct": 100 * d.vat_rate, "vat": d.vat_gbp,
-            "total": d.total_gbp, "confidence": {"litres": "high", "product": "high", "date": "high"}, "notes": None,
-            "lines": [{"product": l.product, "litres": l.litres, "quantity_unit": "litres",
-                       "unit_price": l.unit_price_gbp, "unit_price_unit": "GBP_per_litre", "line_net": l.net_gbp}
-                      for l in lines[lines.doc_id == d.doc_id].itertuples()],
-        }
-    return out
-
 
 def _digits(v) -> str:
     return re.sub(r"\D", "", str(v or ""))
@@ -62,9 +39,9 @@ def _unit_gbp(line: dict) -> float | None:
     return float(p) / 100 if line.get("unit_price_unit") == "pence_per_litre" else float(p)
 
 
-def score(extractions: dict[str, dict]) -> dict:
-    docs, gt_lines = ground_truth()
-    validated = validate(sorted(extractions.items()), "b")
+def score(extractions: dict[str, dict], farm: str = "b") -> dict:
+    docs, gt_lines = ground_truth(farm)
+    validated = validate(sorted(extractions.items()), farm, SETTINGS[farm]())
     by_line = {(v.receipt_id, v.line_no): v for v in validated}
     rows = []
     for d in docs.itertuples():
@@ -105,19 +82,22 @@ def score(extractions: dict[str, dict]) -> dict:
     }
 
 
-def load_extractions(folder: Path = FARM_B / "extractions") -> dict[str, dict]:
+def load_extractions(farm: str = "b") -> dict[str, dict]:
+    folder = FARM_RECEIPTS[farm] / "extractions"
     return {p.stem: json.loads(p.read_text(encoding="utf-8"))["extracted"] for p in sorted(folder.glob("*.json"))}
 
 
 def main() -> None:
-    extractions = load_extractions()
-    if not extractions:
-        print("no stored readings yet: run infra/run_receipts.py --steps extract first")
-        return
-    result = score(extractions)
-    RESULTS.parent.mkdir(parents=True, exist_ok=True)
-    RESULTS.write_text(json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8")
-    print(json.dumps({k: v for k, v in result.items() if k != "per_document"}, indent=2, default=str))
+    for farm in FARM_RECEIPTS:
+        extractions = load_extractions(farm)
+        if not extractions:
+            print(f"{farm}: no stored readings yet (run infra/run_receipts.py --farm {farm} --steps extract)")
+            continue
+        result = score(extractions, farm)
+        path = RESULTS if farm == "b" else RESULTS.with_name(f"receipt_accuracy_{farm}.json")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8")
+        print(farm, json.dumps({k: v for k, v in result.items() if k != "per_document"}, indent=2, default=str))
 
 
 if __name__ == "__main__":

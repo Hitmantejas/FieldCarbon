@@ -119,9 +119,11 @@ def other_evals() -> dict:
     out = {"fleet_detection": fleet_detection.score()}
     rc = range_coverage.coverage()
     out["range_coverage"] = {k: v for k, v in rc.items() if k != "rows"}
-    readings = receipt_accuracy.load_extractions()
-    out["receipt_accuracy"] = ({k: v for k, v in receipt_accuracy.score(readings).items() if k != "per_document"}
-                               if readings else "not run yet (Gemini endpoint pending)")
+    out["receipt_accuracy"] = {}
+    for farm in ("b", "fleet"):
+        readings = receipt_accuracy.load_extractions(farm)
+        out["receipt_accuracy"][farm] = ({k: v for k, v in receipt_accuracy.score(readings, farm).items()
+                                          if k != "per_document"} if readings else "not run yet (Gemini endpoint pending)")
     return out
 
 
@@ -129,15 +131,15 @@ def markdown(s: dict) -> str:
     t, a, st, o = s["tool_cases"], s["agent_runs"]["agent"], s["agent_runs"]["self_test"], s["other"]
     fd, rc = o["fleet_detection"], o["range_coverage"]
     pct = lambda v: "n/a" if v is None else f"{100 * v:.0f}%"  # noqa: E731
-    receipts = o["receipt_accuracy"]
+    reading = lambda r: r if isinstance(r, str) else pct(r["field_accuracy"].get("litres"))  # noqa: E731
     rows = [
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
         ("Planted fuel problems found", f"{fd.get('found', fd.get('detected', '?'))} of {fd.get('planted', fd.get('total', '?'))}"),
         ("Receipts-only ranges containing the telemetry truth",
          f"{rc['operations_inside']} of {rc['operations']} jobs ({pct(rc['coverage_by_litres'])} of litres)"),
-        ("Receipt reading accuracy (litres)",
-         receipts if isinstance(receipts, str) else pct(receipts["field_accuracy"].get("litres"))),
+        ("Gemini reading accuracy, Farm B receipts (litres)", reading(o["receipt_accuracy"]["b"])),
+        ("Gemini reading accuracy, fleet delivery notes (litres)", reading(o["receipt_accuracy"]["fleet"])),
         ("Agent runs scored", str(a["runs"])),
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),

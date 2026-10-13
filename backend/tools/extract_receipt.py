@@ -13,10 +13,12 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from backend.receipts.validate import ValidatedLine, counted_litres, validate
+from backend.receipts.validate import ValidatedLine, counted_litres, default_settings, fleet_settings, validate
 
 ROOT = Path(__file__).resolve().parents[2]
-FARM_RECEIPTS = {"b": ROOT / "data" / "synthetic" / "farm_b"}
+# Each source of fuel documents: a folder with receipts/*.jpg, ground truth and stored readings.
+FARM_RECEIPTS = {"b": ROOT / "data" / "synthetic" / "farm_b", "fleet": ROOT / "data" / "fleet" / "delivery_notes"}
+SETTINGS = {"b": default_settings, "fleet": fleet_settings}
 
 PROJECT = os.environ.get("FIELDCARBON_PROJECT", "ai-hackathon-india")
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
@@ -114,7 +116,7 @@ def validate_farm(farm_id: str = "b", receipt_ids: list[str] | None = None) -> l
     """Validate every stored extraction for a farm, in receipt order (duplicates are caught across them)."""
     folder = FARM_RECEIPTS[farm_id] / "extractions"
     ids = receipt_ids or sorted(p.stem for p in folder.glob("*.json"))
-    return validate([(rid, read_receipt(rid, farm_id).extracted) for rid in ids], farm_id)
+    return validate([(rid, read_receipt(rid, farm_id).extracted) for rid in ids], farm_id, SETTINGS[farm_id]())
 
 
 def extract_receipt(receipt_id: str, farm_id: str = "b") -> dict:

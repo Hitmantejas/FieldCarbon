@@ -1,0 +1,15 @@
+doc_id,line_no,product,litres,unit_price_gbp,net_gbp,counts_toward_fuel
+DN-S2-0001,1,Red diesel (gas oil),900.0,0.7229,650.61,True
+DN-S2-0002,1,Red diesel (gas oil),900.0,0.713,641.7,True
+DN-S2-0003,1,Red diesel (gas oil),900.0,0.7496,674.64,True
+DN-S1-0001,1,Red diesel (gas oil),1800.0,0.7499,1349.82,True
+DN-S2-0004,1,Red diesel (gas oil),900.0,0.7579,682.11,True
+DN-S1-0002,1,Red diesel (gas oil),1700.0,0.7485,1272.45,True
+DN-S1-0003,1,Red diesel (gas oil),1800.0,0.7661,1378.98,True
+DN-S1-0004,1,Red diesel (gas oil),1800.0,0.7427,1336.86,True
+DN-S3-0001,1,Red diesel (gas oil),300.0,0.7718,231.54,True
+DN-S1-0005,1,Red diesel (gas oil),1600.0,0.7705,1232.8,True
+DN-S2-0005,1,Red diesel (gas oil),900.0,0.7563,680.67,True
+DN-S1-0006,1,Red diesel (gas oil),2400.0,0.7607,1825.68,True
+DN-S2-0006,1,Red diesel (gas oil),900.0,1.1466,1031.94,True
+DN-S1-0007,1,Red diesel (gas oil),1800.0,1.1797,2123.46,True

@@ -1,0 +1,15 @@
+doc_id,doc_type,supplier,doc_number,date,price_month,net_gbp,vat_rate,vat_gbp,total_gbp,damage,duplicate_of,counts_toward_total
+DN-S2-0001,delivery_note,Supplier B (demo),DN-S2-0001,2025-05-19,2025-05,650.61,0.05,32.53,683.14,crumpled,,True
+DN-S2-0002,delivery_note,Supplier A (demo),DN-S2-0002,2025-06-17,2025-06,641.7,0.05,32.09,673.79,skewed,,True
+DN-S2-0003,delivery_note,Supplier B (demo),DN-S2-0003,2025-07-29,2025-07,674.64,0.05,33.73,708.37,skewed,,True
+DN-S1-0001,delivery_note,Supplier B (demo),DN-S1-0001,2025-08-15,2025-08,1349.82,0.05,67.49,1417.31,low_light,,True
+DN-S2-0004,delivery_note,Supplier A (demo),DN-S2-0004,2025-09-08,2025-09,682.11,0.05,34.11,716.22,crumpled,,True
+DN-S1-0002,delivery_note,Supplier A (demo),DN-S1-0002,2025-09-19,2025-09,1272.45,0.05,63.62,1336.07,crumpled,,True
+DN-S1-0003,delivery_note,Supplier B (demo),DN-S1-0003,2025-10-06,2025-10,1378.98,0.05,68.95,1447.93,blurred,,True
+DN-S1-0004,delivery_note,Supplier A (demo),DN-S1-0004,2025-10-16,2025-10,1336.86,0.05,66.84,1403.7,blurred,,True
+DN-S3-0001,delivery_note,Supplier B (demo),DN-S3-0001,2025-10-16,2025-10,231.54,0.05,11.58,243.12,blurred,,True
+DN-S1-0005,delivery_note,Supplier B (demo),DN-S1-0005,2025-10-29,2025-10,1232.8,0.05,61.64,1294.44,crumpled,,True
+DN-S2-0005,delivery_note,Supplier B (demo),DN-S2-0005,2026-01-13,2026-01,680.67,0.05,34.03,714.7,blurred,,True
+DN-S1-0006,delivery_note,Supplier A (demo),DN-S1-0006,2026-01-21,2026-01,1825.68,0.2,365.14,2190.82,skewed,,True
+DN-S2-0006,delivery_note,Supplier A (demo),DN-S2-0006,2026-04-11,2026-04,1031.94,0.05,51.6,1083.54,crumpled,,True
+DN-S1-0007,delivery_note,Supplier B (demo),DN-S1-0007,2026-04-22,2026-04,2123.46,0.05,106.17,2229.63,low_light,,True
