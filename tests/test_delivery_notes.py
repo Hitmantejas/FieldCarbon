@@ -40,7 +40,7 @@ def test_one_paper_per_note_and_the_planted_price_typo():
 
 def test_check_finds_the_duplicate_and_the_price_typo_and_nothing_else():
     r = cdn.check_delivery_notes()
-    assert "pending" in r["data_source"]
+    assert "pending" in r["data_source"] or r["data_source"].startswith("Gemini readings")  # before / after the run
     assert kinds(r) == {"entered_twice": ["DN-S2-0004"], "price_differs": ["DN-S1-0004"]}
     assert (r["notes"], r["log_rows"], r["notes_matching_log"]) == (14, 15, 12)
     price = next(f for f in r["findings"] if f["kind"] == "price_differs")

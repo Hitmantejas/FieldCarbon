@@ -1,0 +1,43 @@
+{
+  "receipt_id": "B01",
+  "farm_id": "b",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "delivery_note",
+    "supplier": "Larkspur Vale Fuels Ltd",
+    "doc_number": "LVF-4342",
+    "date": "2025-09-03",
+    "lines": [
+      {
+        "product": "Red diesel (gas oil)",
+        "litres": 378.9,
+        "quantity_unit": "litres",
+        "unit_price": 77.27,
+        "unit_price_unit": "pence_per_litre",
+        "line_net": 292.78
+      }
+    ],
+    "net": 292.78,
+    "vat": 14.64,
+    "total": 307.42,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": null,
+    "vat_rate_pct": 5
+  },
+  "extracted_at": "2026-10-13T18:04:39+00:00",
+  "image": "receipts/B01.jpg",
+  "usage": {
+    "input_tokens": 2023,
+    "output_tokens": 162,
+    "thinking_tokens": 949,
+    "total_tokens": 3134
+  },
+  "model_version": "gemini-3.5-flash"
+}

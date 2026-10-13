@@ -1,0 +1,43 @@
+{
+  "receipt_id": "B20",
+  "farm_id": "b",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "delivery_note",
+    "supplier": "Corrow & Pike Oils",
+    "doc_number": "CPO-1102",
+    "date": "2026-08-05",
+    "lines": [
+      {
+        "product": "Red diesel (gas oil)",
+        "litres": 384.2,
+        "quantity_unit": "litres",
+        "unit_price": 111.6,
+        "unit_price_unit": "pence_per_litre",
+        "line_net": 428.77
+      }
+    ],
+    "net": 428.77,
+    "vat": 21.44,
+    "total": 450.21,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": "ILLUSTRATIVE DEMO DATA - fictional supplier - FieldCarbon",
+    "vat_rate_pct": 5
+  },
+  "extracted_at": "2026-10-13T18:09:01+00:00",
+  "image": "receipts/B20.jpg",
+  "usage": {
+    "input_tokens": 2023,
+    "output_tokens": 172,
+    "thinking_tokens": 561,
+    "total_tokens": 2756
+  },
+  "model_version": "gemini-3.5-flash"
+}

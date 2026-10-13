@@ -4,8 +4,8 @@
 | Figures with a confidence label and sources | 100% of 657 |
 | Planted fuel problems found | 3 of 3 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
-| Gemini reading accuracy, Farm B receipts (litres) | not run yet (Gemini endpoint pending) |
-| Gemini reading accuracy, fleet delivery notes (litres) | not run yet (Gemini endpoint pending) |
+| Gemini reading accuracy, Farm B receipts (litres) | 100% |
+| Gemini reading accuracy, fleet delivery notes (litres) | 100% |
 | Agent runs scored | 0 |
 | Agent tool selection | n/a |
 | Agent numerical faithfulness | n/a |

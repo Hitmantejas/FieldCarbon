@@ -1,0 +1,43 @@
+{
+  "receipt_id": "B09",
+  "farm_id": "b",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "delivery_note",
+    "supplier": "Corrow & Pike Oils",
+    "doc_number": "CPO-1096",
+    "date": "2025-10-27",
+    "lines": [
+      {
+        "product": "Red diesel (gas oil)",
+        "litres": 520.3,
+        "quantity_unit": "litres",
+        "unit_price": 78.23,
+        "unit_price_unit": "pence_per_litre",
+        "line_net": 407.03
+      }
+    ],
+    "net": 407.03,
+    "vat": 20.35,
+    "total": 427.38,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": null,
+    "vat_rate_pct": 5
+  },
+  "extracted_at": "2026-10-13T18:06:19+00:00",
+  "image": "receipts/B09.jpg",
+  "usage": {
+    "input_tokens": 2023,
+    "output_tokens": 161,
+    "thinking_tokens": 713,
+    "total_tokens": 2897
+  },
+  "model_version": "gemini-3.5-flash"
+}

@@ -1,0 +1,43 @@
+{
+  "receipt_id": "B08",
+  "farm_id": "b",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "handwritten_docket",
+    "supplier": "Hob Lane Fuel Services",
+    "doc_number": "1475",
+    "date": "2025-10-14",
+    "lines": [
+      {
+        "product": "Red diesel",
+        "litres": 634.0,
+        "quantity_unit": "litres",
+        "unit_price": 75.6,
+        "unit_price_unit": "pence_per_litre",
+        "line_net": 479.3
+      }
+    ],
+    "net": 479.3,
+    "vat": 23.97,
+    "total": 503.27,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": null,
+    "vat_rate_pct": 5.0
+  },
+  "extracted_at": "2026-10-13T18:06:11+00:00",
+  "image": "receipts/B08.jpg",
+  "usage": {
+    "input_tokens": 2066,
+    "output_tokens": 248,
+    "thinking_tokens": 638,
+    "total_tokens": 2952
+  },
+  "model_version": "gemini-3.5-flash"
+}

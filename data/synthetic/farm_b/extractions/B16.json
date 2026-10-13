@@ -1,0 +1,43 @@
+{
+  "receipt_id": "B16",
+  "farm_id": "b",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "till_receipt",
+    "supplier": "FENMARSH AGRI SUPPLIES",
+    "doc_number": "FAS-7603",
+    "date": "2026-05-04",
+    "lines": [
+      {
+        "product": "Red diesel (gas oil)",
+        "litres": 80.62,
+        "quantity_unit": "litres",
+        "unit_price": 1.11,
+        "unit_price_unit": "GBP_per_litre",
+        "line_net": 89.49
+      }
+    ],
+    "net": 89.49,
+    "vat": 4.47,
+    "total": 93.96,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": null,
+    "vat_rate_pct": 5
+  },
+  "extracted_at": "2026-10-13T18:07:56+00:00",
+  "image": "receipts/B16.jpg",
+  "usage": {
+    "input_tokens": 2016,
+    "output_tokens": 158,
+    "thinking_tokens": 936,
+    "total_tokens": 3110
+  },
+  "model_version": "gemini-3.5-flash"
+}

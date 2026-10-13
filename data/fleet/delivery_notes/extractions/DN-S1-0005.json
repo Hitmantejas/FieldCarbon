@@ -1,0 +1,43 @@
+{
+  "receipt_id": "DN-S1-0005",
+  "farm_id": "fleet",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "receipt-v1",
+  "extracted": {
+    "doc_type": "delivery_note",
+    "supplier": "Supplier B (demo)",
+    "doc_number": "DN-S1-0005",
+    "date": "2025-10-29",
+    "lines": [
+      {
+        "product": "Red diesel (gas oil)",
+        "litres": 1600.0,
+        "quantity_unit": "litres",
+        "unit_price": 77.05,
+        "unit_price_unit": "pence_per_litre",
+        "line_net": 1232.8
+      }
+    ],
+    "net": 1232.8,
+    "vat": 61.64,
+    "total": 1294.44,
+    "confidence": {
+      "litres": "high",
+      "product": "high",
+      "date": "high"
+    },
+    "currency": "GBP",
+    "notes": null,
+    "vat_rate_pct": 5
+  },
+  "extracted_at": "2026-10-13T18:12:23+00:00",
+  "image": "receipts/DN-S1-0005.jpg",
+  "usage": {
+    "input_tokens": 2023,
+    "output_tokens": 256,
+    "thinking_tokens": 895,
+    "total_tokens": 3174
+  },
+  "model_version": "gemini-3.5-flash"
+}

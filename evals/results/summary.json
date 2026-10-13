@@ -151,8 +151,79 @@
       "note": "Farm B never sees telemetry: ranges come from receipts, the farm profile and Iowa A3-27 rates."
     },
     "receipt_accuracy": {
-      "b": "not run yet (Gemini endpoint pending)",
-      "fleet": "not run yet (Gemini endpoint pending)"
+      "b": {
+        "documents": 24,
+        "read": 24,
+        "field_accuracy": {
+          "date": 1.0,
+          "doc_number": 1.0,
+          "supplier": 1.0,
+          "total": 1.0,
+          "line_count": 1.0,
+          "litres": 1.0,
+          "unit_price": 1.0,
+          "outcome": 1.0
+        },
+        "litres_accuracy_by_damage": {
+          "blurred": 1.0,
+          "clean": 1.0,
+          "crumpled": 1.0,
+          "handwritten": 1.0,
+          "low_light": 1.0,
+          "skewed": 1.0
+        },
+        "counted_litres": 10813.7,
+        "target_litres": 10813.7,
+        "litres_error": 0.0,
+        "outcomes": {
+          "accepted": 23,
+          "excluded": 2
+        },
+        "misread_docs": [],
+        "tokens": {
+          "documents": 24,
+          "input_tokens": 48722,
+          "output_tokens": 4300,
+          "thinking_tokens": 19173,
+          "total_tokens": 72195,
+          "per_document": 3008
+        }
+      },
+      "fleet": {
+        "documents": 14,
+        "read": 14,
+        "field_accuracy": {
+          "date": 1.0,
+          "doc_number": 1.0,
+          "supplier": 1.0,
+          "total": 1.0,
+          "line_count": 1.0,
+          "litres": 1.0,
+          "unit_price": 1.0,
+          "outcome": 1.0
+        },
+        "litres_accuracy_by_damage": {
+          "blurred": 1.0,
+          "crumpled": 1.0,
+          "low_light": 1.0,
+          "skewed": 1.0
+        },
+        "counted_litres": 18600.0,
+        "target_litres": 18600.0,
+        "litres_error": 0.0,
+        "outcomes": {
+          "accepted": 14
+        },
+        "misread_docs": [],
+        "tokens": {
+          "documents": 14,
+          "input_tokens": 28373,
+          "output_tokens": 2720,
+          "thinking_tokens": 10832,
+          "total_tokens": 41925,
+          "per_document": 2995
+        }
+      }
     }
   }
 }
