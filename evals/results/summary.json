@@ -1,0 +1,155 @@
+{
+  "tool_cases": {
+    "cases": 29,
+    "passed": 29,
+    "label_and_source_coverage": 1.0,
+    "figures_checked": 653,
+    "failures": []
+  },
+  "agent_runs": {
+    "agent": {
+      "runs": 0,
+      "tool_selection": null,
+      "faithfulness": null,
+      "label_coverage": null,
+      "citation_coverage": null,
+      "details": []
+    },
+    "self_test": {
+      "runs": 4,
+      "tool_selection": 0.75,
+      "faithfulness": 0.5,
+      "label_coverage": 0.769,
+      "citation_coverage": null,
+      "details": [
+        {
+          "case_id": "fleet-summary",
+          "sample": true,
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 5,
+          "unmatched": [],
+          "labelled_figures": 4,
+          "figures": 5,
+          "cited": 0,
+          "recommendations_named": 0
+        },
+        {
+          "case_id": "fleet-summary",
+          "sample": true,
+          "tool_selection": true,
+          "faithful": false,
+          "numbers": 3,
+          "unmatched": [
+            "10,841 litres",
+            "16,147 litres",
+            "31%"
+          ],
+          "labelled_figures": 1,
+          "figures": 3,
+          "cited": 0,
+          "recommendations_named": 0
+        },
+        {
+          "case_id": "fleet-reconcile",
+          "sample": true,
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 6,
+          "unmatched": [],
+          "labelled_figures": 3,
+          "figures": 3,
+          "cited": 0,
+          "recommendations_named": 0
+        },
+        {
+          "case_id": "fleet-clients",
+          "sample": true,
+          "tool_selection": false,
+          "faithful": false,
+          "numbers": 2,
+          "unmatched": [
+            "4.9 t",
+            "1,456 litres"
+          ],
+          "labelled_figures": 2,
+          "figures": 2,
+          "cited": 0,
+          "recommendations_named": 0
+        }
+      ]
+    }
+  },
+  "other": {
+    "fleet_detection": {
+      "planted": 3,
+      "found": 3,
+      "recall": 1.0,
+      "false_alarms": 0,
+      "results": [
+        {
+          "anomaly_id": "A1",
+          "kind": "over_dispense",
+          "found": true,
+          "found_litres": 415.0
+        },
+        {
+          "anomaly_id": "A2",
+          "kind": "unlogged_withdrawal",
+          "found": true,
+          "found_litres": 899.7
+        },
+        {
+          "anomaly_id": "A3",
+          "kind": "duplicate_delivery_note",
+          "found": true,
+          "found_litres": 900.0
+        }
+      ],
+      "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
+    },
+    "range_coverage": {
+      "operations": 12,
+      "operations_inside": 8,
+      "coverage_by_count": 0.667,
+      "coverage_by_litres": 0.64,
+      "remainder_inside": true,
+      "misses": [
+        {
+          "key": "ploughing",
+          "side": "above",
+          "low": 765.6,
+          "high": 1322.1,
+          "measured": 1450.8,
+          "miss_pct": 8.9
+        },
+        {
+          "key": "mulching",
+          "side": "above",
+          "low": 171.6,
+          "high": 356.4,
+          "measured": 412.0,
+          "miss_pct": 13.5
+        },
+        {
+          "key": "seedbed_combination",
+          "side": "above",
+          "low": 60.2,
+          "high": 125.0,
+          "measured": 463.9,
+          "miss_pct": 73.0
+        },
+        {
+          "key": "mowing",
+          "side": "below",
+          "low": 41.5,
+          "high": 67.5,
+          "measured": 39.9,
+          "miss_pct": -4.0
+        }
+      ],
+      "note": "Farm B never sees telemetry: ranges come from receipts, the farm profile and Iowa A3-27 rates."
+    },
+    "receipt_accuracy": "not run yet (Gemini endpoint pending)"
+  }
+}

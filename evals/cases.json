@@ -409,6 +409,168 @@
           "type": "every_figure_sourced"
         }
       ]
+    },
+    {
+      "id": "plain-peer-waste",
+      "question": "Which tractor burns more fuel than the others on the same job?",
+      "expected_tools": [
+        "benchmark_peers"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-client-co2",
+      "question": "How much CO2 did our work for each client farm produce?",
+      "expected_tools": [
+        "emissions_per_client"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-fuel-adds-up",
+      "question": "Does our fuel add up this year, or is some missing?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "stock_gap",
+          "site_id": "S1"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-double-note",
+      "question": "Was any delivery note entered twice?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "duplicate_delivery_note",
+          "site_id": "S2"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-overfill",
+      "question": "Is any tractor being given more fuel than it burns?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "machine_over_dispense",
+          "site_id": "S1"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-change-first",
+      "question": "What should the arable site change first to save fuel?",
+      "expected_tools": [
+        "fleet_opportunities"
+      ],
+      "arguments": {
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-how-sure",
+      "question": "How sure are you about these numbers?",
+      "expected_tools": [
+        "data_quality"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-whatif-hvo",
+      "question": "What if the arable site switched to HVO?",
+      "expected_tools": [
+        "what_if"
+      ],
+      "arguments": {
+        "change": "hvo",
+        "amount_pct": 100,
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-october-jobs",
+      "question": "Which jobs used the most fuel at the arable site last October?",
+      "expected_tools": [
+        "fleet_jobs"
+      ],
+      "arguments": {
+        "site_id": "S1",
+        "month": "2025-10",
+        "sort": "litres",
+        "limit": 5
+      },
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 5
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-german-total",
+      "question": "Wie viel Diesel hat die Flotte insgesamt verbraucht?",
+      "expected_tools": [
+        "fleet_summary"
+      ],
+      "arguments": {
+        "group_by": "site"
+      },
+      "checks": [
+        {
+          "type": "fleet_total_litres",
+          "approx": 16492.19,
+          "abs": 1
+        }
+      ],
+      "plain_language": true
     }
   ]
 }
