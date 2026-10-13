@@ -211,6 +211,85 @@
           "type": "report_traceable"
         }
       ]
+    },
+    {
+      "id": "fleet-summary",
+      "question": "How much fuel did the fleet use, by site?",
+      "expected_tools": [
+        "fleet_summary"
+      ],
+      "arguments": {
+        "group_by": "site"
+      },
+      "checks": [
+        {
+          "type": "fleet_total_litres",
+          "approx": 16493,
+          "abs": 5
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-clients",
+      "question": "What are the emissions per client farm?",
+      "expected_tools": [
+        "emissions_per_client"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 17
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-reconcile",
+      "question": "Is any fuel unaccounted for?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "machine_over_dispense",
+          "machine_id": "S1-T4"
+        },
+        {
+          "type": "finds",
+          "kind": "stock_gap",
+          "depot_id": "S1-D1"
+        },
+        {
+          "type": "finds",
+          "kind": "duplicate_delivery_note",
+          "depot_id": "S2-D1"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "id": "fleet-quality",
+      "question": "How good is our data?",
+      "expected_tools": [
+        "data_quality"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
     }
   ]
 }

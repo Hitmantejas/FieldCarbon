@@ -1,0 +1,27 @@
+{
+  "planted": 3,
+  "found": 3,
+  "recall": 1.0,
+  "false_alarms": 0,
+  "results": [
+    {
+      "anomaly_id": "A1",
+      "kind": "over_dispense",
+      "found": true,
+      "found_litres": 415.0
+    },
+    {
+      "anomaly_id": "A2",
+      "kind": "unlogged_withdrawal",
+      "found": true,
+      "found_litres": 899.7
+    },
+    {
+      "anomaly_id": "A3",
+      "kind": "duplicate_delivery_note",
+      "found": true,
+      "found_litres": 900.0
+    }
+  ],
+  "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
+}

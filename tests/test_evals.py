@@ -6,13 +6,19 @@ import pytest
 
 from backend.tools.calculate_roi import calculate_roi
 from backend.tools.rank_interventions import rank_interventions
+from backend.tools.data_quality import data_quality
+from backend.tools.emissions_per_client import emissions_per_client
+from backend.tools.fleet_summary import fleet_summary
 from backend.tools.generate_report import generate_report
+from backend.tools.reconcile_fuel import reconcile_fuel
 from backend.tools.set_goal import set_goal
 from backend.tools.what_would_improve import what_would_improve
 
 CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text())["cases"]
 TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_roi, "set_goal": set_goal,
-         "what_would_improve": what_would_improve, "generate_report": generate_report}
+         "what_would_improve": what_would_improve, "generate_report": generate_report,
+         "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
+         "data_quality": data_quality}
 
 
 def figures(node):
@@ -50,6 +56,17 @@ def check(case: dict, output, spec: dict) -> None:
     elif kind == "report_traceable":
         assert output["sources"] and "traceable" in output["meta"]["statement"]
         assert all(f["source_ids"] and f["label"] for f in figures(output))
+    elif kind == "fleet_total_litres":
+        assert sum(r["litres"]["value"] for r in output["rows"]) == pytest.approx(spec["approx"], abs=spec["abs"])
+    elif kind == "row_count":
+        assert len(output["rows"]) == spec["equals"]
+    elif kind == "every_figure_sourced":
+        assert all(f["source_ids"] and f["label"] for f in figures(output))
+    elif kind == "finds":
+        want = {k: v for k, v in spec.items() if k != "type"}
+        assert any(all(f.get(k) == v for k, v in want.items()) for f in output["findings"]), want
+    elif kind == "finding_count_at_most":
+        assert len(output["findings"]) <= spec["n"]
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
     else:
