@@ -5,7 +5,7 @@ import { FindingList } from "../components/FindingList";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
-import type { Anomalies, DepotMonth, Reconciliation, Severity } from "../fleetApi";
+import type { Anomalies, DeliveryNotes, DepotMonth, NoteFinding, Reconciliation, Severity } from "../fleetApi";
 import { litres } from "../format";
 
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
@@ -15,6 +15,49 @@ const signed = (n: number) => `${n > 0 ? "+" : ""}${litres(n)}`;
 
 function Loading({ what }: { what: string }) {
   return <p className="font-mono text-sm uppercase tracking-widest text-ink-soft">Loading {what}...</p>;
+}
+
+// A delivery-note finding is in litres, in pounds (a price difference), or has nothing to quantify.
+const amount = (f: Figure) => (f.unit === "GBP" ? `£${Math.abs(f.value ?? 0).toFixed(2)}` : `${litres(f.value ?? 0)} L`);
+
+function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (title: string, shown: string, f: Figure) => void }) {
+  return (
+    <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-ink">
+      {findings.map((f) => {
+        const row = (
+          <>
+            <span className="bg-mark px-2 py-1 text-center font-mono text-xs font-bold uppercase tracking-widest text-on-mark">{f.severity}</span>
+            <span className="max-w-[75ch]">
+              {f.title}
+              {f.on_note !== undefined && f.in_log !== undefined && f.kind === "date_differs" && (
+                <span className="block text-sm text-ink-soft">Note: {String(f.on_note)}. Log: {String(f.in_log)}.</span>
+              )}
+              {f.reasons && <span className="block text-sm text-ink-soft">{f.reasons.join(" ")}</span>}
+            </span>
+            {f.figure ? (
+              <span className="flex items-center gap-3">
+                <span className="num text-sm">{amount(f.figure)}</span>
+                <Stamp label={f.figure.label} />
+              </span>
+            ) : (
+              <span />
+            )}
+          </>
+        );
+        return (
+          <li key={f.kind + f.doc_no}>
+            {f.figure ? (
+              <button onClick={() => onOpen(f.title, amount(f.figure!), f.figure!)} className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5rem_1fr_auto] items-center gap-4 py-3 text-left">
+                {row}
+              </button>
+            ) : (
+              <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 py-3">{row}</div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 function HowButton({ onClick, label }: { onClick: () => void; label: string }) {
@@ -28,6 +71,7 @@ function HowButton({ onClick, label }: { onClick: () => void; label: string }) {
 export function FuelControl() {
   const recon = useApi<Reconciliation>("/api/fleet/reconciliation");
   const anomalies = useApi<Anomalies>("/api/fleet/anomalies");
+  const notes = useApi<DeliveryNotes>("/api/fleet/delivery-notes");
   const [opened, setOpened] = useState<Opened | null>(null);
   const [depot, setDepot] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -60,6 +104,41 @@ export function FuelControl() {
       <section className="px-6" aria-labelledby="h-recon">
         <SectionHead id="h-recon" title="Fuel that does not add up" tone="mark" aside={r && <HowButton onClick={() => openChecked("Fuel that does not add up", r.depots)} label="the depot check" />} />
         {!r ? <Loading what="reconciliation" /> : r.findings.length === 0 ? <p>Nothing found.</p> : <FindingList findings={bySeverity(r.findings)} onOpen={open} />}
+      </section>
+
+      <section className="px-6" aria-labelledby="h-notes">
+        <SectionHead id="h-notes" title="Delivery notes against the fuel log" tone="solid" />
+        {!notes.data ? (
+          <Loading what="delivery notes" />
+        ) : (
+          <>
+            <p className="mb-3 max-w-[70ch]">
+              Gemini reads each delivery note; fixed rules and code check it against the log.{" "}
+              <span className="font-bold">
+                {notes.data.notes_matching_log} of {notes.data.notes} notes match
+              </span>{" "}
+              the {notes.data.log_rows} rows in the fuel log.
+            </p>
+            <dl className="mb-4 grid max-w-xl grid-cols-2 gap-4">
+              {([["On the notes", notes.data.litres_on_notes], ["In the fuel log", notes.data.litres_in_log]] as [string, Figure][]).map(([name, f]) => (
+                <button key={name} onClick={() => open(`Litres ${name.toLowerCase()}`, amount(f), f)} className="btn-row border-2 border-ink p-3 text-left">
+                  <dt className="font-mono text-xs uppercase tracking-widest text-ink-soft">{name}</dt>
+                  <dd className="mt-1 flex items-center gap-3">
+                    <span className="num text-2xl font-bold">{amount(f)}</span>
+                    <Stamp label={f.label} />
+                  </dd>
+                </button>
+              ))}
+            </dl>
+            {notes.data.findings.length === 0 ? <p>Every note matches the fuel log.</p> : <NoteFindings findings={notes.data.findings} onOpen={open} />}
+            <p className="mt-2 text-sm text-ink-soft">
+              {notes.data.data_source.includes("pending")
+                ? "Gemini has not read these notes yet, so the check uses the text printed on them. "
+                : `Source: ${notes.data.data_source}. `}
+              Demo documents, illustrative.
+            </p>
+          </>
+        )}
       </section>
 
       <section className="px-6" aria-labelledby="h-odd">

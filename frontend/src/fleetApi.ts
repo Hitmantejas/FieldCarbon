@@ -202,3 +202,26 @@ export interface FleetReport {
   attribution: string;
   sources: ReportSource[];
 }
+
+// Delivery notes read by Gemini, checked against the fuel log by code (GET /api/fleet/delivery-notes).
+export interface NoteFinding {
+  kind: "entered_twice" | "note_not_in_log" | "litres_differ" | "price_differs" | "date_differs" | "log_row_without_note" | "note_needs_review";
+  severity: Severity;
+  doc_no: string;
+  title: string;
+  figure: Figure | null; // litres, or GBP for a price difference; null when there is nothing to quantify
+  reasons?: string[];
+  on_note?: number | string;
+  in_log?: number | string;
+}
+
+export interface DeliveryNotes {
+  data_source: string;
+  notes: number;
+  log_rows: number;
+  notes_matching_log: number;
+  litres_on_notes: Figure;
+  litres_in_log: Figure;
+  findings: NoteFinding[];
+  note: string;
+}
