@@ -91,18 +91,26 @@ def test_unknown_grouping_is_rejected():
 
 
 # ---- emissions_per_client --------------------------------------------------------------------------------
-def test_client_emissions_add_up_and_unassigned_fuel_is_shown_not_hidden():
+def test_client_rows_overhead_and_unmatched_jobs_add_up_to_the_fleet_total():
     r = emissions_per_client()
-    assert sum(x["litres"]["value"] for x in r["rows"]) == pytest.approx(REAL_TOTAL, abs=3)
-    unassigned = by_key(r)["unassigned"]
-    assert unassigned["name"] == "Unassigned" and unassigned["litres"]["value"] > 3900   # S1 fuel outside jobs
-    assert len(r["rows"]) == 17                                                       # 16 clients + unassigned
+    parts = sum(x["litres"]["value"] for x in r["rows"]) + r["overhead"]["litres"]["value"] + r["unmatched_jobs"]["litres"]["value"]
+    assert parts == pytest.approx(REAL_TOTAL, abs=3) and parts == pytest.approx(r["total"]["value"], abs=0.1)
+    assert len(r["rows"]) == 16 and all(x["client_id"] != "unassigned" for x in r["rows"])
+
+
+def test_overhead_is_fuel_outside_jobs_split_by_use_and_unmatched_jobs_are_small():
+    r = emissions_per_client()
+    assert r["overhead"]["litres"]["value"] > 3900 and r["overhead"]["litres"]["label"] == "allocated"
+    assert sum(b["litres"]["value"] for b in r["overhead"]["breakdown"]) == pytest.approx(r["overhead"]["litres"]["value"], abs=0.1)
+    assert {b["key"] for b in r["overhead"]["breakdown"]} <= {"other_idle", "other_implement_nonproductive", "other_offroad_unassigned", "other_road_transport"}
+    assert r["unmatched_jobs"]["jobs"] > 0 and r["unmatched_jobs"]["litres"]["value"] < 0.1 * r["overhead"]["litres"]["value"]
 
 
 def test_one_client_by_month():
     r = emissions_per_client(client_id="C09")
     assert [x["client_id"] for x in r["months"]] == ["C09"] * len(r["months"])
     assert sum(m["litres"]["value"] for m in r["months"]) == pytest.approx(r["rows"][0]["litres"]["value"], abs=0.1)
+    assert r["overhead"] is None
 
 
 # ---- data_quality ----------------------------------------------------------------------------------------
@@ -174,3 +182,10 @@ def test_the_detection_eval_finds_all_three_planted_problems_with_no_false_alarm
     assert s["planted"] == 3 and s["found"] == 3 and s["recall"] == 1.0 and s["false_alarms"] == 0
     litres = {r["anomaly_id"]: r["found_litres"] for r in s["results"]}
     assert litres["A2"] == pytest.approx(900, abs=60)
+
+
+def test_machine_rows_name_their_site_and_site_rows_say_what_kind_of_data_they_have():
+    machines = fleet_summary("machine")["rows"]
+    assert all(r["site_id"] == r["key"][:2] for r in machines)
+    kinds = {r["key"]: r["data_kind"] for r in fleet_summary("site")["rows"]}
+    assert kinds == {"S1": "raw telemetry", "S2": "per-operation summary", "S3": "raw telemetry, tillage only"}

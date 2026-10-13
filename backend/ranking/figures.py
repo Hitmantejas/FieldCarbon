@@ -57,7 +57,7 @@ def plan_figures(result: InterventionResult, roi: Roi, ctx: FarmContext) -> dict
             bullets(f"**Litres saved** x the price of {fuel}.",
                     f"The price ranged from **£{price.low:.2f} to £{price.high:.2f} a litre** between "
                     f"{month_name(price.from_month)} and {month_name(price.to_month)}.",
-                    "Your recording has no dates, so we use the whole price range."),
+                    "Prices moved a lot over the period, so we use the whole range, not one price."),
             farm_litres + (price.source_id,))
     if roi.co2e_avoided_kg_low is not None:
         if roi.litres_saved_high is not None and roi.litres_saved_high < 0:
@@ -79,7 +79,7 @@ def plan_figures(result: InterventionResult, roi: Roi, ctx: FarmContext) -> dict
                 "years", roi.payback_years_low, roi.payback_years_high,
                 bullets("The **cost** divided by the **money saved on fuel** each year.",
                         "Shortest time: lowest cost with the biggest saving. Longest time: highest cost with the smallest saving.",
-                        "We treat your one recorded season as a year."),
+                        "We treat the fuel recorded as a full year of use."),
                 cost.source_ids + farm_litres + (price.source_id,))
         if roi.running_cost_change_gbp_low is not None:
             sources = cost.source_ids + ctx.litres_source_ids + ((price.source_id,) if cost.kind == "running_cost_extra_per_litre" else ())

@@ -17,6 +17,8 @@ def data_quality() -> dict:
     total = float(ledger.litres.sum())
     measured = float(ledger[ledger.label == "measured"].litres.sum())
     unassigned = float(ledger[ledger.client_id.isna()].litres.sum())
+    stray = ledger[ledger.client_id.isna() & ledger.is_job]
+    unmatched, unmatched_jobs = float(stray.litres.sum()), len(stray)
     frozen = float(other[other.activity_class == "data_gap"].hours.sum())
     no_area = int(jobs.area_ha.isna().sum())
     return {
@@ -25,8 +27,9 @@ def data_quality() -> dict:
             "The rest is fuel burned outside jobs, which is measured in total but shared across months by rule."),
             "tum_alc_data", "vineyard_ops", "tumosan_tillage"),
         "unassigned_litres": _fig(unassigned, "L", "allocated", bullets(
-            f"**{unassigned:,.0f} litres** cannot be given to a client farm.",
-            "Most of it was burned outside jobs (travel, idling), where no field is known."), "tum_alc_data"),
+            f"**{unassigned - unmatched:,.0f} litres** were burned outside jobs (travel, idling, tool attached but not working). No field is worked then, so no client is charged.",
+            f"**{unmatched:,.0f} litres** come from **{int(unmatched_jobs)} jobs** whose GPS position fell outside every known field.",
+            "Both are left out of the client figures."), "tum_alc_data"),
         "frozen_hours": _fig(frozen, "h", "measured", bullets(
             f"**{frozen:,.1f} hours** are left out because the recorder repeated the same values.",
             "No fuel is counted in those hours."), "tum_alc_data"),

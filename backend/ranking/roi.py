@@ -74,7 +74,7 @@ def calculate_roi(result: InterventionResult, ctx: FarmContext) -> Roi:
         fuel = _bounds([l * p for l in (result.litres_saved_low, result.litres_saved_high) for p in (price.low, price.high)])
 
     cost = _cost_for(result.intervention_id)
-    notes = ["We treat your one recorded season as a year."]
+    notes = ["We treat the fuel recorded as a full year of use."]
     hectares = None
     payback = (None, None)
     running = (None, None)

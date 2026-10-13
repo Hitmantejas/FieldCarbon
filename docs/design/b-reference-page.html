@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Direction B: reference page</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--paper:#f1ede2;--ink:#1c1b19;--mute:#6b665b;--rub:#b3261e;--rule:#cfc8b6}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 Georgia,"Times New Roman",serif}
+.top{display:flex;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--ink);font:11px/1 "Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.top nav a{margin-left:22px;color:var(--ink);text-decoration:none;padding-bottom:3px}
+.top nav a.on{border-bottom:2px solid var(--rub)}.top nav a:hover{color:var(--rub)}
+.page{display:grid;grid-template-columns:200px minmax(0,760px) 280px;gap:0 30px;max-width:1340px;margin:0 auto;padding:36px 48px 80px}
+.keys{font:11px/1.9 "Segoe UI",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);padding-top:8px}
+.keys b{color:var(--rub);font-weight:600}
+h1{font:400 46px/1.08 Georgia,serif;margin:0 0 6px;letter-spacing:-.01em}
+.dek{color:var(--mute);margin:0 0 26px;font-style:italic}
+.cols{columns:2;column-gap:0;font-size:16px}
+.cols p{margin:0 0 12px;padding:0 20px;text-align:justify;hyphens:auto}
+.cols p:nth-child(2n){border-left:1px solid var(--rub)}
+.fig{font-variant-numeric:tabular-nums;font-weight:700;border-bottom:1px solid var(--rub);cursor:help;position:relative}
+.fig sup{font:600 10px "Segoe UI",sans-serif;color:var(--rub);margin-left:2px}
+.fig:hover{background:#e7dfc8}
+h2{font:600 11px "Segoe UI",sans-serif;letter-spacing:.16em;text-transform:uppercase;border-top:2px solid var(--ink);padding-top:8px;margin:34px 0 14px;display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font:14px "Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--ink);padding:6px 8px 6px 0}
+td{padding:9px 8px 9px 0;border-bottom:1px solid var(--rule)}
+tr:hover td{background:#e9e3d2}
+.rg{display:inline-block;position:relative;width:150px;height:12px;vertical-align:middle;margin-right:8px}
+.rg i{position:absolute;top:5px;height:2px;background:var(--ink)}
+.rg u{position:absolute;top:0;width:2px;height:12px;background:var(--rub)}
+.stamp{font:600 10px "Segoe UI",sans-serif;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ink);padding:1px 6px}
+.stamp.a{border-style:dashed}.stamp.e{border-style:dotted;border-width:2px}
+.margin{padding-top:96px;font:13px/1.5 "Segoe UI",sans-serif;color:var(--mute)}
+.note{position:relative;border-left:2px solid var(--rub);padding:2px 0 2px 12px;margin-bottom:22px;animation:slide .7s ease both}
+.note:nth-child(2){animation-delay:.15s}.note:nth-child(3){animation-delay:.3s}
+.note h4{margin:0 0 4px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rub)}
+.note p{margin:0;color:var(--ink)}
+@keyframes slide{from{opacity:0;transform:translateX(14px)}}
+@media(prefers-reduced-motion:reduce){.note{animation:none}}
+.banner{font:11px "Segoe UI",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--rub)}
+.foot{margin-top:36px;font:12px "Segoe UI",sans-serif;color:var(--mute)}
+</style>
+<body>
+<div class="top"><div><b>FieldCarbon</b> &nbsp;·&nbsp; <span class="banner">Demo data: illustrative</span></div><nav><a class="on" href="#">Overview</a><a href="#">Sites</a><a href="#">Jobs</a><a href="#">Opportunities</a><a href="#">Fuel control</a><a href="#">What if</a><a href="#">Clients</a><a href="#">Reports</a></nav></div>
+<div class="page">
+<div class="keys">Contents<br><b>A</b> Fleet<br><b>B</b> Sites<br><b>C</b> Ideas<br><b>D</b> Fuel control<br><b>E</b> Method</div>
+<main>
+<h1>Fleet overview, May 2025 to April 2026</h1>
+<p class="dek">Three sites, 713 jobs. Every figure is traceable; hover it, and the margin shows how we got there.</p>
+<div class="cols">
+<p>The fleet burned <span class="fig">16,493 litres<sup>1</sup></span> of red diesel, which is <span class="fig">55.8 tonnes of CO2e<sup>2</sup></span> using UK government figures for 2025, including the fuel's production and delivery.</p>
+<p>The arable site in Bavaria used <span class="fig">10,814 litres<sup>3</sup></span>, two thirds of the total. Part of that was burned outside jobs: idling, road travel and tools attached but not working.</p>
+<p>We found three things worth a look. One recorder repeated the same values for <span class="fig">92 hours<sup>4</sup></span>, so real use may be higher. A depot's book stock differs from its measured stock by about <span class="fig">900 litres<sup>5</sup></span>.</p>
+<p>Switching part of the fuel to HVO or reducing tillage could cut emissions, but only research ranges back these. They are listed below; ideas overlap and are never added together.</p>
+</div>
+<h2><span>Where the fuel went</span><span>Table 1</span></h2>
+<table><tr><th>Site</th><th>Litres</th><th>CO2e (t)</th><th>Label</th></tr>
+<tr><td>Arable, Bavaria</td><td>10,814</td><td>36.6</td><td><span class="stamp a">Allocated</span></td></tr>
+<tr><td>Vineyard, Tuscany</td><td>5,333</td><td>18.0</td><td><span class="stamp">Measured</span></td></tr>
+<tr><td>Tillage, Konya</td><td>346</td><td>1.2</td><td><span class="stamp">Measured</span></td></tr></table>
+<h2><span>Ideas, ranked by strength of evidence</span><span>Table 2</span></h2>
+<table><tr><th>Idea</th><th>Saving range, % of fuel emissions</th><th>Evidence</th></tr>
+<tr><td>Shift up, throttle down</td><td><span class="rg"><i style="left:10%;width:30%"></i><u style="left:25%"></u></span>2 – 8 %</td><td><span class="stamp e">Estimated</span> Strong</td></tr>
+<tr><td>Reduced tillage</td><td><span class="rg"><i style="left:20%;width:60%"></i><u style="left:50%"></u></span>4 – 16 %</td><td><span class="stamp e">Estimated</span> Moderate</td></tr>
+<tr><td>Switch to HVO</td><td><span class="rg"><i style="left:55%;width:40%"></i><u style="left:75%"></u></span>11 – 19 %</td><td><span class="stamp e">Estimated</span> Moderate</td></tr></table>
+<div class="foot">Mock-up values for layout. Direction B · two columns, apparatus in the margin, printed marks for state.</div>
+</main>
+<aside class="margin">
+<div class="note"><h4>1 · Fuel burned</h4><p>16,493 L over 713 jobs. <b>Measured</b> in total from machine data.</p></div>
+<div class="note"><h4>2 · CO2e</h4><p>16,493 L × 3.38206 kg per litre (gas oil, UK GHG CF 2025, well to wheel). <b>Allocated</b>.</p></div>
+<div class="note"><h4>4 · Frozen recorder</h4><p>Tractor 4, 163 kW. Identical values for 92 h. Worth a look, not proof of a fault.</p></div>
+</aside></div></body></html>

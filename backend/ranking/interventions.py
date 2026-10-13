@@ -25,7 +25,7 @@ STATE_ORDER = {"feasible": 0, "needs_info": 1, "not_feasible": 2}
 ROBUST_ORDER = {"strong": 0, "moderate": 1, "limited": 2}
 
 # Farmer answers that rule an intervention out when True.
-ALREADY_DONE = {"tyre_pressure_checked": "You have already checked your tyre pressure, so there is little left for this idea to save you."}
+ALREADY_DONE = {"tyre_pressure_checked": "Tyre pressure has already been checked, so there is little left for this idea to save."}
 
 
 @dataclass(frozen=True)
@@ -129,19 +129,19 @@ def _apply(ctx: FarmContext, c) -> _Row:
     if "has_ctis" in machine:
         answer = ctx.known.get("has_ctis")
         if answer is True:
-            return _Row("not_feasible", "One of your tractors already has this system, so there is nothing new to gain.")
+            return _Row("not_feasible", "One of the tractors already has this system, so there is nothing new to gain.")
         missing = "has_ctis" if answer is None else missing
     if "ballast_type" in machine:
         answer = ctx.known.get("ballast_type")
         if answer is not None and answer != machine["ballast_type"]:
-            return _Row("not_feasible", "You have no liquid weight in your tyres, so there is nothing to take out.")
+            return _Row("not_feasible", "There is no liquid weight in the tyres, so there is nothing to take out.")
         missing = "ballast_type" if answer is None else missing
 
     if "rated_kw_max" in machine:
         small = [t for t, kw in ctx.tractor_kw.items() if kw <= machine["rated_kw_max"]]
         if not small:
             return _Row("not_feasible", f"The research only covers small tractors, up to {machine['rated_kw_max']:g} kW. "
-                                        f"Your smallest tractor is {min(ctx.tractor_kw.values())} kW, so this does not apply to your farm.")
+                                        f"The smallest tractor is {min(ctx.tractor_kw.values())} kW, so this does not apply.")
         base = sum(ctx.litres_by_tractor.get(t, 0.0) for t in small)
     elif "load_pct_max" in app and not ctx.mean_load_by_op:
         # No engine data (receipts only): job loads are unknown, which is not the same as too heavy.
@@ -150,8 +150,8 @@ def _apply(ctx: FarmContext, c) -> _Row:
     elif "load_pct_max" in app:
         base = _drawbar_litres(ctx, app["load_pct_max"])
         if base <= 0:
-            return _Row("not_feasible", f"None of your towed jobs (like ploughing) ran at an engine load of "
-                                        f"{app['load_pct_max']:g}% or less, so this does not apply to your farm.")
+            return _Row("not_feasible", f"None of the towed jobs (like ploughing) ran at an engine load of "
+                                        f"{app['load_pct_max']:g}% or less, so this does not apply.")
     elif "fuel_type" in app:
         base = ctx.total_litres
     else:
@@ -232,7 +232,7 @@ def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: in
         what = f"{min(r.co2e[0] for r in chosen) / 1000:.1f} to {max(r.co2e[1] for r in chosen) / 1000:.1f} tonnes of CO2 a year"
     lines = [
         "Researchers measured how much fuel this idea saves.",
-        "We applied their **lowest and highest results** to the fuel your farm used on the matching work.",
+        "We applied their **lowest and highest results** to the fuel used on the matching work.",
         f"That gives **{what}**.",
         *(["We only counted the **fields you ploughed**: fields already worked without a plough have little "
            "left to gain."] if json.loads(first.applicability).get("requires_operation") else []),
@@ -245,7 +245,7 @@ def _how(state: str, reason: str | None, chosen: list[_Row], used, n_sources: in
         lines.append("It only applies if your towed jobs run the engine at part load. Your receipts cannot show "
                      "that; engine data from the tractor, or a note of how hard each job works it, would.")
     elif state == "needs_info":
-        lines.append("It only applies if the answer to our question fits your farm.")
+        lines.append("It only applies if the answer to our question fits the fleet.")
     return bullets(*lines)
 
 

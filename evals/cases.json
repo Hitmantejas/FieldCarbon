@@ -242,7 +242,29 @@
       "checks": [
         {
           "type": "row_count",
-          "equals": 17
+          "equals": 16
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-jobs",
+      "question": "Which were the biggest jobs at the arable site in July 2025?",
+      "expected_tools": [
+        "fleet_jobs"
+      ],
+      "arguments": {
+        "site_id": "S1",
+        "month": "2025-07",
+        "sort": "litres",
+        "limit": 5
+      },
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 5
         },
         {
           "type": "every_figure_sourced"
@@ -286,6 +308,88 @@
       ],
       "arguments": {},
       "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-benchmark",
+      "question": "Which machines burn more than their peers on the same job?",
+      "expected_tools": [
+        "benchmark_peers"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "groups_at_least",
+          "n": 8
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-anomalies",
+      "question": "Is anything unusual in the machines' data?",
+      "expected_tools": [
+        "detect_anomalies"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "data_gap",
+          "machine_id": "S1-T4"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-opportunities",
+      "question": "What could the arable site change to cut fuel?",
+      "expected_tools": [
+        "fleet_opportunities"
+      ],
+      "arguments": {
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "idea_state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "idea_state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-what-if",
+      "question": "What if we cut the fuel burned with the tool not working by 20%?",
+      "expected_tools": [
+        "what_if"
+      ],
+      "arguments": {
+        "change": "implement_not_working",
+        "amount_pct": 20,
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "scenario_litres",
+          "approx": 503,
+          "abs": 5
+        },
         {
           "type": "every_figure_sourced"
         }

@@ -17,8 +17,8 @@
   --ink: oklch(83% 0.16 78);
   --ink-soft: oklch(70% 0.12 74);
   --rule: oklch(40% 0.06 72);
-  --mark: oklch(80% 0.17 78);
-  --on-mark: oklch(15% 0.012 70);
+  --mark: oklch(86% 0.145 182);
+  --on-mark: oklch(14% 0.02 190);
   color-scheme: dark;
 }
 
