@@ -87,6 +87,16 @@ def load_extractions(farm: str = "b") -> dict[str, dict]:
     return {p.stem: json.loads(p.read_text(encoding="utf-8"))["extracted"] for p in sorted(folder.glob("*.json"))}
 
 
+def token_usage(farm: str = "b") -> dict | None:
+    """Tokens Vertex AI reported for the stored readings (the basis for the reading cost), or None if none recorded."""
+    folder = FARM_RECEIPTS[farm] / "extractions"
+    usages = [u for p in sorted(folder.glob("*.json")) if (u := json.loads(p.read_text(encoding="utf-8")).get("usage"))]
+    if not usages:
+        return None
+    total = {k: sum(u[k] for u in usages) for k in ("input_tokens", "output_tokens", "thinking_tokens", "total_tokens")}
+    return {"documents": len(usages), **total, "per_document": round(total["total_tokens"] / len(usages))}
+
+
 def main() -> None:
     for farm in FARM_RECEIPTS:
         extractions = load_extractions(farm)

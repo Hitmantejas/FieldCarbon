@@ -22,8 +22,8 @@ SETTINGS = {"b": default_settings, "fleet": fleet_settings}
 
 PROJECT = os.environ.get("FIELDCARBON_PROJECT", "ai-hackathon-india")
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
-# Endpoint not decided yet: gemini-3.5-flash answers on "global" but not "us-central1" (2026-10-12).
-LOCATION = os.environ.get("FIELDCARBON_GEMINI_LOCATION", "us-central1")
+# Decided 2026-10-14: gemini-3.5-flash is offered on "global" (and "us"/"eu"), not on "us-central1".
+LOCATION = os.environ.get("FIELDCARBON_GEMINI_LOCATION", "global")
 PROMPT_VERSION = "receipt-v1"
 
 PROMPT = """You are reading a photo of a fuel receipt, delivery note or handwritten fuel docket from a farm.
@@ -61,6 +61,7 @@ SCHEMA = {
 }
 
 Generate = Callable[[bytes, str], dict]  # (image bytes, mime type) -> extraction dict
+META = "_vertex_meta"  # added by gemini_generate to the extraction, then moved onto RawExtraction
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,10 @@ class RawExtraction:
     extracted: dict
     extracted_at: str
     image: str  # path relative to the farm's receipt folder, e.g. receipts/B03.jpg
+    # Token use reported by Vertex AI (input, output, thinking) and the model version that answered:
+    # the basis for the cost of reading documents. None for readings stored before this was recorded.
+    usage: dict | None = None
+    model_version: str | None = None
 
 
 def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str = PROJECT) -> Generate:
@@ -88,7 +93,11 @@ def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str =
             config=types.GenerateContentConfig(temperature=0, response_mime_type="application/json",
                                                response_json_schema=SCHEMA),
         )
-        return json.loads(response.text)
+        u = response.usage_metadata
+        meta = {"usage": {"input_tokens": u.prompt_token_count, "output_tokens": u.candidates_token_count,
+                          "thinking_tokens": u.thoughts_token_count or 0, "total_tokens": u.total_token_count},
+                "model_version": response.model_version}
+        return {**json.loads(response.text), META: meta}
     return generate
 
 
@@ -103,10 +112,11 @@ def read_receipt(receipt_id: str, farm_id: str = "b", generate: Generate | None 
     if cached.exists() and not refresh:
         return RawExtraction(**json.loads(cached.read_text(encoding="utf-8")))
     image = FARM_RECEIPTS[farm_id] / "receipts" / f"{receipt_id}.jpg"
-    extracted = (generate or gemini_generate(model, location))(image.read_bytes(), "image/jpeg")
+    extracted = dict((generate or gemini_generate(model, location))(image.read_bytes(), "image/jpeg"))
+    meta = extracted.pop(META, {})
     raw = RawExtraction(receipt_id, farm_id, model, location, PROMPT_VERSION, extracted,
                         datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                        image.relative_to(FARM_RECEIPTS[farm_id]).as_posix())
+                        image.relative_to(FARM_RECEIPTS[farm_id]).as_posix(), meta.get("usage"), meta.get("model_version"))
     cached.parent.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps(asdict(raw), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return raw

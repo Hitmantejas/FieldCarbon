@@ -123,7 +123,9 @@ def other_evals() -> dict:
     for farm in ("b", "fleet"):
         readings = receipt_accuracy.load_extractions(farm)
         out["receipt_accuracy"][farm] = ({k: v for k, v in receipt_accuracy.score(readings, farm).items()
-                                          if k != "per_document"} if readings else "not run yet (Gemini endpoint pending)")
+                                          if k != "per_document"} if readings else "not run yet")
+        if readings:
+            out["receipt_accuracy"][farm]["tokens"] = receipt_accuracy.token_usage(farm)
     return out
 
 

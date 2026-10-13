@@ -171,3 +171,15 @@ def test_a_misread_shows_up_in_the_score():
     result = acc.score(x)
     assert result["read"] == 23 and result["field_accuracy"]["litres"] < 1
     assert "B04" in result["misread_docs"] and result["litres_error"] < 0
+
+
+def test_vertex_usage_is_stored_with_the_reading_not_in_it(farm):
+    meta = {"usage": {"input_tokens": 1500, "output_tokens": 400, "thinking_tokens": 300, "total_tokens": 2200},
+            "model_version": "gemini-3.5-flash-001"}
+    raw = er.read_receipt("B03", generate=lambda *_: {**PERFECT["B03"], er.META: meta}, model="m", location="l")
+    assert er.META not in raw.extracted and raw.extracted == PERFECT["B03"]
+    assert raw.usage["total_tokens"] == 2200 and raw.model_version == "gemini-3.5-flash-001"
+    assert er.read_receipt("B03").usage == raw.usage  # survives the stored JSON
+    assert acc.token_usage("b") == {"documents": 1, "input_tokens": 1500, "output_tokens": 400,
+                                    "thinking_tokens": 300, "total_tokens": 2200, "per_document": 2200}
+
