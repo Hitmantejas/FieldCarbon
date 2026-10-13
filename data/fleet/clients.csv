@@ -1,0 +1,17 @@
+client_id,name,site_id,is_synthetic
+C01,Client farm 01,S1,True
+C02,Client farm 02,S1,True
+C03,Client farm 03,S1,True
+C04,Client farm 04,S1,True
+C05,Client farm 05,S1,True
+C06,Client farm 06,S1,True
+C07,Client farm 07,S1,True
+C08,Client farm 08,S1,True
+C09,Client farm 09,S2,True
+C10,Client farm 10,S2,True
+C11,Client farm 11,S2,True
+C12,Client farm 12,S2,True
+C13,Client farm 13,S2,True
+C14,Client farm 14,S3,True
+C15,Client farm 15,S3,True
+C16,Client farm 16,S3,True

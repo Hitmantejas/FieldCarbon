@@ -12,7 +12,7 @@ what is still open.
 | `ref_operations.csv` | TUM work types → operation codes → rate rows, with `match_quality` and `drive_type` (drawbar / pto / none) | Our mapping (direct / closest / composite / none). `drive_type` is our own classification, used only to apply the drawbar-only condition of the shift-up evidence; PTO-run jobs are treated as not eligible |
 | `ref_interventions.csv` | Intervention coefficients from the problem-statement research table | `from_problem_statement` until checked against primary source |
 | `ref_intervention_costs.csv` | Cost evidence for 5 interventions (CTIS, HVO, no-till, reduced tillage, tyre gauge); sign convention: positive = extra cost, negative = saving | Researched 2026-10-10; weak and dated; HVO and gauge rows `needs_primary_check` |
-| `ref_fuel_prices.csv` | Red diesel p/litre per month, Sep 2025–Aug 2026 (Jul 2026 not published) | Read from UKAMMG PDFs 2026-10-08; VAT basis and underlying source not stated in reports |
+| `ref_fuel_prices.csv` | Red diesel p/litre per month, May 2025–Aug 2026 (Jul 2026 not published; **Jul 2025 not published either, derived**) | Read from UKAMMG PDFs 2026-10-08; VAT basis and underlying source not stated in reports |
 
 ## Method notes
 - **Boundary:** well-to-wheel = Scope 1 combustion + WTT. HVO biogenic CO2 (2.43 kg/L, "outside of
@@ -62,3 +62,10 @@ cleaned, aggregated by operation, machine and field.
 - **Needs a real quote:** HVO (ask a fuel supplier; red diesel duty is cut from 10.18p to 6.48p/L from
   15 June to end 2026 and may cover biofuels, unconfirmed) and any CTIS or drill purchase.
 - Wisconsin custom rates were dropped: they price one drilling pass only, not the whole system.
+
+## Red diesel prices May to August 2025 (added 2026-10-13)
+Added so the company demo year (May 2025 to April 2026) has a price for every month. Read from the
+Defra UKAMMG data reports: May 2025 = 73.1p (June report), June 2025 = 71.8p (July report),
+August 2025 = 75.7p (September report). **July 2025 was never published**: the September report says
+August was "monthly up by 1.5%", so July is derived as 75.7 / 1.015 = 74.6p (0.746 GBP). Treat it as
+derived, not published. The price range used by the app is now 0.718 to 1.176 GBP/L.

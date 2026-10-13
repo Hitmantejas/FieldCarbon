@@ -1,0 +1,37 @@
+event_id,machine_id,date,event_type,job_hours_at_event,note
+MNT-0001,S2-T4,2025-05-06,Hydraulic hose replaced,2.8000,Routine repair logged by the workshop
+MNT-0002,S1-T1,2025-05-10,Hydraulic hose replaced,0.0000,Routine repair logged by the workshop
+MNT-0003,S2-T1,2025-05-18,Tyre repair,8.8000,Routine repair logged by the workshop
+MNT-0004,S2-T2,2025-05-22,Hydraulic hose replaced,12.1000,Routine repair logged by the workshop
+MNT-0005,S2-T2,2025-05-27,Fuel filter replaced,15.1000,Routine repair logged by the workshop
+MNT-0006,S1-T2,2025-06-13,Hydraulic hose replaced,6.8000,Routine repair logged by the workshop
+MNT-0007,S1-T5,2025-06-30,Hydraulic hose replaced,5.8000,Routine repair logged by the workshop
+MNT-0008,S2-T5,2025-07-01,Tyre repair,24.5000,Routine repair logged by the workshop
+MNT-0009,S2-T4,2025-07-15,Brake adjustment,30.7000,Routine repair logged by the workshop
+MNT-0010,S2-T6,2025-07-27,Battery replaced,84.4000,Routine repair logged by the workshop
+MNT-0011,S2-T2,2025-08-03,Brake adjustment,35.3000,Routine repair logged by the workshop
+MNT-0012,S1-T2,2025-08-18,Brake adjustment,11.6000,Routine repair logged by the workshop
+MNT-0013,S2-T3,2025-08-20,Hydraulic hose replaced,54.5000,Routine repair logged by the workshop
+MNT-0014,S2-T4,2025-08-20,Fuel filter replaced,43.7000,Routine repair logged by the workshop
+MNT-0015,S1-T3,2025-09-01,Hydraulic hose replaced,14.4000,Routine repair logged by the workshop
+MNT-0016,S1-T1,2025-09-02,Fuel filter replaced,0.1000,Routine repair logged by the workshop
+MNT-0017,S3-T1,2025-09-26,Brake adjustment,3.2000,Routine repair logged by the workshop
+MNT-0018,S3-T1,2025-10-17,Fuel filter replaced,12.9000,Routine repair logged by the workshop
+MNT-0019,S3-T1,2025-10-28,Tyre repair,17.9000,Routine repair logged by the workshop
+MNT-0020,S1-T2,2025-10-30,Hydraulic hose replaced,50.3000,Routine repair logged by the workshop
+MNT-0021,S1-T3,2025-10-31,Tyre repair,31.0000,Routine repair logged by the workshop
+MNT-0022,S1-T4,2025-11-18,Air filter replaced,156.1000,Routine repair logged by the workshop
+MNT-0023,S2-T3,2025-12-03,Hydraulic hose replaced,75.2000,Routine repair logged by the workshop
+MNT-0024,S2-T5,2025-12-10,Brake adjustment,82.1000,Routine repair logged by the workshop
+MNT-0025,S1-T5,2026-01-22,Fuel filter replaced,23.9000,Routine repair logged by the workshop
+MNT-0026,S2-T6,2026-02-17,Battery replaced,170.0000,Routine repair logged by the workshop
+MNT-0027,S2-T1,2026-03-03,Hydraulic hose replaced,97.3000,Routine repair logged by the workshop
+MNT-0028,S2-T1,2026-03-14,Battery replaced,101.8000,Routine repair logged by the workshop
+MNT-0029,S1-T3,2026-03-18,Hydraulic hose replaced,35.5000,Routine repair logged by the workshop
+MNT-0030,S2-T3,2026-03-18,Fuel filter replaced,96.1000,Routine repair logged by the workshop
+MNT-0031,S2-T6,2026-03-23,Battery replaced,184.7000,Routine repair logged by the workshop
+MNT-0032,S1-T5,2026-03-26,Brake adjustment,26.3000,Routine repair logged by the workshop
+MNT-0033,S1-T4,2026-04-08,Hydraulic hose replaced,180.1000,Routine repair logged by the workshop
+MNT-0034,S1-T1,2026-04-21,Hydraulic hose replaced,3.1000,Routine repair logged by the workshop
+MNT-0035,S1-T4,2026-04-21,Brake adjustment,191.4000,Routine repair logged by the workshop
+MNT-0036,S2-T5,2026-04-21,Tyre repair,106.9000,Routine repair logged by the workshop

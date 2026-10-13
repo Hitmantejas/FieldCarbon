@@ -1,0 +1,4 @@
+site_id,name,country,data_kind,source_id
+S1,Arable site (Bavaria),DE,raw telemetry,tum_alc_data
+S2,Vineyard site (Tuscany),IT,per-operation summary,vineyard_ops
+S3,Tillage site (Konya Plain),TR,"raw telemetry, tillage only",tumosan_tillage

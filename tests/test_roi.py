@@ -9,7 +9,7 @@ from backend.ranking.interventions import evaluate
 from backend.ranking.roi import calculate_roi
 from tests.test_interventions import BASE
 
-P_LOW, P_HIGH = 0.749, 1.176  # ref_fuel_prices gas oil, lowest and highest month
+P_LOW, P_HIGH = 0.718, 1.176  # ref_fuel_prices gas oil, lowest and highest month
 KNOWN = replace(BASE, known={"tyre_pressure_checked": False, "has_ctis": False, "ballast_type": "liquid"})
 
 

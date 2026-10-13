@@ -1,0 +1,4 @@
+depot_id,site_id,capacity_l,opening_stock_l,opening_date
+S1-D1,S1,3000,1500,2025-05-01
+S2-D1,S2,1500,750,2025-05-01
+S3-D1,S3,500,250,2025-05-01

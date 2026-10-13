@@ -1,0 +1,17 @@
+operator_id,site_id,role,is_synthetic
+OP-01,S1,tractor operator,True
+OP-02,S1,tractor operator,True
+OP-03,S1,tractor operator,True
+OP-04,S1,tractor operator,True
+OP-05,S1,tractor operator,True
+OP-06,S1,tractor operator,True
+OP-07,S1,tractor operator,True
+OP-08,S1,tractor operator,True
+OP-09,S2,tractor operator,True
+OP-10,S2,tractor operator,True
+OP-11,S2,tractor operator,True
+OP-12,S2,tractor operator,True
+OP-13,S2,tractor operator,True
+OP-14,S2,tractor operator,True
+OP-15,S3,tractor operator,True
+OP-16,S3,tractor operator,True

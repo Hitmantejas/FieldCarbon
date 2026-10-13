@@ -16,7 +16,7 @@ ROWS = pd.DataFrame([
 
 def test_price_range_spans_all_months_and_is_sourced():
     p = fuel_price_range()
-    assert p.low == pytest.approx(0.749) and p.high == pytest.approx(1.176)
+    assert p.low == pytest.approx(0.718) and p.high == pytest.approx(1.176)
     assert p.source_id == "defra_ukammg"
 
 
@@ -25,7 +25,7 @@ def test_totals_are_measured_and_traceable():
     assert s.litres.value == 80.0 and s.litres.label == "measured"
     assert s.co2e_kg.value == pytest.approx(80 * 3.38206)
     assert "3.38206" in s.co2e_kg.how
-    assert s.cost_gbp.low == pytest.approx(80 * 0.749) and s.cost_gbp.high == pytest.approx(80 * 1.176)
+    assert s.cost_gbp.low == pytest.approx(80 * 0.718) and s.cost_gbp.high == pytest.approx(80 * 1.176)
     assert s.cost_gbp.label == "estimated"
 
 

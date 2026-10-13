@@ -1,0 +1,31 @@
+operation_code,display_name,category,site_kind
+ploughing,Ploughing,primary_tillage,arable
+cultivating_deep,Deep cultivating,primary_tillage,arable
+cultivating_shallow,Shallow cultivating,secondary_tillage,arable
+disc_harrowing,Disc harrowing,secondary_tillage,arable
+power_harrowing,Power harrowing,secondary_tillage,arable
+rotary_tilling,Rotary tilling,secondary_tillage,arable
+seedbed_combination,Seedbed combination,secondary_tillage,arable
+seed_drill_combination,Power harrow + seed drill,seeding,arable
+precision_seeding,Precision air seeding,seeding,arable
+mulching,Mulching,residue,arable
+fertilizing,Fertiliser spreading,crop_care,arable
+spraying,Spraying,crop_care,arable
+mowing,Mowing,grassland,arable
+swathing,Swathing,grassland,arable
+transport,Transport / haulage,transport,arable
+idle,Idling,non_field,arable
+vy_ridging,Ridging,soil_work,vineyard
+vy_light_ridging,Light ridging,soil_work,vineyard
+vy_unridging,Unridging,soil_work,vineyard
+vy_sward_soil_tillage,Sward and soil tillage,soil_work,vineyard
+vy_soil_tillage,Soil tillage,soil_work,vineyard
+vy_mulching,Mulching (vineyard),vegetation,vineyard
+vy_shoot_thinning,Shoot thinning,canopy,vineyard
+vy_shoot_removing,Shoot removing,canopy,vineyard
+vy_leaf_removing,Leaf removing,canopy,vineyard
+vy_prepruning,Prepruning,canopy,vineyard
+vy_crop_protection_single_row,"Crop protection, single row",crop_protection,vineyard
+vy_crop_protection_multi_row,"Crop protection, multi row",crop_protection,vineyard
+vy_harvest,Harvest,harvest,vineyard
+vy_fertilising,Fertilising (vineyard),crop_care,vineyard

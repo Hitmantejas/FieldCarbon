@@ -1,0 +1,118 @@
+field_id,site_id,area_ha,area_method,client_id
+S1-field_001,S1,5.8620,GPS hull (allocated),C06
+S1-field_002,S1,0.8150,GPS hull (allocated),C01
+S1-field_003,S1,19.0990,GPS hull (allocated),C05
+S1-field_004,S1,27.3080,GPS hull (allocated),C04
+S1-field_005,S1,0.7210,GPS hull (allocated),C07
+S1-field_006,S1,21.2280,GPS hull (allocated),C05
+S1-field_007,S1,7.3540,GPS hull (allocated),C02
+S1-field_008,S1,3.1490,GPS hull (allocated),C05
+S1-field_009,S1,8.5340,GPS hull (allocated),C08
+S1-field_010,S1,0.0430,GPS hull (allocated),C04
+S1-field_011,S1,3.0090,GPS hull (allocated),C03
+S1-field_012,S1,7.3300,GPS hull (allocated),C02
+S1-field_013,S1,12.3390,GPS hull (allocated),C08
+S1-field_014,S1,0.3870,GPS hull (allocated),C04
+S1-field_015,S1,0.0000,GPS hull (allocated),C02
+S1-field_016,S1,0.2030,GPS hull (allocated),C02
+S1-field_017,S1,14.6970,GPS hull (allocated),C03
+S1-field_018,S1,2.3550,GPS hull (allocated),C02
+S1-field_019,S1,16.0890,GPS hull (allocated),C06
+S1-field_020,S1,13.0510,GPS hull (allocated),C01
+S1-field_021,S1,0.0670,GPS hull (allocated),C02
+S1-field_022,S1,0.5500,GPS hull (allocated),C04
+S1-field_023,S1,1.9260,GPS hull (allocated),C05
+S1-field_024,S1,45.7620,GPS hull (allocated),C04
+S1-field_025,S1,0.4210,GPS hull (allocated),C03
+S1-field_026,S1,0.6800,GPS hull (allocated),C06
+S1-field_027,S1,2.5150,GPS hull (allocated),C02
+S1-field_028,S1,0.4230,GPS hull (allocated),C03
+S1-field_029,S1,21.4800,GPS hull (allocated),C07
+S1-field_030,S1,12.8990,GPS hull (allocated),C08
+S1-field_031,S1,2.4370,GPS hull (allocated),C06
+S1-field_032,S1,2.0570,GPS hull (allocated),C01
+S1-field_033,S1,0.4940,GPS hull (allocated),C06
+S1-field_034,S1,5.6650,GPS hull (allocated),C03
+S1-field_035,S1,1.4710,GPS hull (allocated),C04
+S1-field_036,S1,2.0200,GPS hull (allocated),C03
+S1-field_037,S1,7.9200,GPS hull (allocated),C08
+S1-field_038,S1,0.3280,GPS hull (allocated),C07
+S1-field_039,S1,2.5570,GPS hull (allocated),C03
+S1-field_040,S1,0.3690,GPS hull (allocated),C07
+S1-field_041,S1,0.0190,GPS hull (allocated),C05
+S1-field_042,S1,0.8560,GPS hull (allocated),C06
+S1-field_043,S1,2.9100,GPS hull (allocated),C05
+S1-field_044,S1,6.0580,GPS hull (allocated),C03
+S1-field_045,S1,0.5480,GPS hull (allocated),C01
+S1-field_046,S1,2.2850,GPS hull (allocated),C01
+S1-field_047,S1,12.2830,GPS hull (allocated),C08
+S1-field_048,S1,8.3700,GPS hull (allocated),C02
+S1-field_049,S1,3.4760,GPS hull (allocated),C08
+S1-field_050,S1,1.2440,GPS hull (allocated),C04
+S1-field_051,S1,7.5890,GPS hull (allocated),C02
+S1-field_052,S1,14.1670,GPS hull (allocated),C01
+S1-field_053,S1,1.4550,GPS hull (allocated),C06
+S1-field_054,S1,0.3800,GPS hull (allocated),C04
+S1-field_055,S1,13.9950,GPS hull (allocated),C06
+S1-field_056,S1,0.5610,GPS hull (allocated),C06
+S1-field_057,S1,1.5130,GPS hull (allocated),C03
+S1-field_058,S1,6.1450,GPS hull (allocated),C08
+S1-field_059,S1,6.5020,GPS hull (allocated),C07
+S1-field_060,S1,1.7100,GPS hull (allocated),C03
+S1-field_061,S1,5.1950,GPS hull (allocated),C04
+S1-field_062,S1,2.5990,GPS hull (allocated),C01
+S1-field_063,S1,1.4520,GPS hull (allocated),C07
+S1-field_064,S1,4.0950,GPS hull (allocated),C01
+S1-field_065,S1,4.8340,GPS hull (allocated),C05
+S1-field_066,S1,1.4890,GPS hull (allocated),C01
+S1-field_067,S1,6.1100,GPS hull (allocated),C07
+S1-field_068,S1,3.0170,GPS hull (allocated),C07
+S1-field_069,S1,0.7350,GPS hull (allocated),C08
+S1-field_070,S1,3.5280,GPS hull (allocated),C07
+S1-field_071,S1,4.8360,GPS hull (allocated),C08
+S1-field_072,S1,3.0850,GPS hull (allocated),C01
+S1-field_073,S1,4.0220,GPS hull (allocated),C05
+S1-field_074,S1,1.7220,GPS hull (allocated),C02
+S1-field_075,S1,12.1000,GPS hull (allocated),C05
+S1-field_076,S1,4.6330,GPS hull (allocated),C04
+S2-F01,S2,2.0625,largest single-job area (allocated),C13
+S2-F02,S2,3.8729,largest single-job area (allocated),C10
+S2-F03,S2,0.9270,largest single-job area (allocated),C10
+S2-F04,S2,0.3133,largest single-job area (allocated),C13
+S2-F05,S2,3.7599,largest single-job area (allocated),C09
+S2-F06,S2,5.6449,largest single-job area (allocated),C09
+S2-F07,S2,5.7709,largest single-job area (allocated),C12
+S2-F08,S2,1.1934,largest single-job area (allocated),C12
+S2-F09,S2,1.9332,largest single-job area (allocated),C09
+S2-F10,S2,1.1000,largest single-job area (allocated),C12
+S2-F11,S2,4.3338,largest single-job area (allocated),C13
+S2-F12,S2,4.0682,largest single-job area (allocated),C11
+S2-F13,S2,4.6980,largest single-job area (allocated),C11
+S2-F14,S2,7.3949,largest single-job area (allocated),C10
+S2-F15,S2,8.4030,largest single-job area (allocated),C09
+S2-F16,S2,1.4940,largest single-job area (allocated),C13
+S2-F17,S2,1.0062,largest single-job area (allocated),C10
+S2-F18,S2,4.0854,largest single-job area (allocated),C09
+S2-F19,S2,3.5970,largest single-job area (allocated),C12
+S2-F20,S2,2.7118,largest single-job area (allocated),C12
+S2-F21,S2,4.1014,largest single-job area (allocated),C10
+S2-F22,S2,3.6635,largest single-job area (allocated),C09
+S2-F23,S2,2.4607,largest single-job area (allocated),C09
+S2-F24,S2,2.5059,largest single-job area (allocated),C13
+S2-F25,S2,5.1426,largest single-job area (allocated),C11
+S2-F26,S2,4.8968,largest single-job area (allocated),C10
+S2-F27,S2,5.8248,largest single-job area (allocated),C11
+S2-F28,S2,3.3388,largest single-job area (allocated),C11
+S2-F29,S2,3.9369,largest single-job area (allocated),C13
+S2-F30,S2,2.3417,largest single-job area (allocated),C12
+S2-F31,S2,2.8172,largest single-job area (allocated),C11
+S3-F01,S3,0.5691,largest single-job area (allocated),C15
+S3-F02,S3,3.4555,largest single-job area (allocated),C14
+S3-F03,S3,1.2476,largest single-job area (allocated),C15
+S3-F04,S3,1.4013,largest single-job area (allocated),C16
+S3-F05,S3,3.2024,largest single-job area (allocated),C14
+S3-F06,S3,2.0110,largest single-job area (allocated),C14
+S3-F07,S3,2.1911,largest single-job area (allocated),C16
+S3-F08,S3,4.2733,largest single-job area (allocated),C16
+S3-F09,S3,0.8503,largest single-job area (allocated),C15
+S3-F10,S3,4.6220,largest single-job area (allocated),C14

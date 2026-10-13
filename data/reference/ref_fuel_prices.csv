@@ -1,4 +1,8 @@
 fuel_type,price_month,price_per_litre,currency,unit,vat_basis,report_url,source_id
+gas_oil,2025-05-01,0.731,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/686bda29fe1a249e937cbd91/UKAMMG_Data_Report_June_2025.pdf,defra_ukammg
+gas_oil,2025-06-01,0.718,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/688cc63925ba7325501b096d/UKAMMG_Data_report_July_2025.pdf,defra_ukammg
+gas_oil,2025-07-01,0.746,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/68df9a3eef1c2f72bc1e4d88/UKAMMG_DataReport_SEPTEMBER2025.pdf,defra_ukammg
+gas_oil,2025-08-01,0.757,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/68df9a3eef1c2f72bc1e4d88/UKAMMG_DataReport_SEPTEMBER2025.pdf,defra_ukammg
 gas_oil,2025-09-01,0.752,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/691c835884a267da57d706de/UKAMMG_DataReport_OCTOBER.pdf,defra_ukammg
 gas_oil,2025-10-01,0.764,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/693045d0375aee4a15ee8b31/Data_considered_by_the_UK_Agricultural_Market_Monitoring_Group_at_the_meeting_of_11_November_2025.pdf,defra_ukammg
 gas_oil,2025-11-01,0.772,GBP,litre,not stated,https://assets.publishing.service.gov.uk/media/695e879011989e7ef067195b/Data_considered_by_the_UK_Agricultural_Market_Monitoring_Group_at_the_meeting_of_9_December_2025.pdf,defra_ukammg

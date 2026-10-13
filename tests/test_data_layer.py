@@ -5,8 +5,8 @@ from backend.emissions import data
 from backend.emissions.farm_summary import breakdown, farm_a_rows, summarise
 
 SETTINGS = {"fuel_type": "gas_oil", "ef_year": 2025, "kgco2e_per_l": 3.38206, "ef_ids": ["a", "b"],
-            "ef_source_id": "uk_ghg_2025", "price_low": 0.749, "price_high": 1.176,
-            "from_month": "2025-09", "to_month": "2026-08", "price_source_id": "defra_ukammg"}
+            "ef_source_id": "uk_ghg_2025", "price_low": 0.718, "price_high": 1.176,
+            "from_month": "2025-05", "to_month": "2026-08", "price_source_id": "defra_ukammg"}
 SUMMARY = {"litres": 100.0, "co2e_kg": 338.206, "cost_gbp_low": 74.9, "cost_gbp_high": 117.6,
            "hours": 10.0, "excluded_hours": 2.0, "label": "measured"}
 TRACTORS = [
