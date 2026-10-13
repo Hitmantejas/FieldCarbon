@@ -43,7 +43,6 @@ Thumbs.db
 
 # --- Local Claude files (CLAUDE.md is shared with the team outside the repo) ---
 CLAUDE.md
-.claude/settings.local.json
+.claude/
 docs/FieldCarbon_scope_change_brief.docx
-.gitignore
 docs/~$eldCarbon_scope_change_brief.docx
