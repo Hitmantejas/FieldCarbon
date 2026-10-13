@@ -1,0 +1,4 @@
+anomaly_id,kind,site_id,machine_id,when,description,expected_signal
+A1,over_dispense,S1,S1-T4,2025-10,"About 20% more fuel dispensed than burned, on six nights outside shift hours",dispensed / burned >= 1.15 for the machine-month; night-time dispenses
+A2,unlogged_withdrawal,S1,,2026-01-17,900 L left the S1 depot without being logged,book stock (deliveries minus dispenses) exceeds the dip reading by about 900 L
+A3,duplicate_delivery_note,S2,,2025-09-08,Delivery note entered twice: DN-S2-0004,"two delivery rows with the same supplier, document number, date and litres"

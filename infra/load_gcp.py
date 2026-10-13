@@ -8,7 +8,7 @@ Re-runnable: existing bucket/dataset are reused, objects synced, tables replaced
   python infra/load_gcp.py --apply --steps verify,export
 
 Steps: preflight, bucket, upload, dataset, ddl, load_reference, load_telemetry, load_provenance,
-       aggregate, verify, export
+       aggregate, views, verify, export
 """
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ REF = ROOT / "data" / "reference"
 AGG = ROOT / "data" / "aggregated"
 DDL = ROOT / "backend" / "emissions" / "ddl" / "001_tables.sql"
 AGG_SQL = ROOT / "backend" / "emissions" / "views" / "010_farm_a_aggregation.sql"
+VIEWS_SQL = ROOT / "backend" / "emissions" / "views" / "020_emissions_views.sql"
 
 PROJECT = "ai-hackathon-india"
 REGION = "us-central1"
@@ -38,9 +39,9 @@ TRACTORS = [f"tractor_{i}" for i in range(1, 6)]
 LABELS = "app=fieldcarbon"
 
 REF_TABLES = ["ref_sources", "ref_emission_factors", "ref_fuel_use_rates", "ref_operations",
-              "ref_interventions", "ref_fuel_prices"]
+              "ref_interventions", "ref_intervention_costs", "ref_fuel_prices"]
 STEPS = ["preflight", "bucket", "upload", "dataset", "ddl", "load_reference", "load_telemetry",
-         "load_provenance", "aggregate", "verify", "export"]
+         "load_provenance", "aggregate", "views", "verify", "export"]
 
 
 class Runner:
@@ -191,11 +192,17 @@ def aggregate(r: Runner) -> None:
     r.sql(render(AGG_SQL))
 
 
+def views(r: Runner) -> None:
+    # Calculated views (litres x emission factor in BigQuery); they read farm_a_operations, so run after aggregate.
+    r.sql(render(VIEWS_SQL))
+
+
 def verify(r: Runner) -> None:
     out = r.sql(f"SELECT tractor_id, litres_raw, litres_aggregated, reconciles "
                 f"FROM `{PROJECT}.{DATASET}.v_farm_a_reconciliation` ORDER BY tractor_id",
                 fmt="csv")
     if not r.apply:
+        verify_views(r, 0.0)  # prints its query too, so the dry run shows every command
         return
     rows = list(csv.DictReader(io.StringIO(out)))
     local = {t: json.loads((CLEAN / f"provenance_{t}.json").read_text())["litres_total"] for t in TRACTORS}
@@ -208,6 +215,25 @@ def verify(r: Runner) -> None:
               f"aggregated {agg_l:.3f} | {'OK' if row['reconciles'] == 'true' and match_local else 'MISMATCH'}")
     if not ok:
         sys.exit("reconciliation failed: litres differ between local files, telemetry_raw and farm_a_operations")
+    verify_views(r, sum(local.values()))
+
+
+def verify_views(r: Runner, local_litres: float) -> None:
+    """The emissions views must equal local litres x the Python well-to-wheel factor (two independent paths)."""
+    sys.path.insert(0, str(ROOT))
+    from backend.emissions.factors import wtw_factor
+
+    out = r.sql(f"SELECT litres, co2e_kg, ef_year FROM `{PROJECT}.{DATASET}.v_farm_a_summary`", fmt="csv")
+    if not r.apply:
+        return
+    row = next(csv.DictReader(io.StringIO(out)))
+    bq_l, bq_co2e = float(row["litres"]), float(row["co2e_kg"])
+    expected = local_litres * wtw_factor("gas_oil", int(row["ef_year"])).kg_per_unit
+    ok = abs(bq_l - local_litres) <= 1e-6 * local_litres and abs(bq_co2e - expected) <= 1e-6 * expected
+    print(f"  views: bq litres {bq_l:.3f} vs local {local_litres:.3f} | bq CO2e {bq_co2e:.3f} kg vs Python "
+          f"{expected:.3f} kg | {'OK' if ok else 'MISMATCH'}")
+    if not ok:
+        sys.exit("views check failed: BigQuery emissions differ from local litres x Python emission factor")
 
 
 EXPORTS = {

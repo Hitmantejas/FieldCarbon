@@ -1,0 +1,600 @@
+{
+  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output.",
+  "cases": [
+    {
+      "id": "rank-basic",
+      "question": "What can I change to cut my machinery emissions?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_recommendation_cites_source"
+        },
+        {
+          "type": "first_state",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "correct_tyre_pressure",
+          "equals": "needs_info"
+        }
+      ]
+    },
+    {
+      "id": "roi-reduced-tillage",
+      "question": "What would reduced tillage save me and what does it cost?",
+      "expected_tools": [
+        "calculate_roi"
+      ],
+      "arguments": {
+        "intervention_id": "reduced_tillage"
+      },
+      "checks": [
+        {
+          "type": "has_range",
+          "field": "fuel_gbp_saved"
+        },
+        {
+          "type": "has_range",
+          "field": "running_cost_change_gbp"
+        },
+        {
+          "type": "no_payback"
+        }
+      ]
+    },
+    {
+      "id": "roi-no-cost-source",
+      "question": "How long until liquid ballast removal pays back?",
+      "expected_tools": [
+        "calculate_roi"
+      ],
+      "arguments": {
+        "intervention_id": "avoid_liquid_ballast"
+      },
+      "checks": [
+        {
+          "type": "cost_note",
+          "equals": "Cost not yet sourced"
+        },
+        {
+          "type": "no_payback"
+        }
+      ]
+    },
+    {
+      "id": "goal-20",
+      "question": "I want to cut my emissions by 20%. What could get me there?",
+      "expected_tools": [
+        "set_goal"
+      ],
+      "arguments": {
+        "target_pct": 20
+      },
+      "checks": [
+        {
+          "type": "verdict",
+          "intervention_id": "no_till",
+          "equals": "reaches"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "reduced_tillage",
+          "equals": "falls_short"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "shift_up_throttle_down",
+          "equals": "falls_short"
+        },
+        {
+          "type": "verdict",
+          "intervention_id": "electric_tractor",
+          "equals": "not_applicable"
+        },
+        {
+          "type": "target_is_sourced"
+        }
+      ]
+    },
+    {
+      "id": "plan-after-answer",
+      "question": "I have not checked my tyre pressures. What does that change?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {
+        "known": {
+          "tyre_pressure_checked": false
+        }
+      },
+      "checks": [
+        {
+          "type": "state",
+          "intervention_id": "correct_tyre_pressure",
+          "equals": "feasible"
+        },
+        {
+          "type": "every_recommendation_cites_source"
+        }
+      ]
+    },
+    {
+      "id": "sharpen-default",
+      "question": "What one thing would make my plan more certain?",
+      "expected_tools": [
+        "what_would_improve"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "top_question",
+          "equals": "tyre_pressure_checked"
+        },
+        {
+          "type": "question_count",
+          "equals": 3
+        }
+      ]
+    },
+    {
+      "id": "report-default",
+      "question": "Give me a report I can share with a buyer.",
+      "expected_tools": [
+        "generate_report"
+      ],
+      "arguments": {
+        "target_pct": 10
+      },
+      "checks": [
+        {
+          "type": "report_traceable"
+        }
+      ]
+    },
+    {
+      "id": "rank-farm-b",
+      "question": "Farm B (receipts only): what can I change to cut my machinery emissions?",
+      "expected_tools": [
+        "rank_interventions"
+      ],
+      "arguments": {
+        "farm_id": "b"
+      },
+      "checks": [
+        {
+          "type": "every_recommendation_cites_source"
+        },
+        {
+          "type": "state",
+          "intervention_id": "shift_up_throttle_down",
+          "equals": "needs_info"
+        },
+        {
+          "type": "state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        }
+      ]
+    },
+    {
+      "id": "report-farm-b",
+      "question": "Farm B: give me a report I can share with my buyer.",
+      "expected_tools": [
+        "generate_report"
+      ],
+      "arguments": {
+        "farm_id": "b"
+      },
+      "checks": [
+        {
+          "type": "report_traceable"
+        }
+      ]
+    },
+    {
+      "id": "fleet-summary",
+      "question": "How much fuel did the fleet use, by site?",
+      "expected_tools": [
+        "fleet_summary"
+      ],
+      "arguments": {
+        "group_by": "site"
+      },
+      "checks": [
+        {
+          "type": "fleet_total_litres",
+          "approx": 16493,
+          "abs": 5
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-clients",
+      "question": "What are the emissions per client farm?",
+      "expected_tools": [
+        "emissions_per_client"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 16
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-jobs",
+      "question": "Which were the biggest jobs at the arable site in July 2025?",
+      "expected_tools": [
+        "fleet_jobs"
+      ],
+      "arguments": {
+        "site_id": "S1",
+        "month": "2025-07",
+        "sort": "litres",
+        "limit": 5
+      },
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 5
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-report",
+      "question": "Prepare a report I can share with a client farm.",
+      "expected_tools": [
+        "fleet_report"
+      ],
+      "arguments": {
+        "client_id": "C09"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-reconcile",
+      "question": "Is any fuel unaccounted for?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "machine_over_dispense",
+          "machine_id": "S1-T4"
+        },
+        {
+          "type": "finds",
+          "kind": "stock_gap",
+          "depot_id": "S1-D1"
+        },
+        {
+          "type": "finds",
+          "kind": "duplicate_delivery_note",
+          "depot_id": "S2-D1"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 4
+        }
+      ]
+    },
+    {
+      "id": "fleet-quality",
+      "question": "How good is our data?",
+      "expected_tools": [
+        "data_quality"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-benchmark",
+      "question": "Which machines burn more than their peers on the same job?",
+      "expected_tools": [
+        "benchmark_peers"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "groups_at_least",
+          "n": 8
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-anomalies",
+      "question": "Is anything unusual in the machines' data?",
+      "expected_tools": [
+        "detect_anomalies"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "data_gap",
+          "machine_id": "S1-T4"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-opportunities",
+      "question": "What could the arable site change to cut fuel?",
+      "expected_tools": [
+        "fleet_opportunities"
+      ],
+      "arguments": {
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "idea_state",
+          "intervention_id": "reduced_tillage",
+          "equals": "feasible"
+        },
+        {
+          "type": "idea_state",
+          "intervention_id": "electric_tractor",
+          "equals": "not_feasible"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "fleet-what-if",
+      "question": "What if we cut the fuel burned with the tool not working by 20%?",
+      "expected_tools": [
+        "what_if"
+      ],
+      "arguments": {
+        "change": "implement_not_working",
+        "amount_pct": 20,
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "scenario_litres",
+          "approx": 503,
+          "abs": 5
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "plain-peer-waste",
+      "question": "Which tractor burns more fuel than the others on the same job?",
+      "expected_tools": [
+        "benchmark_peers"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-client-co2",
+      "question": "How much CO2 did our work for each client farm produce?",
+      "expected_tools": [
+        "emissions_per_client"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-fuel-adds-up",
+      "question": "Does our fuel add up this year, or is some missing?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "stock_gap",
+          "site_id": "S1"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-double-note",
+      "question": "Was any delivery note entered twice?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "duplicate_delivery_note",
+          "site_id": "S2"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-overfill",
+      "question": "Is any tractor being given more fuel than it burns?",
+      "expected_tools": [
+        "reconcile_fuel"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "machine_over_dispense",
+          "site_id": "S1"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-change-first",
+      "question": "What should the arable site change first to save fuel?",
+      "expected_tools": [
+        "fleet_opportunities"
+      ],
+      "arguments": {
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-how-sure",
+      "question": "How sure are you about these numbers?",
+      "expected_tools": [
+        "data_quality"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-whatif-hvo",
+      "question": "What if the arable site switched to HVO?",
+      "expected_tools": [
+        "what_if"
+      ],
+      "arguments": {
+        "change": "hvo",
+        "amount_pct": 100,
+        "site_id": "S1"
+      },
+      "checks": [
+        {
+          "type": "every_figure_sourced"
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-october-jobs",
+      "question": "Which jobs used the most fuel at the arable site last October?",
+      "expected_tools": [
+        "fleet_jobs"
+      ],
+      "arguments": {
+        "site_id": "S1",
+        "month": "2025-10",
+        "sort": "litres",
+        "limit": 5
+      },
+      "checks": [
+        {
+          "type": "row_count",
+          "equals": 5
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "plain-german-total",
+      "question": "Wie viel Diesel hat die Flotte insgesamt verbraucht?",
+      "expected_tools": [
+        "fleet_summary"
+      ],
+      "arguments": {
+        "group_by": "site"
+      },
+      "checks": [
+        {
+          "type": "fleet_total_litres",
+          "approx": 16492.19,
+          "abs": 1
+        }
+      ],
+      "plain_language": true
+    },
+    {
+      "id": "fleet-delivery-notes",
+      "question": "Do our delivery notes match the fuel log?",
+      "expected_tools": [
+        "check_delivery_notes"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "entered_twice",
+          "doc_no": "DN-S2-0004"
+        },
+        {
+          "type": "finds",
+          "kind": "price_differs",
+          "doc_no": "DN-S1-0004"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 2
+        }
+      ]
+    }
+  ]
+}

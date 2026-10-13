@@ -23,14 +23,23 @@ CREATE TABLE IF NOT EXISTS `${dataset}.ref_fuel_use_rates` (
 
 CREATE TABLE IF NOT EXISTS `${dataset}.ref_operations` (
   operation_code STRING NOT NULL, display_name STRING, category STRING, tum_worktypes STRING,
-  isu_rate_ids STRING, purdue_rate_ids STRING, match_quality STRING, note STRING
+  isu_rate_ids STRING, purdue_rate_ids STRING, match_quality STRING, note STRING, drive_type STRING
 );
+-- Tables created before drive_type existed get the column here (no-op otherwise).
+ALTER TABLE `${dataset}.ref_operations` ADD COLUMN IF NOT EXISTS drive_type STRING;
 
 CREATE TABLE IF NOT EXISTS `${dataset}.ref_interventions` (
   coef_id STRING NOT NULL, intervention_id STRING NOT NULL, intervention_name STRING,
   effect_type STRING NOT NULL, value FLOAT64, low FLOAT64, high FLOAT64, unit STRING, baseline STRING,
   yield_pct_low FLOAT64, yield_pct_high FLOAT64, applicability JSON, region STRING,
   soil_context STRING, source_id STRING NOT NULL, value_status STRING, derivation STRING
+);
+
+-- Intervention costs (capex, running-cost or per-hectare changes) as sourced low-high ranges.
+CREATE TABLE IF NOT EXISTS `${dataset}.ref_intervention_costs` (
+  cost_id STRING NOT NULL, intervention_id STRING NOT NULL, cost_type STRING NOT NULL,
+  low FLOAT64, high FLOAT64, currency STRING, unit STRING, region STRING, year INT64,
+  source_id STRING NOT NULL, value_status STRING, derivation STRING
 );
 
 -- One row per published month; the price range for payback is computed, never hand-entered.
@@ -85,11 +94,15 @@ CREATE TABLE IF NOT EXISTS `${dataset}.receipts_raw` (
   prompt_version STRING, extracted JSON, field_confidence JSON, extracted_at TIMESTAMP
 );
 
+ALTER TABLE `${dataset}.receipts_raw` ADD COLUMN IF NOT EXISTS location STRING;  -- Vertex AI endpoint used
+
+-- One row per receipt line (rules R1-R8, docs/receipt_validation_rules.md). Only accepted lines count.
 CREATE TABLE IF NOT EXISTS `${dataset}.receipts_validated` (
-  receipt_id STRING NOT NULL, farm_id STRING NOT NULL, delivery_date DATE, supplier_anon STRING,
-  litres FLOAT64, fuel_type STRING, unit_price FLOAT64, total FLOAT64, currency STRING,
-  status STRING,                       -- accepted | corrected | rejected
-  errors ARRAY<STRING>, validated_by STRING, validated_at TIMESTAMP
+  receipt_id STRING NOT NULL, line_no INT64 NOT NULL, farm_id STRING NOT NULL, supplier STRING,
+  doc_number STRING, delivery_date DATE, product STRING, fuel_type STRING, litres FLOAT64,
+  unit_price_gbp FLOAT64, line_net_gbp FLOAT64,
+  outcome STRING NOT NULL,             -- accepted | accepted_with_warning | needs_review | excluded
+  reasons ARRAY<STRING>, duplicate_of STRING, rules_version STRING, validated_at TIMESTAMP
 );
 
 -- ===== Telemetry (Farm A, all 5 TUM tractors; brand columns dropped at load) =====

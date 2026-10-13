@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Direction A: emission-line rail</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#15171a;--plate:#1d2024;--ink:#e9e5da;--mute:#8c8f94;--line:#e9e5da;--rule:#2c3035;--hot:#ffb000;--cool:#6fd3ff}
+.light{--bg:#eceae3;--plate:#f7f5ef;--ink:#17191c;--mute:#666a70;--line:#17191c;--rule:#d3d0c6;--hot:#b45a00;--cool:#0a6a9a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,sans-serif;transition:background .3s}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+nav{padding:28px 0 28px 28px;border-right:1px solid var(--rule);position:sticky;top:0;height:100vh}
+.logo{font:700 20px/1 "Bahnschrift","Arial Narrow",sans-serif;letter-spacing:.14em;text-transform:uppercase;margin-bottom:34px}
+.logo b{color:var(--hot)}
+.rail{position:relative;margin-left:10px;padding-left:22px;border-left:1px solid var(--line)}
+.rail a{display:block;position:relative;padding:9px 0;color:var(--mute);font-size:13px;letter-spacing:.04em;text-decoration:none;transition:color .2s}
+.rail a::before{content:"";position:absolute;left:-22px;top:50%;width:10px;height:1px;background:var(--mute);transition:width .25s,background .25s}
+.rail a:hover{color:var(--ink)}.rail a:hover::before{width:18px;background:var(--ink)}
+.rail a.on{color:var(--ink);font-weight:600}.rail a.on::before{width:34px;height:2px;background:var(--hot)}
+.toggle{position:absolute;bottom:24px;left:28px;background:none;border:1px solid var(--rule);color:var(--mute);padding:6px 12px;cursor:pointer;font:inherit;font-size:12px}
+.toggle:hover{color:var(--ink);border-color:var(--ink)}
+main{padding:28px 44px 60px;max-width:1180px}
+.top{display:flex;justify-content:space-between;color:var(--mute);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.banner{border:1px solid var(--rule);padding:2px 10px}
+h1{font:600 44px/1.05 "Bahnschrift","Arial Narrow",sans-serif;margin:26px 0 6px}
+.sub{color:var(--mute);max-width:640px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);margin:30px 0;border:1px solid var(--rule)}
+.kpi{background:var(--plate);padding:18px 20px}
+.kpi small{color:var(--mute);letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+.kpi .n{font:600 34px/1.2 "Bahnschrift",sans-serif;font-variant-numeric:tabular-nums;margin:4px 0}
+.kpi .n span{font-size:14px;color:var(--mute)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:1px 7px;border-top:2px solid var(--ink)}
+.tag.allocated{border-top-style:dashed}.tag.estimated{border-top:3px double var(--ink)}
+.panel{background:var(--plate);border:1px solid var(--rule);padding:22px 24px;margin-bottom:22px}
+.panel h2{font:600 13px/1 "Bahnschrift",sans-serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 4px;color:var(--mute)}
+.panel .lead{font-size:17px;margin:0 0 18px}
+.scale{position:relative;margin:0 150px 6px 190px;height:18px;border-bottom:1px solid var(--line)}
+.scale i{position:absolute;bottom:0;width:1px;height:6px;background:var(--mute)}
+.scale em{position:absolute;bottom:8px;font-size:10px;color:var(--mute);font-style:normal;transform:translateX(-50%)}
+.row{display:grid;grid-template-columns:190px 1fr 150px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule)}
+.row:last-of-type{border:0}.row b{font-weight:600}.row small{display:block;color:var(--mute);font-size:12px}
+.track{position:relative;height:26px}
+.span{position:absolute;top:12px;height:1px;background:var(--line)}
+.span::before,.span::after{content:"";position:absolute;top:-7px;width:1px;height:15px;background:var(--line)}
+.span::before{left:0}.span::after{right:0}
+.pt{position:absolute;top:3px;width:2px;height:20px;background:var(--hot);transform-origin:bottom;animation:rise .9s cubic-bezier(.2,.9,.3,1.2) both}
+.pt.dbl{width:5px;background:linear-gradient(90deg,var(--hot) 0 2px,transparent 2px 3px,var(--hot) 3px)}
+@keyframes rise{from{transform:scaleY(0);opacity:0}}
+@media(prefers-reduced-motion:reduce){.pt{animation:none}}
+.val{font-variant-numeric:tabular-nums;text-align:right}
+.alert{display:grid;grid-template-columns:70px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.alert:last-child{border:0}.sev{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--hot)}
+.alert p{margin:0}.alert small{color:var(--mute)}
+a.how{color:var(--cool);font-size:12px;text-decoration:none;border-bottom:1px solid var(--cool)}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:22px}
+.site{display:flex;justify-content:space-between;padding:9px 0 0}
+.bar{height:3px;background:var(--rule);margin:6px 0 4px}.bar i{display:block;height:3px;background:var(--ink)}
+.foot{color:var(--mute);font-size:12px;margin-top:30px}
+.note{color:var(--mute);font-size:12px}
+</style>
+<body><div class="app">
+<nav><div class="logo">Field<b>Carbon</b></div>
+<div class="rail"><a class="on" href="#">Fleet overview</a><a href="#">Sites &amp; machines</a><a href="#">Jobs &amp; fields</a><a href="#">Opportunities</a><a href="#">Fuel control</a><a href="#">What if</a><a href="#">Clients</a><a href="#">Reports</a></div>
+<button class="toggle" onclick="document.body.classList.toggle('light')">Light / dark</button></nav>
+<main>
+<div class="top"><span>Company year · 1 May 2025 – 30 Apr 2026</span><span class="banner">Demo data: illustrative</span></div>
+<h1>16,493 litres burned.<br>Three things to look at.</h1>
+<p class="sub">Across three sites and 713 jobs. Totals are measured; splits by job and client are allocated; every saving is a range.</p>
+<div class="kpis">
+<div class="kpi"><small>Fuel</small><div class="n">16,493 <span>L</span></div><span class="tag">Measured</span></div>
+<div class="kpi"><small>Emissions</small><div class="n">55.8 <span>t CO2e</span></div><span class="tag allocated">Allocated</span></div>
+<div class="kpi"><small>Fuel cost</small><div class="n">£13,000 <span>approx.</span></div><span class="tag allocated">Allocated</span></div>
+<div class="kpi"><small>Possible saving</small><div class="n">5 – 12 <span>%</span></div><span class="tag estimated">Estimated</span></div>
+</div>
+<section class="panel"><h2>Opportunities · ranges on one scale</h2><p class="lead">What could we change, and how sure are we?</p>
+<div class="scale"><i style="left:0"></i><em style="left:0">0</em><i style="left:25%"></i><em style="left:25%">5%</em><i style="left:50%"></i><em style="left:50%">10%</em><i style="left:75%"></i><em style="left:75%">15%</em><i style="left:100%"></i><em style="left:100%">20%</em></div>
+<div class="row"><div><b>Shift up, throttle down</b><small>Strong evidence · 3 sources</small></div><div class="track"><div class="span" style="left:10%;width:30%"></div><div class="pt" style="left:25%"></div></div><div class="val">2 – 8 %<br><span class="tag estimated">Estimated</span></div></div>
+<div class="row"><div><b>Reduced tillage</b><small>Moderate · 2 sources</small></div><div class="track"><div class="span" style="left:20%;width:60%"></div><div class="pt dbl" style="left:50%"></div></div><div class="val">4 – 16 %<br><span class="tag estimated">Estimated</span></div></div>
+<div class="row"><div><b>Switch to HVO</b><small>Moderate · emission factor</small></div><div class="track"><div class="span" style="left:55%;width:40%"></div><div class="pt" style="left:75%"></div></div><div class="val">11 – 19 %<br><span class="tag estimated">Estimated</span></div></div>
+<div class="note">Mock-up values for the layout. Real ranges come from the opportunities tool. Ideas overlap and are never added together.</div></section>
+<div class="grid2">
+<section class="panel"><h2>Fuel control</h2><p class="lead">Worth a look</p>
+<div class="alert"><span class="sev">High</span><p>Tractor 4, 163 kW: recorder repeated the same values for 92 hours<br><small>Fuel in those hours is not counted, so real use may be higher. <a class="how" href="#">How this was worked out</a></small></p></div>
+<div class="alert"><span class="sev">Medium</span><p>Tractor 4 burned 101% more fuel per hour than usual for power harrow + seed drill, 29 Sep 2025<br><small>Worth a look, not proof of a fault. <a class="how" href="#">How</a></small></p></div>
+<div class="alert"><span class="sev">Medium</span><p>Depot book stock and measured stock differ by about 900 L, 17 Jan 2026<br><small>To investigate, not proof of loss. <a class="how" href="#">How</a></small></p></div></section>
+<section class="panel"><h2>By site</h2><p class="lead">Where the fuel goes</p>
+<div class="site"><span>Arable, Bavaria <span class="tag allocated">Allocated</span></span><b>10,814 L</b></div><div class="bar"><i style="width:66%"></i></div>
+<div class="site"><span>Vineyard, Tuscany <span class="tag">Measured</span></span><b>5,333 L</b></div><div class="bar"><i style="width:32%"></i></div>
+<div class="site"><span>Tillage, Konya <span class="tag">Measured</span></span><b>346 L</b></div><div class="bar"><i style="width:2%"></i></div></section></div>
+<div class="foot">Direction A · hairline ranges on one shared scale · state shown by line form (solid, dashed, double) and always written as text.</div>
+</main></div></body></html>

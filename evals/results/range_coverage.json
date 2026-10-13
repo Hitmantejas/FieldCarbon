@@ -1,0 +1,174 @@
+{
+  "operations": 12,
+  "operations_inside": 8,
+  "coverage_by_count": 0.667,
+  "coverage_by_litres": 0.64,
+  "remainder_inside": true,
+  "misses": [
+    {
+      "key": "ploughing",
+      "side": "above",
+      "low": 765.6,
+      "high": 1322.1,
+      "measured": 1450.8,
+      "miss_pct": 8.9
+    },
+    {
+      "key": "mulching",
+      "side": "above",
+      "low": 171.6,
+      "high": 356.4,
+      "measured": 412.0,
+      "miss_pct": 13.5
+    },
+    {
+      "key": "seedbed_combination",
+      "side": "above",
+      "low": 60.2,
+      "high": 125.0,
+      "measured": 463.9,
+      "miss_pct": 73.0
+    },
+    {
+      "key": "mowing",
+      "side": "below",
+      "low": 41.5,
+      "high": 67.5,
+      "measured": 39.9,
+      "miss_pct": -4.0
+    }
+  ],
+  "rows": [
+    {
+      "key": "travel_idle_nonworking",
+      "name": "Travel, idling and implement not working",
+      "low": 3732.0,
+      "typical": 5553.4,
+      "high": 7110.1,
+      "measured": 4234.0,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "seed_drill_combination",
+      "name": "Power harrow + seed drill",
+      "low": 1219.7,
+      "typical": 1876.5,
+      "high": 2533.3,
+      "measured": 1979.3,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "cultivating_deep",
+      "name": "Deep cultivating",
+      "low": 852.8,
+      "typical": 1096.3,
+      "high": 1460.8,
+      "measured": 1274.7,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "ploughing",
+      "name": "Ploughing",
+      "low": 765.6,
+      "typical": 974.6,
+      "high": 1322.1,
+      "measured": 1450.8,
+      "side": "above",
+      "miss_pct": 8.9
+    },
+    {
+      "key": "mulching",
+      "name": "Mulching",
+      "low": 171.6,
+      "typical": 264.0,
+      "high": 356.4,
+      "measured": 412.0,
+      "side": "above",
+      "miss_pct": 13.5
+    },
+    {
+      "key": "cultivating_shallow",
+      "name": "Shallow cultivating",
+      "low": 173.9,
+      "typical": 260.9,
+      "high": 347.8,
+      "measured": 284.4,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "disc_harrowing",
+      "name": "Disc harrowing",
+      "low": 146.3,
+      "typical": 225.1,
+      "high": 303.9,
+      "measured": 297.5,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "fertilizing",
+      "name": "Fertiliser spreading",
+      "low": 122.2,
+      "typical": 188.0,
+      "high": 253.8,
+      "measured": 162.5,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "power_harrowing",
+      "name": "Power harrowing",
+      "low": 109.5,
+      "typical": 168.4,
+      "high": 227.3,
+      "measured": 151.9,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "seedbed_combination",
+      "name": "Seedbed combination",
+      "low": 60.2,
+      "typical": 92.6,
+      "high": 125.0,
+      "measured": 463.9,
+      "side": "above",
+      "miss_pct": 73.0
+    },
+    {
+      "key": "mowing",
+      "name": "Mowing",
+      "low": 41.5,
+      "typical": 51.9,
+      "high": 67.5,
+      "measured": 39.9,
+      "side": "below",
+      "miss_pct": -4.0
+    },
+    {
+      "key": "spraying",
+      "name": "Spraying",
+      "low": 30.7,
+      "typical": 47.2,
+      "high": 63.7,
+      "measured": 43.7,
+      "side": "inside",
+      "miss_pct": 0.0
+    },
+    {
+      "key": "swathing",
+      "name": "Swathing",
+      "low": 9.6,
+      "typical": 14.7,
+      "high": 19.9,
+      "measured": 19.0,
+      "side": "inside",
+      "miss_pct": 0.0
+    }
+  ],
+  "note": "Farm B never sees telemetry: ranges come from receipts, the farm profile and Iowa A3-27 rates."
+}

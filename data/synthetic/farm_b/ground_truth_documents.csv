@@ -1,0 +1,25 @@
+doc_id,doc_type,supplier,doc_number,date,price_month,net_gbp,vat_rate,vat_gbp,total_gbp,damage,duplicate_of,counts_toward_total
+B01,delivery_note,Larkspur Vale Fuels Ltd,LVF-4342,2025-09-03,2025-09,292.78,0.05,14.64,307.42,low_light,,True
+B02,handwritten,Hob Lane Fuel Services,HL-1447,2025-09-08,2025-09,168.63,0.05,8.43,177.06,handwritten,,True
+B03,merchant_till,Fenmarsh Agri Supplies,FAS-7502,2025-09-16,2025-09,105.23,0.05,5.26,110.49,skewed,,True
+B04,delivery_note,Larkspur Vale Fuels Ltd,LVF-4378,2025-09-16,2025-09,606.0,0.05,30.3,636.3,blurred,,True
+B05,handwritten,Hob Lane Fuel Services,HL-1459,2025-09-19,2025-09,441.18,0.05,22.06,463.24,handwritten,,True
+B06,handwritten,Hob Lane Fuel Services,HL-1462,2025-09-25,2025-09,385.35,0.05,19.27,404.62,handwritten,,True
+B07,delivery_note,Larkspur Vale Fuels Ltd,LVF-4418,2025-09-28,2025-09,236.45,0.05,11.82,248.27,low_light,,True
+B08,handwritten,Hob Lane Fuel Services,HL-1475,2025-10-14,2025-10,479.3,0.05,23.97,503.27,handwritten,,True
+B09,delivery_note,Corrow & Pike Oils,CPO-1096,2025-10-27,2025-10,407.03,0.05,20.35,427.38,crumpled,,True
+B10,merchant_till,Fenmarsh Agri Supplies,FAS-7530,2025-10-28,2025-10,79.49,0.05,3.97,83.46,blurred,,True
+B11,merchant_till,Fenmarsh Agri Supplies,FAS-7539,2025-11-17,2025-11,93.03,0.05,4.65,97.68,skewed,,True
+B12,merchant_till,Fenmarsh Agri Supplies,FAS-7571,2026-01-01,2026-01,18.36,0.05,0.92,19.28,clean,,True
+B13,handwritten,Hob Lane Fuel Services,HL-1483,2026-03-03,2026-03,366.73,0.05,18.34,385.07,handwritten,,True
+B14,delivery_note,Larkspur Vale Fuels Ltd,LVF-4427,2026-04-04,2026-04,1187.12,0.05,59.36,1246.48,crumpled,,True
+B15,delivery_note,Larkspur Vale Fuels Ltd,LVF-4440,2026-04-16,2026-04,437.65,0.05,21.88,459.53,crumpled,,True
+B16,merchant_till,Fenmarsh Agri Supplies,FAS-7603,2026-05-04,2026-05,89.49,0.05,4.47,93.96,low_light,,True
+B17,delivery_note,Larkspur Vale Fuels Ltd,LVF-4475,2026-05-06,2026-05,882.1,0.05,44.11,926.21,blurred,,True
+B18,delivery_note,Larkspur Vale Fuels Ltd,LVF-4515,2026-06-17,2026-06,363.2,0.05,18.16,381.36,blurred,,True
+B19,handwritten,Hob Lane Fuel Services,HL-1521,2026-06-20,2026-06,634.72,0.05,31.74,666.46,handwritten,,True
+B20,delivery_note,Corrow & Pike Oils,CPO-1102,2026-08-05,2026-08,428.77,0.05,21.44,450.21,blurred,,True
+B21,delivery_note,Larkspur Vale Fuels Ltd,LVF-4539,2026-08-06,2026-08,559.94,0.05,28.0,587.94,skewed,,True
+B22,delivery_note,Larkspur Vale Fuels Ltd,LVF-4557,2026-08-08,2026-08,1203.41,0.05,60.17,1263.58,clean,,True
+B23,delivery_note,Corrow & Pike Oils,CPO-1115,2026-08-23,2026-08,854.55,0.05,42.73,897.28,skewed,,True
+B24,delivery_note,Larkspur Vale Fuels Ltd,LVF-4557,2026-08-08,2026-08,1203.41,0.05,60.17,1263.58,blurred,B22,False

@@ -1,0 +1,13 @@
+machine_id,site_id,display_name,rated_kw,fuel_type
+S1-T1,S1,"Tractor 1, 77 kW",77,gas_oil
+S1-T2,S1,"Tractor 2, 104 kW",104,gas_oil
+S1-T3,S1,"Tractor 3, 140 kW",140,gas_oil
+S1-T4,S1,"Tractor 4, 163 kW",163,gas_oil
+S1-T5,S1,"Tractor 5, 174 kW",174,gas_oil
+S2-T1,S2,"Vineyard tractor 1, 75 kW",75,gas_oil
+S2-T2,S2,"Vineyard tractor 2, 75 kW",75,gas_oil
+S2-T3,S2,"Vineyard tractor 3, 75 kW",75,gas_oil
+S2-T4,S2,"Vineyard tractor 4, 75 kW",75,gas_oil
+S2-T5,S2,"Vineyard tractor 5, 75 kW",75,gas_oil
+S2-T6,S2,"Vineyard tractor 6, 75 kW",75,gas_oil
+S3-T1,S3,"Tractor, 77 kW (105 hp)",77,gas_oil

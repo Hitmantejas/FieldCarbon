@@ -1,0 +1,26 @@
+doc_id,line_no,product,litres,unit_price_gbp,net_gbp,counts_toward_fuel
+B01,1,Red diesel (gas oil),378.9,0.7727,292.78,True
+B02,1,Red diesel (gas oil),231.0,0.73,168.63,True
+B03,1,Red diesel (gas oil),116.7,0.756,88.23,True
+B03,2,AdBlue,20.0,0.85,17.0,False
+B04,1,Red diesel (gas oil),809.4,0.7487,606.0,True
+B05,1,Red diesel (gas oil),570.0,0.774,441.18,True
+B06,1,Red diesel (gas oil),525.0,0.734,385.35,True
+B07,1,Red diesel (gas oil),320.0,0.7389,236.45,True
+B08,1,Red diesel (gas oil),634.0,0.756,479.3,True
+B09,1,Red diesel (gas oil),520.3,0.7823,407.03,True
+B10,1,Red diesel (gas oil),101.26,0.785,79.49,True
+B11,1,Red diesel (gas oil),117.61,0.791,93.03,True
+B12,1,Red diesel (gas oil),24.91,0.737,18.36,True
+B13,1,Red diesel (gas oil),403.0,0.91,366.73,True
+B14,1,Red diesel (gas oil),1034.8,1.1472,1187.12,True
+B15,1,Red diesel (gas oil),362.8,1.2063,437.65,True
+B16,1,Red diesel (gas oil),80.62,1.11,89.49,True
+B17,1,Red diesel (gas oil),784.3,1.1247,882.1,True
+B18,1,Red diesel (gas oil),356.6,1.0185,363.2,True
+B19,1,Red diesel (gas oil),649.0,0.978,634.72,True
+B20,1,Red diesel (gas oil),384.2,1.116,428.77,True
+B21,1,Red diesel (gas oil),513.8,1.0898,559.94,True
+B22,1,Red diesel (gas oil),1097.6,1.0964,1203.41,True
+B23,1,Red diesel (gas oil),797.9,1.071,854.55,True
+B24,1,Red diesel (gas oil),1097.6,1.0964,1203.41,False
