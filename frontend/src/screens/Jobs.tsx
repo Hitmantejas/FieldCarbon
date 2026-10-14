@@ -141,6 +141,7 @@ export function Jobs() {
             <p>No jobs match these filters.</p>
           ) : (
             <>
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Jobs with their fuel and emissions</caption>
                 <thead>
@@ -162,8 +163,8 @@ export function Jobs() {
                       <th scope="row" className="whitespace-nowrap px-2 py-3 pl-0 font-normal">{dateText(j.date)}</th>
                       <td className="px-2 py-3 font-bold">{j.operation}</td>
                       <td className="px-2 py-3">{j.machine}</td>
-                      <td className="px-2 py-3">{j.client ?? <span className="text-ink-soft">Field not matched</span>}</td>
-                      <td className="px-2 py-3">{j.field ?? <span className="text-ink-soft">None</span>}</td>
+                      <td className="whitespace-nowrap px-2 py-3">{j.client ?? <span className="text-ink-soft">Field not matched</span>}</td>
+                      <td className="whitespace-nowrap px-2 py-3">{j.field ?? <span className="text-ink-soft">None</span>}</td>
                       <td className="num px-2 py-3 text-right">{j.hours.toFixed(1)}</td>
                       <td className="num px-2 py-3 text-right">
                         <button onClick={() => open(`${j.operation}, ${dateText(j.date)}`, `${j.litres.value?.toFixed(1)} L`, j.litres)} className="btn-link underline underline-offset-4">
@@ -184,6 +185,7 @@ export function Jobs() {
                   ))}
                 </tbody>
               </table>
+              </div>
               <nav aria-label="Pages" className="mt-4 flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-widest">
                 <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="btn-outline min-h-11 border-2 border-ink px-4 disabled:opacity-40">
                   Previous
@@ -209,6 +211,7 @@ export function Jobs() {
             <Loading what="fields" />
           ) : (
             <>
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Fuel and emissions by field</caption>
                 <thead>
@@ -241,6 +244,7 @@ export function Jobs() {
                   ))}
                 </tbody>
               </table>
+              </div>
               {fieldRows.length > PAGE && (
                 <button onClick={() => setShowAllFields((v) => !v)} aria-pressed={showAllFields} className="btn-outline mt-4 min-h-11 border-2 border-ink px-4 text-sm font-bold">
                   {showAllFields ? "Show only the top 25" : `Show all ${fieldRows.length} fields`}
