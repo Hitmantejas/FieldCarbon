@@ -107,7 +107,7 @@ export function Ask() {
     setError(null);
     try {
       const r = await fetch("/api/agent/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
-      if (!r.ok) throw new Error(r.status === 502 ? ((await r.json()).detail as string) : `The analyst answered ${r.status}`);
+      if (!r.ok) throw new Error(r.status === 502 || r.status === 429 ? ((await r.json()).detail as string) : `The analyst answered ${r.status}`);
       const answer = (await r.json()) as Answer;
       setAnswers((a) => [answer, ...a]);
       setText("");
