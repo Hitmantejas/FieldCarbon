@@ -9,18 +9,16 @@ harness itself and are reported separately, never as agent results.
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
-from backend.agent.faithfulness import audit, find_numbers
+from backend.agent.coverage import citation_coverage, label_coverage
+from backend.agent.faithfulness import audit
 from backend.agent.runs import load_runs
 from backend.tools.contracts import LABELS
 from evals.checks import CASES, TOOLS, figures, run_case
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "evals" / "results"
-LABEL_WORDS = re.compile(r"\b(measured|allocated|estimated)\b", re.IGNORECASE)
-FIGURE_FAMILIES = {"litres", "kg", "gbp", "pct", "l_per_ha", "l_per_h", "ha", "hours"}
 
 
 def tool_cases() -> dict:
@@ -44,49 +42,13 @@ def _outputs(run: dict) -> list:
             for c in run["tool_calls"]]
 
 
-def _sentences(text: str) -> list[str]:
-    return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
-
-
-def _label_coverage(answer: str) -> tuple[int, int]:
-    """Figures in the answer that carry a confidence label in the same sentence."""
-    total = labelled = 0
-    for s in _sentences(answer):
-        n = sum(1 for f in find_numbers(s) if f.family in FIGURE_FAMILIES)
-        total += n
-        labelled += n if LABEL_WORDS.search(s) else 0
-    return labelled, total
-
-
-def _citations(answer: str, outputs: list) -> tuple[int, int]:
-    """Recommended interventions named in the answer that also name one of their sources."""
-    items = []
-
-    def walk(node):
-        if isinstance(node, dict):
-            if node.get("evidence") and node.get("name"):
-                items.append(node)
-            for v in node.values():
-                walk(v)
-        elif isinstance(node, list):
-            for v in node:
-                walk(v)
-    for out in outputs:
-        walk(out)
-    text = answer.lower()
-    named = [i for i in items if i["name"].lower() in text]
-    cited = [i for i in named if any(e["source_id"].lower() in text or e["title"].lower()[:30] in text
-                                     for e in i["evidence"])]
-    return len(cited), len(named)
-
-
 def score_run(run: dict) -> dict:
     case = next((c for c in CASES if c["id"] == run.get("case_id")), None)
     outputs = _outputs(run)
     called = {c["name"] for c in run["tool_calls"]}
     a = audit(run["answer"], outputs, run.get("question", ""))
-    lab, figs = _label_coverage(run["answer"])
-    cit, named = _citations(run["answer"], outputs)
+    lab, figs = label_coverage(run["answer"])
+    cit, named = citation_coverage(run["answer"], outputs)
     return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")),
             "tool_selection": None if case is None else set(case["expected_tools"]) <= called,
             "faithful": a.faithful, "numbers": a.checked, "unmatched": [n.text for n in a.unmatched],

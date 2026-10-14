@@ -35,6 +35,9 @@ node_modules/
 dist/
 .vite/
 
+# --- Agent eval runs still in progress (evals/run_agent.py) ---
+evals/runs/*.partial
+
 # --- OS / editors ---
 .DS_Store
 Thumbs.db

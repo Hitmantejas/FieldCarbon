@@ -24,17 +24,23 @@ def questions(only: list[str] | None = None) -> list[dict]:
 
 def main(only: list[str] | None = None) -> None:
     cases = questions(only)
-    path = RUNS / FILE
-    kept = [l for l in path.read_text(encoding="utf-8").splitlines() if only and json.loads(l)["case_id"] not in only] if path.exists() else []
-    path.write_text("".join(f"{l}\n" for l in kept), encoding="utf-8")  # a partial run replaces only its own cases
+    path, partial = RUNS / FILE, RUNS / f"{FILE}.partial"   # .partial is not *.jsonl, so the harness never scores it
+    RUNS.mkdir(parents=True, exist_ok=True)
+    partial.unlink(missing_ok=True)
     used = {"input": 0, "output": 0, "thinking": 0}
     for i, case in enumerate(cases, 1):
         start = time.time()
-        r = fleet_agent.ask(case["question"], record=True, case_id=case["id"], record_file=FILE)
+        r = fleet_agent.ask(case["question"], record=True, case_id=case["id"], record_file=partial.name)
         used = {k: used[k] + r["tokens"][k] for k in used}
         called = {c["name"] for c in r["tool_calls"]}
         print(f"{i:>2}/{len(cases)} {case['id']:<22} {time.time() - start:4.0f}s tools={'ok' if set(case['expected_tools']) <= called else 'MISSED'} "
               f"faithful={r['audit']['faithful']} attempts={r['attempts']}", flush=True)
+    # Only now, with every question answered, replace the recorded runs: a failed run leaves the old ones as they were.
+    new = partial.read_text(encoding="utf-8").splitlines() if partial.exists() else []
+    old = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    kept = [l for l in old if only and json.loads(l)["case_id"] not in only]   # a partial run replaces only its own cases
+    path.write_text("".join(f"{l}\n" for l in kept + new), encoding="utf-8")
+    partial.unlink(missing_ok=True)
     print("tokens", used)
 
 

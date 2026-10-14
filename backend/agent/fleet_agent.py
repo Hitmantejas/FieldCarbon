@@ -1,9 +1,10 @@
 """The fleet analyst: a Google ADK agent on Gemini (Vertex AI) that turns a question into calls to the deterministic tools.
 
 Gemini plans which tools to call and explains their results in plain English. Every figure comes from a tool
-(CLAUDE.md principle 1). Before an answer leaves `ask()`, the auditor checks that each number traces to a tool output;
-an answer that fails is rewritten once with the untraceable numbers named, and if it still fails it carries a visible
-note. `ask()` can also record the run for the eval harness (evals/run_all.py).
+(CLAUDE.md principle 1). Before an answer leaves `ask()`, the auditor checks that each number traces to a tool output,
+and coverage checks that each figure has its label and each idea its source; an answer that fails is rewritten once with
+the problems named, and if a number still does not trace it carries a visible note. `ask()` can also record the run for
+the eval harness (evals/run_all.py).
 """
 from __future__ import annotations
 
@@ -16,12 +17,13 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
+from backend.agent.coverage import uncited_ideas, unlabelled_sentences
 from backend.agent.faithfulness import audit, guard
 from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
 APP = "fieldcarbon"
-AGENT_VERSION = "analyst-v1"
+AGENT_VERSION = "analyst-v2"  # v2: one rewrite also covers ideas without a source and figures without a label
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """You are FieldCarbon's fleet analyst. You help the fleet manager and the sustainability lead of an agricultural \
@@ -39,11 +41,13 @@ benchmark_peers. What to change to save fuel: fleet_opportunities. A change the 
 fleet_jobs. A report or client statement: fleet_report.
 - Round the way a person would: whole litres, whole pounds, tonnes with one decimal (29,819 kg is 29.8 tonnes). Never print long decimals.
   Never write a minus sign: say "extra", "more", "less" or "a higher fuel bill" in words.
-- Say the confidence label next to every figure, in the same sentence: measured, allocated or estimated, for example \
-"10,814 litres (allocated)". Give ranges as ranges, never as one number. Savings are estimates, never guarantees.
+- Say the confidence label next to every figure, in the same sentence, also in bullet points and comparisons: measured, \
+allocated or estimated, for example "10,814 litres (allocated)". Give ranges as ranges, never as one number. Savings are \
+estimates, never guarantees.
 - Differences between machines and findings are things to investigate, not proof of a fault, waste or loss. Say so.
 - Recommend only what fleet_opportunities returns, and name the research source and the strength of evidence for it, using the \
-source title exactly. Ideas overlap, so never add their savings together.
+source title exactly. Name the source every time you name an idea, also when the same idea comes up again for another site. \
+Ideas overlap, so never add their savings together.
 - Never name, rank or compare operators. If asked, say FieldCarbon does not report on individual people.
 - If a tool returns an error, fix the arguments and try again. If the data cannot answer, say what is missing.
 
@@ -111,24 +115,35 @@ async def _ask(agent: Agent, question: str, retry: bool) -> dict:
     turn = await _turn(runner, user, sid, question)
     calls, answer, tokens, attempts = list(turn.calls), turn.text, dict(turn.tokens), 1
     verdict = _verdict(answer, calls, question)
-    if not verdict.faithful and retry:
-        again = await _turn(runner, user, sid, rewrite_request(verdict.unmatched))
-        calls += again.calls
-        answer = again.text or answer
+    gaps = _gaps(answer, calls)
+    if (not verdict.faithful or any(gaps.values())) and retry:
+        again = await _turn(runner, user, sid, rewrite_request(verdict.unmatched, **gaps))
+        all_calls = calls + again.calls
         tokens = {k: tokens[k] + again.tokens[k] for k in tokens}
         attempts = 2
-        verdict = _verdict(answer, calls, question)
+        second = _verdict(again.text, all_calls, question) if again.text else None
+        if second is not None and (second.faithful or not verdict.faithful):  # never trade a traced answer for an untraced one
+            answer, verdict = again.text, second
+        calls = all_calls
+        gaps = _gaps(answer, calls)
     if not verdict.faithful:
         _, note = guard(answer, [c["output"] for c in calls], question)
         answer = f"{answer}\n\n{note}"
     return {"question": question, "answer": answer, "tool_calls": calls, "attempts": attempts,
-            "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched]},
+            "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched],
+                      "uncited_ideas": [g["name"] for g in gaps["uncited"]], "unlabelled_sentences": len(gaps["unlabelled"])},
             "tokens": tokens}
 
 
-def rewrite_request(unmatched) -> str:
+def _gaps(answer: str, calls: list[dict]) -> dict:
+    outputs = [c["output"] for c in calls]
+    return {"uncited": uncited_ideas(answer, outputs), "unlabelled": unlabelled_sentences(answer)}
+
+
+def rewrite_request(unmatched, uncited=(), unlabelled=()) -> str:
     """The one retry message. A number whose size is in the tools but whose saving/increase is turned round is named
-    as such, so the model fixes the words instead of hunting for a number it already has."""
+    as such, so the model fixes the words instead of hunting for a number it already has. Ideas named without their
+    source and sentences with a figure but no confidence label are named too."""
     invented = ", ".join(dict.fromkeys(n.text for n in unmatched if not n.wrong_direction))
     flipped = ", ".join(dict.fromkeys(n.text for n in unmatched if n.wrong_direction))
     parts = []
@@ -139,6 +154,14 @@ def rewrite_request(unmatched) -> str:
         parts.append(f"These numbers are in the tool results, but your answer gives them the opposite direction (a saving where "
                      f"the tools show an increase, or the other way round): {flipped}. Keep the numbers and describe the direction "
                      "the tools give.")
+    if uncited:
+        named = "; ".join(f'{g["name"]} (source: {" / ".join(g["titles"][:2])})' for g in uncited)
+        parts.append(f"These ideas are named without their research source: {named}. Name the source title next to each idea, "
+                     "every time it appears, including for a second site.")
+    if unlabelled:
+        quoted = " | ".join(s[:120] for s in unlabelled[:4])
+        parts.append(f"These sentences give a figure without its confidence label: {quoted}. Add measured, allocated or "
+                     "estimated in the same sentence, as the tool results give it.")
     return " ".join(parts) + " Rewrite the whole answer."
 
 
