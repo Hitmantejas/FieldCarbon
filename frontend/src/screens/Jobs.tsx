@@ -66,7 +66,7 @@ export function Jobs() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-jobs">
-        <h1 id="h-jobs" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-jobs" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Jobs &amp; fields
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">

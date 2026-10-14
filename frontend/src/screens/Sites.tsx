@@ -64,7 +64,7 @@ export function Sites() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-sites">
-        <h1 id="h-sites" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-sites" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Sites &amp; machines
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -128,6 +128,7 @@ export function Sites() {
         {!machines.data ? (
           <Loading what="machines" />
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <caption className="sr-only">Fuel, emissions and work by machine</caption>
             <thead>
@@ -174,6 +175,7 @@ export function Sites() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </section>
 

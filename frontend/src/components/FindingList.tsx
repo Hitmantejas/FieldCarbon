@@ -26,11 +26,11 @@ export function FindingList({ findings, onOpen }: { findings: Finding[]; onOpen:
           <li key={f.title}>
             <button
               onClick={() => onOpen(f.title, shown, f.litres)}
-              className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr_auto] items-center gap-4 py-3 text-left"
+              className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3 text-left"
             >
               <SeverityTag severity={f.severity} />
               <span className="max-w-[75ch]">{f.title}</span>
-              <span className="flex items-center gap-3">
+              <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
                 <span className="num text-sm">{shown}</span>
                 <Stamp label={f.litres.label} />
               </span>

@@ -35,7 +35,7 @@ function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (
               {f.reasons && <span className="block text-sm text-ink-soft">{f.reasons.join(" ")}</span>}
             </span>
             {f.figure ? (
-              <span className="flex items-center gap-3">
+              <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
                 <span className="num text-sm">{amount(f.figure)}</span>
                 <Stamp label={f.figure.label} />
               </span>
@@ -47,11 +47,11 @@ function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (
         return (
           <li key={f.kind + f.doc_no}>
             {f.figure ? (
-              <button onClick={() => onOpen(f.title, amount(f.figure!), f.figure!)} className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr_auto] items-center gap-4 py-3 text-left">
+              <button onClick={() => onOpen(f.title, amount(f.figure!), f.figure!)} className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3 text-left">
                 {row}
               </button>
             ) : (
-              <div className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-4 py-3">{row}</div>
+              <div className="grid grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3">{row}</div>
             )}
           </li>
         );
@@ -92,7 +92,7 @@ export function FuelControl() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-control">
-        <h1 id="h-control" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-control" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Fuel control
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -164,6 +164,7 @@ export function FuelControl() {
                 </button>
               ))}
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-left">
               <caption className="sr-only">Book stock against measured stock at each month end</caption>
               <thead>
@@ -190,6 +191,7 @@ export function FuelControl() {
                 })}
               </tbody>
             </table>
+            </div>
             <p className="mt-2 text-sm text-ink-soft">A difference of {litres(tolerance)} litres or more is marked. Books say = deliveries minus fuel handed out. A positive difference means the tank holds less than the books say.</p>
           </>
         )}
@@ -215,6 +217,7 @@ export function FuelControl() {
             {machineRows.length === 0 ? (
               <p>No machine took more than {Math.round((r.settings.ratio_limit - 1) * 100)}% above what it burned.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Fuel handed to each machine against fuel it burned, by month</caption>
                 <thead>
@@ -240,6 +243,7 @@ export function FuelControl() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
             <p className="mt-2 text-sm text-ink-soft">Marked when a machine was handed {Math.round((r.settings.ratio_limit - 1) * 100)}% or more above what it burned, and at least {litres(r.settings.min_litres)} litres.</p>
           </>

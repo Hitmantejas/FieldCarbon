@@ -73,7 +73,7 @@ export function Shell({ current, onGo, attribution, children }: Props) {
             <ThemeToggle />
           </div>
         </aside>
-        <main className="rounded-[1.75rem] bg-paper text-ink shadow-[0_1px_2px_oklch(0%_0_0/0.06),0_12px_32px_-12px_oklch(30%_0.04_150/0.3)]">
+        <main className="min-w-0 rounded-[1.75rem] bg-paper text-ink shadow-[0_1px_2px_oklch(0%_0_0/0.06),0_12px_32px_-12px_oklch(30%_0.04_150/0.3)]">
           <div
             className="rise flex flex-wrap items-center justify-between gap-2 px-6 pb-1 pt-5 font-mono text-xs uppercase tracking-widest text-ink-soft"
             style={step(0)}

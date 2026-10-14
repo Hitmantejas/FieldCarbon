@@ -45,7 +45,7 @@ export function Overview() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-fleet">
-        <h1 id="h-fleet" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-fleet" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           {t ? `${litres(t.litres.value ?? 0)} litres burned.` : "Fleet overview"}
           <br />
           {watch.length > 0 && <span className="text-moss">{watch.length} things to look at.</span>}
@@ -84,6 +84,7 @@ export function Overview() {
           {!sites.data ? (
             <Loading what="sites" />
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-left">
               <caption className="sr-only">Fuel, emissions and cost by site</caption>
               <thead>
@@ -109,6 +110,7 @@ export function Overview() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </section>
 

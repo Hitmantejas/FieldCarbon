@@ -31,7 +31,7 @@ export function Reports() {
 
   const controls = (
     <section className="no-print px-6 pt-6" aria-label="Choose a report">
-      <h1 className="font-display text-6xl font-semibold leading-[1.02] tracking-tight">Reports</h1>
+      <h1 className="font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight">Reports</h1>
       <p className="mt-3 max-w-[70ch] text-ink-soft">
         A report you can print or save as a PDF. Every figure lists its sources. Choose the whole company, or a statement for one client farm to
         send with their invoice.

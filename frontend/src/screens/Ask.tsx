@@ -123,7 +123,7 @@ export function Ask() {
   return (
     <div className="space-y-8 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-ask">
-        <h1 id="h-ask" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-ask" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Ask the analyst
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
