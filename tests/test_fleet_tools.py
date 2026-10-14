@@ -53,6 +53,16 @@ def test_site_rows_carry_the_weakest_label_of_their_inputs():
     assert rows["S2"]["litres"]["label"] == rows["S3"]["litres"]["label"] == "measured"
 
 
+def test_vineyard_fuel_stays_measured_but_says_it_comes_from_the_tank_level():
+    r = fleet_summary("site")
+    rows = by_key(r)
+    s2, s3 = rows["S2"]["litres"]["how"], rows["S3"]["litres"]["how"]
+    assert "tank levels" in s2 and "fuel-flow sensor" in s2 and "own fuel data" not in s2
+    assert "tank level" not in s3 and "own fuel data" in s3
+    assert "Vineyard fuel is" in r["totals"]["litres"]["how"]          # the fleet total includes the vineyard
+    assert "Vineyard" not in by_key(fleet_summary("site", site_id="S1"))["S1"]["litres"]["how"]
+
+
 def test_month_view_covers_the_company_year_and_adds_up():
     r = fleet_summary("month")
     assert [x["key"] for x in r["rows"]] == [f"2025-{m:02d}" for m in range(5, 13)] + [f"2026-{m:02d}" for m in range(1, 5)]

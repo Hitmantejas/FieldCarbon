@@ -12,6 +12,7 @@ from backend.fleet.data import price_by_month
 from backend.tools.contracts import Figure, weakest
 
 SYNTHETIC_SOURCE = "fleet_synthetic"
+VINEYARD_SOURCE = "vineyard_ops"  # S2: fuel per operation read from the tank level (Rossi & Alemanno)
 
 
 def _label(df: pd.DataFrame) -> str:
@@ -31,10 +32,16 @@ def slice_figures(df: pd.DataFrame, synthetic_cols: bool = False) -> dict:
     cost = float((df.litres * df.month.map(price)).sum())
     factor = wtw_factor(FUEL, EF_YEAR)
 
+    vineyard = df.source_id == VINEYARD_SOURCE
     how = [f"**{litres:,.0f} litres** burned over **{hours:,.0f} hours**."]
-    how.append("Recorded by the machines' own fuel data." if label == "measured" else
-               "Includes fuel burned outside jobs (transport, idling, tool not working). It is measured in total and "
-               "**shared across months by rule**.")
+    if label != "measured":
+        how.append("Includes fuel burned outside jobs (transport, idling, tool not working). It is measured in total and "
+                   "**shared across months by rule**.")
+    elif not vineyard.all():
+        how.append("Recorded by the machines' own fuel data.")
+    if vineyard.any():  # still measured, but a coarser reading than a flow sensor
+        how.append(("Vineyard fuel is" if not vineyard.all() else "Fuel is") + " **read from the tractors' tank levels**, "
+                   "not from a fuel-flow sensor.")
     if synthetic_cols:
         how.append("Dates, clients and operators in this demo are synthetic.")
     src = _sources(df, synthetic_cols)
