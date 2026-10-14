@@ -143,6 +143,9 @@ Re-reading the documents with Gemini needs a Google Cloud project with Vertex AI
 Credentials: `python infra/run_receipts.py --farm fleet --model gemini-3.5-flash --location global`
 (dry run; add `--apply`). Stored readings are reused, so this is not needed to run the app.
 
+Deploy: one container (`Dockerfile`) builds the frontend and serves it from the API. `requirements.txt` holds the
+runtime dependencies only. The Cloud Run commands are in [infra/deploy.md](infra/deploy.md).
+
 ## Data sources and licences
 
 | Source | Used for | Licence |

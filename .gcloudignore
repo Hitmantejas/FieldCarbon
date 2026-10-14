@@ -1,0 +1,23 @@
+# What `gcloud builds submit` uploads to Cloud Build: the same as .dockerignore, so no raw data, secrets or CLAUDE.md leave this machine.
+.gcloudignore
+.git
+.gitignore
+.claude/
+CLAUDE.md
+.env*
+*.json.key
+**/__pycache__/
+.venv/
+.pytest_cache/
+data/raw/
+data/prep/
+data/synthetic/
+**/*.zip
+**/*.pkl
+**/*.parquet
+frontend/node_modules/
+frontend/dist/
+tests/
+evals/
+docs/
+infra/
