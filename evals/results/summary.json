@@ -266,7 +266,8 @@
           "cited": 8,
           "recommendations_named": 8
         }
-      ]
+      ],
+      "tokens": null
     },
     "self_test": {
       "runs": 4,

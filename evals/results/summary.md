@@ -11,4 +11,5 @@
 | Agent numerical faithfulness | 100% |
 | Agent label coverage | 98% |
 | Agent citation coverage (ideas that name their research source) | 91% |
+| Agent tokens per question (input + output + thinking) | not recorded yet |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |

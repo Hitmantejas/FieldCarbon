@@ -103,13 +103,24 @@ def _share(rows: list[dict], part: str, whole: str) -> float | None:
     return round(sum(r[part] for r in rows) / total, 3) if total else None
 
 
+def agent_tokens(runs: list[dict]) -> dict | None:
+    """Tokens Vertex AI reported, over the agent runs that recorded them (runs recorded before 2026-10-14 did not)."""
+    counted = [r["tokens"] for r in runs if not r.get("sample") and r.get("tokens")]
+    if not counted:
+        return None
+    total = {k: sum(t.get(k, 0) for t in counted) for k in ("input", "output", "thinking")}
+    return {"runs": len(counted), **total, "per_question": round(sum(total.values()) / len(counted))}
+
+
 def agent_runs() -> dict:
-    scored = [score_run(r) for r in load_runs()]
+    runs = load_runs()
+    scored = [score_run(r) for r in runs]
     out = {}
     for name, rows in (("agent", [r for r in scored if not r["sample"]]), ("self_test", [r for r in scored if r["sample"]])):
         out[name] = {"runs": len(rows), "tool_selection": _rate(rows, "tool_selection"),
                      "faithfulness": _rate(rows, "faithful"), "label_coverage": _share(rows, "labelled_figures", "figures"),
                      "citation_coverage": _share(rows, "cited", "recommendations_named"), "details": rows}
+    out["agent"]["tokens"] = agent_tokens(runs)
     return out
 
 
@@ -147,6 +158,8 @@ def markdown(s: dict) -> str:
         ("Agent numerical faithfulness", pct(a["faithfulness"])),
         ("Agent label coverage", pct(a["label_coverage"])),
         ("Agent citation coverage (ideas that name their research source)", pct(a["citation_coverage"])),
+        ("Agent tokens per question (input + output + thinking)",
+         f"{a['tokens']['per_question']:,} over {a['tokens']['runs']} runs" if a["tokens"] else "not recorded yet"),
         ("Harness self-test (hand-written samples)",
          f"{st['runs']} runs; auditor flags {sum(1 for r in st['details'] if not r['faithful'])} unfaithful"),
     ]

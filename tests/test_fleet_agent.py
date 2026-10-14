@@ -69,3 +69,4 @@ def test_a_recorded_run_is_scored_by_the_harness_and_not_marked_as_a_sample(tmp_
     saved = [json.loads(line) for line in (tmp_path / "agent.jsonl").read_text(encoding="utf-8").splitlines()]
     assert saved[0]["case_id"] == "fleet-summary" and saved[0]["sample"] is False
     assert saved[0]["tool_calls"][0]["output"]["rows"]
+    assert set(saved[0]["tokens"]) == {"input", "output", "thinking"}  # the basis for the cost per question

@@ -141,5 +141,5 @@ def ask(question: str, model=None, retry: bool = True, record: bool = False, cas
     result["model"] = model if isinstance(model, str) or model is None else type(model).__name__
     if record:
         record_run(case_id, question, [{"name": c["name"], "args": c["args"], "output": c["output"]} for c in result["tool_calls"]],
-                   result["answer"], result["model"] or MODEL, AGENT_VERSION, record_file)
+                   result["answer"], result["model"] or MODEL, AGENT_VERSION, record_file, tokens=result["tokens"])
     return result

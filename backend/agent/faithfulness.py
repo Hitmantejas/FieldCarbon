@@ -3,7 +3,8 @@
 Strict by design: Gemini never does the maths, so a number the tools did not produce fails, even a
 correct sum. A number may be rounded as displayed ("10,814 L" for 10,813.69; "36.6 t" for 36,572 kg;
 "£8.1k" for 8,099) and may be any number the user wrote in the question. Numbers are compared by size: a tool's -443 L is
-"443 extra litres" in words, and the words carry the sign. Years, dates, ids such as
+"443 extra litres" in words, and the words carry the sign. So the words are checked too: a saving the tools give as
+negative (or describe as extra) fails when the answer calls it a saving, and the other way round. Years, dates, ids such as
 S1-T4 or A3-27, and list numbering are not figures and are ignored.
 
 Pure Python: the agent calls `guard()` before replying; the eval harness calls `audit()` on recorded runs.
@@ -49,6 +50,12 @@ KEY_FAMILIES = [("l_per_ha", "l_per_ha"), ("l_per_h", "l_per_h"), ("litres", "li
                 ("area", "ha"), ("_ha", "ha"), ("hours", "hours"), ("kw", "kw"), ("years", "years")]
 FIGURE_UNITS = {"L": "litres", "kg CO2e": "kg", "GBP": "gbp", "% of your emissions": "pct", "ha": "ha"}
 
+# Direction: +1 a saving, -1 an increase, 0 not stated. Keys like litres_saved carry it in their sign; text in its words.
+SAVING_KEY = re.compile(r"saved|saving|avoided|reduction", re.IGNORECASE)
+SAVE_WORDS = re.compile(r"\b(?:sav(?:e|es|ed|ing|ings)|less|lower|fewer|cuts?|reduc\w*|avoid\w*)\b", re.IGNORECASE)
+MORE_WORDS = re.compile(r"\b(?:extra|more|higher|increase[sd]?|additional|adds?)\b", re.IGNORECASE)
+CLAUSE_END = re.compile(r"[.;!?\n]")
+
 
 @dataclass(frozen=True)
 class Found:
@@ -56,6 +63,7 @@ class Found:
     value: float          # in the family's base unit
     family: str | None    # None = no unit stated (a count, or a bare number)
     tolerance: float      # half a unit of the last digit shown, in base units
+    direction: int = 0    # +1 said as a saving, -1 as an increase, 0 neither or both
 
 
 @dataclass(frozen=True)
@@ -65,6 +73,7 @@ class NumberCheck:
     family: str | None
     matched: bool
     source: str | None    # where in the tool outputs it was found (json path), or "question"
+    wrong_direction: bool = False  # the size matches a tool value, but the answer says saving where it is an increase (or back)
 
 
 @dataclass(frozen=True)
@@ -86,6 +95,16 @@ def _tolerance(num: str, scale: float) -> float:
         stripped = digits.rstrip("0")
         step = 10 ** (len(digits) - len(stripped)) if stripped else 1
     return 0.5 * step * scale
+
+
+def _direction(text: str, span: tuple[int, int]) -> int:
+    """Saving (+1) or increase (-1) words in the number's clause, within 40 characters; 0 if neither or both."""
+    start, end = span
+    ends_before = [m.end() for m in CLAUSE_END.finditer(text, 0, start)]
+    stop = CLAUSE_END.search(text, end)
+    window = text[max(ends_before[-1] if ends_before else 0, start - 40):min(stop.start() if stop else len(text), end + 40)]
+    save, more = bool(SAVE_WORDS.search(window)), bool(MORE_WORDS.search(window))
+    return 1 if save and not more else -1 if more and not save else 0
 
 
 def _ignored_spans(text: str) -> list[tuple[int, int]]:
@@ -125,7 +144,8 @@ def find_numbers(text: str) -> list[Found]:
         between = text[a["span"][1]:b["span"][0]].strip().lower()
         if a["family"] is None and b["family"] and between in ("to", "-", "–", "and"):
             a["family"], a["factor"] = b["family"], b["factor"]
-    return [Found(n["text"], n["raw"] * n["factor"], n["family"], n["tol"] * n["factor"]) for n in out]
+    return [Found(n["text"], n["raw"] * n["factor"], n["family"], n["tol"] * n["factor"], _direction(text, n["span"]))
+            for n in out]
 
 
 def _key_family(key: str) -> str | None:
@@ -133,17 +153,19 @@ def _key_family(key: str) -> str | None:
     return next((fam for part, fam in KEY_FAMILIES if part in k), None)
 
 
-def tool_values(outputs: Iterable, path: str = "") -> list[tuple[float, str | None, str]]:
-    """Every number a tool produced: raw fields (unit from the Figure or the key) and numbers written in its text."""
-    found: list[tuple[float, str | None, str]] = []
+def tool_values(outputs: Iterable, path: str = "") -> list[tuple[float, str | None, str, int]]:
+    """Every number a tool produced: raw fields (unit from the Figure or the key) and numbers written in its text,
+    each with its direction (sign of a saving-type key such as litres_saved, or the words around it in text)."""
+    found: list[tuple[float, str | None, str, int]] = []
 
     def walk(node, path: str, family: str | None) -> None:
         if isinstance(node, bool) or node is None:
             return
         if isinstance(node, (int, float)):
-            found.append((float(node), family, path))
+            direction = (node > 0) - (node < 0) if SAVING_KEY.search(path) else 0
+            found.append((float(node), family, path, direction))
         elif isinstance(node, str):
-            found.extend((f.value, f.family, f"{path}:text") for f in find_numbers(node))
+            found.extend((f.value, f.family, f"{path}:text", f.direction) for f in find_numbers(node))
         elif isinstance(node, dict):
             fig_family = FIGURE_UNITS.get(node.get("unit")) if {"label", "how"} <= node.keys() else None
             for k, v in node.items():
@@ -167,11 +189,11 @@ def audit(answer: str, tool_outputs: Iterable, question: str = "") -> Audit:
     asked = find_numbers(question)
     checks = []
     for f in find_numbers(answer):
-        hit = next((p for v, fam, p in values if _compatible(f.family, fam) and abs(abs(v) - f.value) <= f.tolerance + 1e-9),
-                   None)
+        sized = [(p, d) for v, fam, p, d in values if _compatible(f.family, fam) and abs(abs(v) - f.value) <= f.tolerance + 1e-9]
+        hit = next((p for p, d in sized if not (f.direction and d and f.direction != d)), None)
         if hit is None and any(abs(q.value - f.value) <= max(q.tolerance, f.tolerance) for q in asked):
             hit = "question"
-        checks.append(NumberCheck(f.text, f.value, f.family, hit is not None, hit))
+        checks.append(NumberCheck(f.text, f.value, f.family, hit is not None, hit, wrong_direction=hit is None and bool(sized)))
     return Audit(all(c.matched for c in checks), len(checks), tuple(checks))
 
 
@@ -182,5 +204,8 @@ def guard(answer: str, tool_outputs: Iterable, question: str = "") -> tuple[bool
     if a.faithful:
         return True, None
     listed = ", ".join(dict.fromkeys(n.text for n in a.unmatched))
-    return False, (f"Check needed: these numbers could not be traced to FieldCarbon's calculations: {listed}. "
+    flipped = ", ".join(dict.fromkeys(n.text for n in a.unmatched if n.wrong_direction))
+    turned = (f" For {flipped}, the calculation shows the opposite direction (a saving where it is an increase, or the "
+              "other way round).") if flipped else ""
+    return False, (f"Check needed: these numbers could not be traced to FieldCarbon's calculations: {listed}.{turned} "
                    "Please treat them with care.")
