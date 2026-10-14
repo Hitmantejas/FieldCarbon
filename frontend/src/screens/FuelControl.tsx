@@ -190,7 +190,7 @@ export function FuelControl() {
                 })}
               </tbody>
             </table>
-            <p className="mt-2 text-sm text-ink-soft">A difference of {litres(tolerance)} litres or more is marked. Books say = deliveries minus fuel handed out. A positive difference means fuel is missing from the tank.</p>
+            <p className="mt-2 text-sm text-ink-soft">A difference of {litres(tolerance)} litres or more is marked. Books say = deliveries minus fuel handed out. A positive difference means the tank holds less than the books say.</p>
           </>
         )}
       </section>

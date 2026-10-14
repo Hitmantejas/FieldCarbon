@@ -208,3 +208,8 @@ def test_machine_rows_name_their_site_and_site_rows_say_what_kind_of_data_they_h
     assert all(r["site_id"] == r["key"][:2] for r in machines)
     kinds = {r["key"]: r["data_kind"] for r in fleet_summary("site")["rows"]}
     assert kinds == {"S1": "raw telemetry", "S2": "per-operation summary", "S3": "raw telemetry, tillage only"}
+
+
+def test_a_stock_gap_is_described_against_the_books_not_as_missing_fuel():
+    gaps = [f["title"] for f in reconcile_fuel()["findings"] if f["kind"].startswith("stock")]
+    assert gaps and all("than the books show" in t and "missing" not in t for t in gaps)

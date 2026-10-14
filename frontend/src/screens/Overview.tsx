@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Figure } from "../api";
+import type { Figure, Label } from "../api";
 import { useApi } from "../api";
 import { FindingList } from "../components/FindingList";
 import { RangeBar } from "../components/RangeBar";
@@ -9,9 +9,11 @@ import { Tile } from "../components/Tile";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 import type { Anomalies, FleetOpportunities, FleetSummary, Reconciliation, Severity } from "../fleetApi";
 import { gbpFull, litres, tonnes } from "../format";
+import { co2Text } from "../ranges";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthName = (key: string) => `${MONTHS[Number(key.slice(5)) - 1]} ${key.slice(2, 4)}`;
+const LABEL_ORDER: Label[] = ["measured", "allocated", "estimated"];
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
 
 function Loading({ what }: { what: string }) {
@@ -37,6 +39,8 @@ export function Overview() {
   const maxSaved = Math.max(1, ...feasible.map((i) => i.figures.co2e_avoided_kg?.high ?? 0));
   const monthRows = months.data?.rows ?? [];
   const maxMonth = Math.max(1, ...monthRows.map((m) => m.litres.value ?? 0));
+  // One label for the whole chart: the weakest of the months' labels.
+  const monthLabel = monthRows.map((m) => m.litres.label).sort((a, b) => LABEL_ORDER.indexOf(b) - LABEL_ORDER.indexOf(a))[0];
 
   return (
     <div className="space-y-10 pb-10">
@@ -109,7 +113,7 @@ export function Overview() {
         </section>
 
         <section aria-labelledby="h-months">
-          <SectionHead id="h-months" title="By month" tone="dashed" />
+          <SectionHead id="h-months" title="By month" tone="dashed" aside={monthLabel && <Stamp label={monthLabel} />} />
           {monthRows.length === 0 ? (
             <Loading what="months" />
           ) : (
@@ -129,13 +133,15 @@ export function Overview() {
       </div>
 
       <section className="px-6" aria-labelledby="h-ideas">
-        <SectionHead id="h-ideas" title="Ideas that suit the arable sites" tone="solid" note="ranges from research · never added together" />
+        <SectionHead id="h-ideas" title="Ideas that suit the arable sites" tone="solid" note="CO2e avoided a year · ranges from research · never added together" />
         {!ideas.data ? (
           <Loading what="ideas" />
         ) : (
           <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-ink">
             {feasible.map((i) => {
               const f = i.figures.co2e_avoided_kg!;
+              const one = f.low === f.high; // one study figure, so no range to show
+              const shown = co2Text(f).replace(" CO2e", "");
               return (
                 <li key={i.intervention_id} className="grid items-center gap-4 py-3 md:grid-cols-[16rem_1fr_11rem]">
                   <div>
@@ -144,13 +150,14 @@ export function Overview() {
                       {i.robustness} evidence · {i.n_sources} {i.n_sources === 1 ? "source" : "sources"}
                     </p>
                   </div>
-                  <RangeBar low={f.low ?? 0} high={f.high ?? 0} max={maxSaved} description={`${i.name}: ${tonnes(f.low ?? 0)} to ${tonnes(f.high ?? 0)} of CO2e a year`} />
+                  <RangeBar low={f.low ?? 0} high={f.high ?? 0} max={maxSaved} description={`${i.name}: ${shown} of CO2e a year`} />
                   <button
-                    onClick={() => open(i.name, `${tonnes(f.low ?? 0)} to ${tonnes(f.high ?? 0)} CO2e a year`, f)}
+                    onClick={() => open(i.name, `${shown} CO2e a year`, f)}
                     className="btn-link flex flex-col items-start gap-1 text-left"
-                    aria-label={`${i.name}: ${tonnes(f.low ?? 0)} to ${tonnes(f.high ?? 0)} of CO2e a year, ${f.label}. Show how it was worked out.`}
+                    aria-label={`${i.name}: ${shown} of CO2e a year${one ? ", one figure from the research, no range" : ""}, ${f.label}. Show how it was worked out.`}
                   >
-                    <span className="num text-sm underline underline-offset-4">{tonnes(f.low ?? 0)} to {tonnes(f.high ?? 0)}</span>
+                    <span className="num text-sm underline underline-offset-4">{shown}</span>
+                    {one && <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">single figure</span>}
                     <Stamp label={f.label} />
                   </button>
                 </li>

@@ -202,3 +202,9 @@ def test_fuel_findings_point_at_machines_and_never_at_people():
         assert "operator" not in text and not re.search(r"\bop-\d+", text)
     a1 = [f for f in reconcile_fuel()["findings"] if f["kind"] == "machine_over_dispense"]
     assert a1 and all(f["machine_id"] for f in a1)
+
+
+def test_a_frozen_recorder_title_names_the_machine_plainly_and_short_gaps_keep_a_decimal():
+    titles = [f["title"] for f in detect_anomalies()["findings"] if f["kind"] == "data_gap"]
+    assert "The recorder on Tractor 4, 163 kW froze for 92 hours" in titles
+    assert "The recorder on Tractor 3, 140 kW froze for 1.4 hours" in titles

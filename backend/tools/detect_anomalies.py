@@ -38,7 +38,8 @@ def detect_anomalies(z_limit: float = 3.5, min_group_jobs: int = 8, min_hours: f
         findings.append({
             "kind": "data_gap", "severity": _severity(hours, "h"), "machine_id": machine, "machine": data.machine_name(machine),
             "site_id": machine[:2], "month": None, "robust_z": None, "difference_pct": None,
-            "title": f"{data.machine_name(machine)}'s recorder froze for {hours:,.0f} hours",
+            "title": f"The recorder on {data.machine_name(machine)} froze for {hours:,.0f} hours" if hours >= 10
+                     else f"The recorder on {data.machine_name(machine)} froze for {hours:.1f} hours",
             "litres": _fig(float(hours), "h", "measured", bullets(
                 f"The recorder on {data.machine_name(machine)} saved **the same readings, over and over, for {hours:,.1f} hours**: engine speed, fuel flow and position never changed.",
                 f"The frozen stretches fall in these months: **{spread}**.",

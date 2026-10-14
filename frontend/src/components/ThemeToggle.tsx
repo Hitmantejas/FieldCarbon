@@ -6,6 +6,7 @@ export function ThemeToggle() {
   return (
     <button
       role="switch"
+      aria-label="Dark mode"
       aria-checked={dark}
       onClick={toggle}
       className="btn-outline flex min-h-11 items-center gap-2 border-2 border-ink bg-paper px-3 font-mono text-xs uppercase tracking-widest text-ink"
@@ -20,7 +21,7 @@ export function ThemeToggle() {
           </>
         )}
       </svg>
-      {dark ? "Dark roll" : "Light paper"}
+      {dark ? "Dark mode: on" : "Dark mode: off"}
     </button>
   );
 }
