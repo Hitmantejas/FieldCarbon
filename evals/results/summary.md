@@ -9,7 +9,7 @@
 | Agent runs scored | 21 |
 | Agent tool selection | 100% |
 | Agent numerical faithfulness | 100% |
-| Agent label coverage | 98% |
-| Agent citation coverage (ideas that name their research source) | 89% |
-| Agent tokens per question (input + output + thinking) | 14,941 over 21 runs |
+| Agent label coverage | 100% |
+| Agent citation coverage (ideas that name their research source) | 100% |
+| Agent tokens per question (input + output + thinking) | 15,743 over 21 runs |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |
