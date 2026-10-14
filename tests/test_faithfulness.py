@@ -96,9 +96,17 @@ def test_harness_scores_runs_and_keeps_samples_apart():
     assert sum(r["faithful"] for r in results) == 2       # two faithful, two unfaithful on purpose
     assert any(r["tool_selection"] is False for r in results)  # the wrong-tool sample
     agent = run_all.agent_runs()
-    assert agent["self_test"]["runs"] == 4 and agent["agent"]["runs"] == 0
+    recorded = [r for r in load_runs() if not r.get("sample")]
+    assert agent["self_test"]["runs"] == 4 and agent["agent"]["runs"] == len(recorded)  # samples never count as agent results
 
 
 def test_tool_cases_and_label_coverage():
     t = run_all.tool_cases()
     assert t["passed"] == t["cases"] and t["label_and_source_coverage"] == 1.0
+
+
+def test_a_negative_tool_value_is_matched_by_its_size_because_the_words_carry_the_sign():
+    out = {"litres_saved": {"value": -443.36, "unit": "L per year", "label": "estimated", "how": "- **443 extra litres** a year.",
+                            "source_ids": ["sondors2014"], "low": None, "high": None}}
+    assert fa.audit("It would burn 443 extra litres a year.", [out]).faithful
+    assert not fa.audit("It would burn 500 extra litres a year.", [out]).faithful

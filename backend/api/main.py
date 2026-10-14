@@ -2,6 +2,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 
+from backend.api.agent import router as agent_router
 from backend.api.fleet import router as fleet_router
 from backend.emissions import tier3
 from backend.emissions.data import farm_a_breakdown, farm_a_totals
@@ -17,6 +18,7 @@ from backend.tools.what_would_improve import what_would_improve
 
 app = FastAPI(title="FieldCarbon API")
 app.include_router(fleet_router)
+app.include_router(agent_router)
 
 GROUPINGS = {"operation", "tractor", "field"}
 

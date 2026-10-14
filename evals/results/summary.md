@@ -6,8 +6,9 @@
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
 | Gemini reading accuracy, Farm B receipts (litres) | 100% |
 | Gemini reading accuracy, fleet delivery notes (litres) | 100% |
-| Agent runs scored | 0 |
-| Agent tool selection | n/a |
-| Agent numerical faithfulness | n/a |
-| Agent label coverage | n/a |
+| Agent runs scored | 21 |
+| Agent tool selection | 100% |
+| Agent numerical faithfulness | 100% |
+| Agent label coverage | 98% |
+| Agent citation coverage (ideas that name their research source) | 91% |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |

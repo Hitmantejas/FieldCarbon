@@ -43,8 +43,8 @@ each change are less certain, and FieldCarbon says so.
 | Role | What it does | Status |
 |---|---|---|
 | **Document reading** | `gemini-3.5-flash` (multimodal) transcribes fuel receipts and tanker delivery notes, including handwritten, blurred, crumpled and skewed photos, into a fixed JSON schema. Rules R1–R8 then decide what counts ([rules](docs/receipt_validation_rules.md)); raw and validated rows are kept in BigQuery for provenance | **Done**: 38 documents read |
-| **Fleet analyst agent** | Google ADK agent that turns a question into tool calls and shows its working | TODO (in progress) |
-| **Auditor** | Strict, unit- and rounding-aware check that every number in an answer traces to a tool output; unfaithful answers are flagged | **Done** (offline); wiring into the agent in progress |
+| **Fleet analyst agent** | Google ADK agent (`backend/agent/fleet_agent.py`) on `gemini-3.5-flash` that turns a question into calls to the deterministic tools and explains the result in plain language, in the question's language. Ask it in the web app (Ask the analyst); it shows which tools it looked at | **Done**: 21 eval questions, 100% right tools |
+| **Auditor** | Strict, unit- and rounding-aware check that every number in an answer traces to a tool output. In the agent: an answer with an untraceable number is rewritten once, and if it still fails it carries a visible "check needed" note | **Done**, wired into the agent |
 
 **Cost of reading documents** (token counts recorded by Vertex AI for each reading): 38 documents used
 114,120 tokens, about 3,000 per document (about 80% of the output side is the model's thinking).
@@ -62,7 +62,7 @@ TODO: dollar cost at current Vertex AI pricing.
 | Gemini reading accuracy, 24 farm receipts (every field) | 100% |
 | Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
-| Agent tool selection, faithfulness, label coverage | TODO (agent runs not yet recorded) |
+| Agent (21 questions): right tools / every number traced / figures with a label / ideas citing their source | 100% / 100% / 98% / 91% |
 
 How to read these honestly:
 - The documents are synthetic images we rendered (with damage effects), so 100% shows the pipeline

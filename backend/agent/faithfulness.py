@@ -2,7 +2,8 @@
 
 Strict by design: Gemini never does the maths, so a number the tools did not produce fails, even a
 correct sum. A number may be rounded as displayed ("10,814 L" for 10,813.69; "36.6 t" for 36,572 kg;
-"£8.1k" for 8,099) and may be any number the user wrote in the question. Years, dates, ids such as
+"£8.1k" for 8,099) and may be any number the user wrote in the question. Numbers are compared by size: a tool's -443 L is
+"443 extra litres" in words, and the words carry the sign. Years, dates, ids such as
 S1-T4 or A3-27, and list numbering are not figures and are ignored.
 
 Pure Python: the agent calls `guard()` before replying; the eval harness calls `audit()` on recorded runs.
@@ -166,7 +167,7 @@ def audit(answer: str, tool_outputs: Iterable, question: str = "") -> Audit:
     asked = find_numbers(question)
     checks = []
     for f in find_numbers(answer):
-        hit = next((p for v, fam, p in values if _compatible(f.family, fam) and abs(v - f.value) <= f.tolerance + 1e-9),
+        hit = next((p for v, fam, p in values if _compatible(f.family, fam) and abs(abs(v) - f.value) <= f.tolerance + 1e-9),
                    None)
         if hit is None and any(abs(q.value - f.value) <= max(q.tolerance, f.tolerance) for q in asked):
             hit = "question"
