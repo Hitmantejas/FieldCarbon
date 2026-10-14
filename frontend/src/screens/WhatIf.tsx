@@ -158,7 +158,7 @@ export function WhatIf() {
                     {row.f && (
                       <button
                         onClick={() => open(row.title, `${row.shown} a year`, row.f!)}
-                        className="btn-link ml-4 font-sans text-sm underline underline-offset-4"
+                        className="btn-link ml-2 inline-flex min-h-11 items-center px-2 font-sans text-sm underline underline-offset-4"
                         aria-label={`How ${row.title} was worked out`}
                       >
                         How

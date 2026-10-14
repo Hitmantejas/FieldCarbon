@@ -121,7 +121,7 @@ export function FuelControl() {
             </p>
             <dl className="mb-4 grid max-w-xl grid-cols-2 gap-4">
               {([["On the notes", notes.data.litres_on_notes], ["In the fuel log", notes.data.litres_in_log]] as [string, Figure][]).map(([name, f]) => (
-                <button key={name} onClick={() => open(`Litres ${name.toLowerCase()}`, amount(f), f)} className="btn-row rounded-2xl bg-tint p-3 text-left">
+                <button key={name} onClick={() => open(`Litres ${name.toLowerCase()}`, amount(f), f)} className="rounded-3xl bg-tint p-4 text-left transition-colors hover:bg-mark/40">
                   <dt className="font-mono text-xs uppercase tracking-widest text-ink-soft">{name}</dt>
                   <dd className="mt-1 flex items-center gap-3">
                     <span className="num text-2xl font-bold">{amount(f)}</span>
