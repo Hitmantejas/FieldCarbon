@@ -10,6 +10,6 @@
 | Agent tool selection | 100% |
 | Agent numerical faithfulness | 100% |
 | Agent label coverage | 98% |
-| Agent citation coverage (ideas that name their research source) | 91% |
-| Agent tokens per question (input + output + thinking) | not recorded yet |
+| Agent citation coverage (ideas that name their research source) | 93% |
+| Agent tokens per question (input + output + thinking) | 19,379 over 21 runs |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |
