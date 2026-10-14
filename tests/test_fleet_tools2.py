@@ -189,3 +189,16 @@ def test_answers_to_the_open_questions_reach_the_opportunities_endpoint():
     assert state("/api/fleet/opportunities?has_ctis=true", "central_tyre_inflation") == "not_feasible"
     assert state("/api/fleet/opportunities?ballast_type=none", "avoid_liquid_ballast") == "not_feasible"
     assert state("/api/fleet/opportunities?ballast_type=liquid", "avoid_liquid_ballast") == "feasible"
+
+
+def test_fuel_findings_point_at_machines_and_never_at_people():
+    """A1 (fuel handed out but not burned) stays a machine-month finding: no operator id, key or name anywhere in it."""
+    import json
+
+    from backend.tools.reconcile_fuel import reconcile_fuel
+
+    for result in (reconcile_fuel(), detect_anomalies()):
+        text = json.dumps(result).lower()
+        assert "operator" not in text and not re.search(r"\bop-\d+", text)
+    a1 = [f for f in reconcile_fuel()["findings"] if f["kind"] == "machine_over_dispense"]
+    assert a1 and all(f["machine_id"] for f in a1)

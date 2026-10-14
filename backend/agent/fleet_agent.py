@@ -112,10 +112,7 @@ async def _ask(agent: Agent, question: str, retry: bool) -> dict:
     calls, answer, tokens, attempts = list(turn.calls), turn.text, dict(turn.tokens), 1
     verdict = _verdict(answer, calls, question)
     if not verdict.faithful and retry:
-        listed = ", ".join(dict.fromkeys(n.text for n in verdict.unmatched))
-        again = await _turn(runner, user, sid, (
-            f"These numbers in your answer did not come from the tools: {listed}. Rewrite the answer using only numbers the "
-            "tool results contain, written as they appear. If a number is not available, say so instead of working it out."))
+        again = await _turn(runner, user, sid, rewrite_request(verdict.unmatched))
         calls += again.calls
         answer = again.text or answer
         tokens = {k: tokens[k] + again.tokens[k] for k in tokens}
@@ -127,6 +124,22 @@ async def _ask(agent: Agent, question: str, retry: bool) -> dict:
     return {"question": question, "answer": answer, "tool_calls": calls, "attempts": attempts,
             "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched]},
             "tokens": tokens}
+
+
+def rewrite_request(unmatched) -> str:
+    """The one retry message. A number whose size is in the tools but whose saving/increase is turned round is named
+    as such, so the model fixes the words instead of hunting for a number it already has."""
+    invented = ", ".join(dict.fromkeys(n.text for n in unmatched if not n.wrong_direction))
+    flipped = ", ".join(dict.fromkeys(n.text for n in unmatched if n.wrong_direction))
+    parts = []
+    if invented:
+        parts.append(f"These numbers in your answer did not come from the tools: {invented}. Rewrite them using only numbers "
+                     "the tool results contain, written as they appear. If a number is not available, say so instead of working it out.")
+    if flipped:
+        parts.append(f"These numbers are in the tool results, but your answer gives them the opposite direction (a saving where "
+                     f"the tools show an increase, or the other way round): {flipped}. Keep the numbers and describe the direction "
+                     "the tools give.")
+    return " ".join(parts) + " Rewrite the whole answer."
 
 
 def _verdict(answer: str, calls: list[dict], question: str):

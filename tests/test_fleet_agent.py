@@ -6,6 +6,7 @@ from google.adk.models import BaseLlm, LlmResponse
 from google.genai import types
 
 from backend.agent import fleet_agent, runs
+from backend.agent.faithfulness import audit
 from backend.agent.tools import AGENT_TOOLS
 
 
@@ -60,6 +61,39 @@ def test_an_answer_that_stays_unfaithful_carries_a_visible_note_and_a_failed_aud
 
 def test_retry_can_be_switched_off():
     assert run(["The fleet used 31,000 litres."], retry=False)["attempts"] == 1
+
+
+# ---- the rewrite request ---------------------------------------------------------------------------------
+INCREASE = {"litres_saved": {"value": -443.36, "unit": "L per year", "label": "estimated", "how": "- **443 extra litres** a year.",
+                             "source_ids": ["x"]}}
+
+
+def rewrite_for(answer):
+    return fleet_agent.rewrite_request(audit(answer, [INCREASE]).unmatched)
+
+
+def test_a_turned_round_number_is_named_as_a_direction_problem_not_as_invented():
+    msg = rewrite_for("It would save 443 litres a year.")
+    assert "opposite direction" in msg and "443 litres" in msg
+    assert "did not come from the tools" not in msg
+
+
+def test_an_invented_number_is_not_called_a_direction_problem():
+    msg = rewrite_for("It would burn 900 litres more a year.")
+    assert "did not come from the tools: 900 litres" in msg and "opposite direction" not in msg
+
+
+def test_both_problems_in_one_answer_are_named_separately():
+    msg = rewrite_for("It would save 443 litres a year, and 900 litres over two years.")
+    assert "did not come from the tools: 900 litres." in msg
+    assert "opposite direction" in msg and msg.index("443 litres") > msg.index("opposite direction")
+
+
+def test_the_rewrite_request_is_what_the_model_is_sent():
+    m = Scripted(calls=[("fleet_summary", {"group_by": "site"})], answers=["The fleet used 31,000 litres.", "Not available."], seen=[])
+    fleet_agent.ask("How much fuel?", model=m)
+    sent = "".join(p.text or "" for p in m.seen[-1].contents[-1].parts)
+    assert "did not come from the tools: 31,000 litres" in sent
 
 
 def test_a_recorded_run_is_scored_by_the_harness_and_not_marked_as_a_sample(tmp_path, monkeypatch):
