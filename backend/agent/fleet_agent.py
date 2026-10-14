@@ -17,13 +17,13 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
-from backend.agent.coverage import uncited_ideas, unlabelled_sentences
+from backend.agent.coverage import uncited_ideas, unlabelled_sentences, unrounded_numbers
 from backend.agent.faithfulness import audit, guard
 from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
 APP = "fieldcarbon"
-AGENT_VERSION = "analyst-v2"  # v2: one rewrite also covers ideas without a source and figures without a label
+AGENT_VERSION = "analyst-v3"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """You are FieldCarbon's fleet analyst. You help the fleet manager and the sustainability lead of an agricultural \
@@ -40,6 +40,7 @@ against the fuel log: check_delivery_notes. Odd jobs or recorders: detect_anomal
 benchmark_peers. What to change to save fuel: fleet_opportunities. A change the user wants to try: what_if. Individual jobs: \
 fleet_jobs. A report or client statement: fleet_report.
 - Round the way a person would: whole litres, whole pounds, tonnes with one decimal (29,819 kg is 29.8 tonnes). Never print long decimals.
+  Write thousands with a comma in every language (16,492 litres), so every figure reads the same way.
   Never write a minus sign: say "extra", "more", "less" or "a higher fuel bill" in words.
 - Say the confidence label next to every figure, in the same sentence, also in bullet points and comparisons: measured, \
 allocated or estimated, for example "10,814 litres (allocated)". Give ranges as ranges, never as one number. Savings are \
@@ -131,19 +132,20 @@ async def _ask(agent: Agent, question: str, retry: bool) -> dict:
         answer = f"{answer}\n\n{note}"
     return {"question": question, "answer": answer, "tool_calls": calls, "attempts": attempts,
             "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched],
-                      "uncited_ideas": [g["name"] for g in gaps["uncited"]], "unlabelled_sentences": len(gaps["unlabelled"])},
+                      "uncited_ideas": [g["name"] for g in gaps["uncited"]], "unlabelled_sentences": len(gaps["unlabelled"]),
+                      "unrounded": gaps["unrounded"]},
             "tokens": tokens}
 
 
 def _gaps(answer: str, calls: list[dict]) -> dict:
     outputs = [c["output"] for c in calls]
-    return {"uncited": uncited_ideas(answer, outputs), "unlabelled": unlabelled_sentences(answer)}
+    return {"uncited": uncited_ideas(answer, outputs), "unlabelled": unlabelled_sentences(answer), "unrounded": unrounded_numbers(answer)}
 
 
-def rewrite_request(unmatched, uncited=(), unlabelled=()) -> str:
+def rewrite_request(unmatched, uncited=(), unlabelled=(), unrounded=()) -> str:
     """The one retry message. A number whose size is in the tools but whose saving/increase is turned round is named
     as such, so the model fixes the words instead of hunting for a number it already has. Ideas named without their
-    source and sentences with a figure but no confidence label are named too."""
+    source, sentences with a figure but no confidence label, and figures with needless decimals are named too."""
     invented = ", ".join(dict.fromkeys(n.text for n in unmatched if not n.wrong_direction))
     flipped = ", ".join(dict.fromkeys(n.text for n in unmatched if n.wrong_direction))
     parts = []
@@ -162,6 +164,9 @@ def rewrite_request(unmatched, uncited=(), unlabelled=()) -> str:
         quoted = " | ".join(s[:120] for s in unlabelled[:4])
         parts.append(f"These sentences give a figure without its confidence label: {quoted}. Add measured, allocated or "
                      "estimated in the same sentence, as the tool results give it.")
+    if unrounded:
+        parts.append(f"These figures have more decimals than a person would write: {', '.join(unrounded)}. Round them as a person "
+                     "would (whole litres, whole pounds, tonnes with one decimal), with a comma for thousands in every language (16,492).")
     return " ".join(parts) + " Rewrite the whole answer."
 
 

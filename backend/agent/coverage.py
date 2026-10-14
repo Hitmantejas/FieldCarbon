@@ -35,6 +35,15 @@ def unlabelled_sentences(answer: str) -> list[str]:
     return [s.strip() for s in sentences(answer) if _figure_count(s) and not LABEL_WORDS.search(s)]
 
 
+# 100 or more with decimals ("16492.14 Liter"), or any number with four or more decimals ("3.38206").
+UNROUNDED = re.compile(r"\d{3}[.,]\d{1,2}(?!\d)|\d[.,]\d{4,}")
+
+
+def unrounded_numbers(answer: str) -> list[str]:
+    """Figures written with more decimals than a person would use. A price per litre (£0.80) is fine."""
+    return list(dict.fromkeys(f.text for f in find_numbers(answer) if f.family in FIGURE_FAMILIES and UNROUNDED.search(f.text)))
+
+
 def _ideas(outputs: list) -> list[dict]:
     """Every idea with its evidence in the tool outputs; one per call, so an idea shown for two sites counts twice."""
     items = []

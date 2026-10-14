@@ -28,7 +28,7 @@ function MachineDetail({ machine, open }: { machine: GroupRow; open: (title: str
         <p className="font-bold">What {machine.name} spent its fuel on</p>
         <button
           onClick={() => open(machine.name, `${litres(machine.litres.value ?? 0)} L`, machine.litres)}
-          className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest"
+          className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold"
         >
           How this was worked out
         </button>
@@ -37,8 +37,8 @@ function MachineDetail({ machine, open }: { machine: GroupRow; open: (title: str
         {ops.data.rows.map((r) => (
           <li key={r.key} className="grid grid-cols-[minmax(10rem,16rem)_1fr_9rem_8rem] items-center gap-4">
             <span>{r.name}</span>
-            <div className="h-4 border-b-2 border-ink-soft" role="img" aria-label={`${r.name}: ${litres(r.litres.value ?? 0)} litres`}>
-              <div className="span-in h-full bg-ink" style={{ width: `${((r.litres.value ?? 0) / top) * 100}%` }} />
+            <div className="h-3 overflow-hidden rounded-full bg-tint" role="img" aria-label={`${r.name}: ${litres(r.litres.value ?? 0)} litres`}>
+              <div className="span-in h-full rounded-full bg-moss" style={{ width: `${((r.litres.value ?? 0) / top) * 100}%` }} />
             </div>
             <span className="num text-right">{litres(r.litres.value ?? 0)} L</span>
             <Stamp label={r.litres.label} />
@@ -64,7 +64,7 @@ export function Sites() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-sites">
-        <h1 id="h-sites" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-sites" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Sites &amp; machines
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -80,15 +80,15 @@ export function Sites() {
         ) : (
           <ul className="grid gap-6 lg:grid-cols-3">
             {sites.data.rows.map((r) => (
-              <li key={r.key} className="flex flex-col gap-3 border-2 border-ink p-5">
-                <h3 className="font-display text-2xl font-extrabold uppercase leading-none tracking-wide">{r.name}</h3>
+              <li key={r.key} className="flex flex-col gap-3 rounded-3xl bg-tint p-5">
+                <h3 className="font-display text-2xl font-semibold leading-tight">{r.name}</h3>
                 <p className="text-ink-soft">{r.data_kind && DATA_KIND[r.data_kind]}</p>
                 <button
                   onClick={() => open(r.name, `${litres(r.litres.value ?? 0)} L`, r.litres)}
                   className="btn-link flex items-end gap-3 text-left"
                   aria-label={`${r.name}: ${litres(r.litres.value ?? 0)} litres, ${r.litres.label}. Show how it was worked out.`}
                 >
-                  <span className="font-display text-5xl font-extrabold leading-none">{litres(r.litres.value ?? 0)}</span>
+                  <span className="font-display text-5xl font-semibold leading-none">{litres(r.litres.value ?? 0)}</span>
                   <span className="font-mono text-sm">litres</span>
                 </button>
                 <Stamp label={r.litres.label} />
@@ -110,7 +110,7 @@ export function Sites() {
 
       <section className="px-6" aria-labelledby="h-machines">
         <SectionHead id="h-machines" title="Machines" tone="mark" note="open a machine to see its fuel by job" />
-        <div role="group" aria-label="Which site" className="mb-4 flex flex-wrap gap-1 font-mono text-xs uppercase tracking-widest">
+        <div role="group" aria-label="Which site" className="mb-4 flex flex-wrap gap-2 text-sm">
           {[{ key: "", name: "All sites" }, ...(sites.data?.rows ?? [])].map((s) => (
             <button
               key={s.key}
@@ -119,7 +119,7 @@ export function Sites() {
                 setPicked(null);
               }}
               aria-pressed={site === s.key}
-              className={`btn-tab min-h-11 border-2 px-3 uppercase ${site === s.key ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
+              className={`btn-tab min-h-11 border-2 px-4 ${site === s.key ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
             >
               {s.name}
             </button>
@@ -131,7 +131,7 @@ export function Sites() {
           <table className="w-full text-left">
             <caption className="sr-only">Fuel, emissions and work by machine</caption>
             <thead>
-              <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+              <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                 <th scope="col" className="px-3 py-3 pl-0 font-normal">Machine</th>
                 <th scope="col" className="px-3 py-3 text-right font-normal">Fuel (litres)</th>
                 <th scope="col" className="px-3 py-3 text-right font-normal">Share of fleet fuel</th>
@@ -146,7 +146,7 @@ export function Sites() {
                 const isOpen = picked === m.key;
                 return (
                   <Fragment key={m.key}>
-                    <tr className={`border-b-2 border-dashed border-rule transition-colors ${isOpen ? "bg-mark/20" : "hover:bg-mark/20"}`}>
+                    <tr className={`border-b border-rule transition-colors ${isOpen ? "bg-mark/20" : "hover:bg-mark/20"}`}>
                       <th scope="row" className="px-3 py-4 pl-0 font-bold">
                         <button onClick={() => setPicked(isOpen ? null : m.key)} aria-expanded={isOpen} className="btn-link text-left underline underline-offset-4">
                           {m.name}
@@ -163,7 +163,7 @@ export function Sites() {
                       <td className="px-3 py-4 pr-0"><Stamp label={m.litres.label} /></td>
                     </tr>
                     {isOpen && (
-                      <tr className="border-b-2 border-dashed border-rule">
+                      <tr className="border-b border-rule">
                         <td colSpan={7} className="px-0 py-5">
                           <MachineDetail machine={m} open={open} />
                         </td>
@@ -193,10 +193,10 @@ export function Sites() {
                 <button
                   onClick={() => open(c.title, c.shown, c.f)}
                   aria-label={`${c.title}: ${c.shown}, ${c.f.label}. Show how it was worked out.`}
-                  className="flex h-full w-full flex-col justify-between gap-3 border-2 border-ink p-4 text-left transition-colors hover:bg-ink/10"
+                  className="flex h-full w-full flex-col justify-between gap-3 rounded-3xl bg-tint p-4 text-left transition-colors hover:bg-mark/40"
                 >
                   <span className="font-mono text-xs uppercase tracking-widest">{c.title}</span>
-                  <span className="font-display text-4xl font-extrabold leading-none">{c.shown}</span>
+                  <span className="font-display text-4xl font-semibold leading-none">{c.shown}</span>
                   <Stamp label={c.f.label} />
                 </button>
               </li>

@@ -36,3 +36,8 @@ def test_the_harness_scores_with_the_same_rules():
            "tool_calls": [{"name": "fleet_opportunities", "args": {"site_id": "S1"}, "output": IDEAS}]}
     s = run_all.score_run(run)
     assert (s["cited"], s["recommendations_named"]) == (0, 1) and (s["labelled_figures"], s["figures"]) == (0, 1)
+
+
+def test_figures_with_needless_decimals_are_found_but_rounded_ones_and_prices_are_not():
+    assert coverage.unrounded_numbers("Die Flotte hat 16492.14 Liter (allocated), davon 345.55 Liter.") == ["16492.14 Liter", "345.55 Liter"]
+    assert coverage.unrounded_numbers("16,492 litres, 16.492 Liter, 29.8 tonnes, £0.80 a litre, £693 to £1,830, 4.1%.") == []

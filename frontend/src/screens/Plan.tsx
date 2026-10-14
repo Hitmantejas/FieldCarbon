@@ -119,13 +119,13 @@ function IdeaCard({ item, idea, target, scale, names, answers, unsure, onAnswer,
         aria-expanded={open}
         aria-controls={panel}
         onClick={() => setOpen(!open)}
-        className="btn-outline mt-3 min-h-11 border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest"
+        className="btn-outline mt-3 min-h-11 border-2 border-ink px-4 text-sm font-bold"
       >
         {open ? "Hide details" : "Show details"}
       </button>
 
       {open && (
-        <div id={panel} className="mt-4 space-y-4 border-t-2 border-dashed border-rule pt-4">
+        <div id={panel} className="mt-4 space-y-4 border-t border-rule pt-4">
           <div>
             <h4 className="font-bold">What it is</h4>
             <p className="max-w-[65ch]">{IDEA[item.intervention_id]?.detail}</p>
@@ -176,7 +176,7 @@ function IdeaCard({ item, idea, target, scale, names, answers, unsure, onAnswer,
           )}
           <button
             onClick={() => onWorking(item)}
-            className="btn-outline min-h-11 border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest"
+            className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold"
           >
             How we worked this out
           </button>
@@ -204,7 +204,7 @@ export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: P
   const failed = (ideas.error || goal.error) && !(ideas.data && goal.data);
   if (failed) {
     return (
-      <div role="alert" className="mx-4 mb-6 border-2 border-ink p-4">
+      <div role="alert" className="mx-4 mb-6 rounded-2xl border-2 border-clay p-4">
         <p className="font-bold">We could not load the plan.</p>
         <p>{ideas.error ?? goal.error}. Check the API is running and reload this page.</p>
       </div>
@@ -264,8 +264,8 @@ export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: P
 
   return (
     <>
-      <section aria-labelledby="plan-h" className="print px-4 pb-6" style={step(3)}>
-        <h2 id="plan-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+      <section aria-labelledby="plan-h" className="rise px-4 pb-6" style={step(3)}>
+        <h2 id="plan-h" className="font-display text-4xl font-semibold leading-tight">
           Your plan
         </h2>
         <p className="mt-3 max-w-[65ch]">Pick how much you want to cut. We show which ideas can get you there.</p>
@@ -337,14 +337,14 @@ export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: P
       </section>
 
       {ready.length > 0 && (
-        <section aria-labelledby="ready-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
+        <section aria-labelledby="ready-h" className="rise border-t border-rule px-4 py-6" style={step(4)}>
           <SectionHead id="ready-h" title="Ready for your farm" tone="solid" note={`${ready.length}`} />
           <ul>{ready.map(card)}</ul>
         </section>
       )}
 
       {check.length > 0 && (
-        <section aria-labelledby="check-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
+        <section aria-labelledby="check-h" className="rise border-t border-rule px-4 py-6" style={step(5)}>
           <SectionHead id="check-h" title="Waiting for your answer" tone="mark" note={`${check.length}`} />
           <p className="mb-2 max-w-[65ch]">
             These ideas only help if something is true on your farm. Answer each question and we will move the idea to
@@ -355,7 +355,7 @@ export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: P
       )}
 
       {no.length > 0 && (
-        <section aria-labelledby="no-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(6)}>
+        <section aria-labelledby="no-h" className="rise border-t border-rule px-4 py-6" style={step(6)}>
           <SectionHead id="no-h" title="Not for your farm" tone="muted" note={`${no.length}`} />
           <ul>
             {no.map((i) => (
@@ -369,14 +369,14 @@ export function Plan({ farm, pct, setPct, answers, unsure, onAnswer, onNext }: P
         </section>
       )}
 
-      <p className="print px-4 pb-4 text-sm text-ink-soft" style={step(7)}>
+      <p className="rise px-4 pb-4 text-sm text-ink-soft" style={step(7)}>
         Some of these ideas do the same job, so their savings do not add up.
       </p>
 
       <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
-          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
         >
           Next: Sharpen
           <Arrow />

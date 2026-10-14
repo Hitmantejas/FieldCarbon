@@ -13,7 +13,7 @@ export function QuestionBox({ field, answer, unsure, onAnswer }: Props) {
   const q = QUESTIONS[field];
   const labelId = `q-${field}`;
   return (
-    <div role="group" aria-labelledby={labelId} className="mt-3 border-2 border-dashed border-ink p-3">
+    <div role="group" aria-labelledby={labelId} className="mt-3 rounded-2xl border-2 border-dashed border-moss p-4">
       <p id={labelId} className="font-bold">
         {q.question}
       </p>
@@ -28,7 +28,7 @@ export function QuestionBox({ field, answer, unsure, onAnswer }: Props) {
             key={o.label}
             aria-pressed={answer === o.value}
             onClick={() => onAnswer(field, o.value)}
-            className={`btn-outline min-h-11 border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest ${answer === o.value ? "bg-ink text-paper" : ""}`}
+            className={`btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold ${answer === o.value ? "bg-ink text-paper" : ""}`}
           >
             {o.label}
           </button>
@@ -36,7 +36,7 @@ export function QuestionBox({ field, answer, unsure, onAnswer }: Props) {
         <button
           aria-pressed={unsure && answer === undefined}
           onClick={() => onAnswer(field, "unsure")}
-          className={`btn-outline min-h-11 border-2 border-dashed border-ink px-4 font-mono text-xs uppercase tracking-widest ${unsure && answer === undefined ? "bg-ink text-paper" : ""}`}
+          className={`btn-outline min-h-11 border-2 border-dashed border-ink px-4 text-sm font-bold ${unsure && answer === undefined ? "bg-ink text-paper" : ""}`}
         >
           Not sure
         </button>

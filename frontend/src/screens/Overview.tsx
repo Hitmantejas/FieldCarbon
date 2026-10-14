@@ -45,10 +45,10 @@ export function Overview() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-fleet">
-        <h1 id="h-fleet" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-fleet" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           {t ? `${litres(t.litres.value ?? 0)} litres burned.` : "Fleet overview"}
           <br />
-          {watch.length > 0 && `${watch.length} things to look at.`}
+          {watch.length > 0 && <span className="text-moss">{watch.length} things to look at.</span>}
         </h1>
         {t && (
           <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -61,7 +61,7 @@ export function Overview() {
       {!t ? (
         <Loading what="fleet figures" />
       ) : (
-        <section aria-label="Fleet totals" className="mx-6 grid border-2 border-ink sm:grid-cols-2 lg:grid-cols-4">
+        <section aria-label="Fleet totals" className="mx-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Tile title="Fuel" shown={litres(t.litres.value ?? 0)} unit="L" figure={t.litres} onOpen={() => open("Fuel burned", `${litres(t.litres.value ?? 0)} L`, t.litres)} />
           <Tile title="Emissions" shown={tonnes(t.co2e_kg.value ?? 0).replace(" t", "")} unit="t CO2e" figure={t.co2e_kg} onOpen={() => open("Emissions", tonnes(t.co2e_kg.value ?? 0) + " CO2e", t.co2e_kg)} />
           <Tile title="Fuel cost" shown={gbpFull(t.cost_gbp.value ?? 0)} unit="" figure={t.cost_gbp} onOpen={() => open("Fuel cost", gbpFull(t.cost_gbp.value ?? 0), t.cost_gbp)} />
@@ -87,7 +87,7 @@ export function Overview() {
             <table className="w-full text-left">
               <caption className="sr-only">Fuel, emissions and cost by site</caption>
               <thead>
-                <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                   <th scope="col" className="py-2 font-normal">Site</th>
                   <th scope="col" className="py-2 text-right font-normal">Litres</th>
                   <th scope="col" className="py-2 text-right font-normal">CO2e</th>
@@ -96,7 +96,7 @@ export function Overview() {
               </thead>
               <tbody>
                 {sites.data.rows.map((r) => (
-                  <tr key={r.key} className="border-b-2 border-dashed border-rule transition-colors hover:bg-mark/20">
+                  <tr key={r.key} className="border-b border-rule transition-colors hover:bg-mark/20">
                     <th scope="row" className="py-3 pr-2 font-bold">
                       <button onClick={() => open(r.name, `${litres(r.litres.value ?? 0)} L`, r.litres)} className="btn-link text-left underline underline-offset-4">
                         {r.name}
@@ -121,8 +121,8 @@ export function Overview() {
               {monthRows.map((m) => (
                 <li key={m.key} className="grid grid-cols-[4.5rem_1fr_5.5rem] items-center gap-3">
                   <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">{monthName(m.key)}</span>
-                  <div className="h-4 border-b-2 border-ink-soft" role="img" aria-label={`${monthName(m.key)}: ${litres(m.litres.value ?? 0)} litres`}>
-                    <div className="span-in h-full bg-ink" style={{ width: `${((m.litres.value ?? 0) / maxMonth) * 100}%` }} />
+                  <div className="h-3 overflow-hidden rounded-full bg-tint" role="img" aria-label={`${monthName(m.key)}: ${litres(m.litres.value ?? 0)} litres`}>
+                    <div className="span-in h-full rounded-full bg-moss" style={{ width: `${((m.litres.value ?? 0) / maxMonth) * 100}%` }} />
                   </div>
                   <span className="num text-right text-sm">{litres(m.litres.value ?? 0)} L</span>
                 </li>
@@ -137,7 +137,7 @@ export function Overview() {
         {!ideas.data ? (
           <Loading what="ideas" />
         ) : (
-          <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-ink">
+          <ul className="divide-y divide-rule">
             {feasible.map((i) => {
               const f = i.figures.co2e_avoided_kg!;
               const one = f.low === f.high; // one study figure, so no range to show

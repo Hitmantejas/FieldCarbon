@@ -27,17 +27,17 @@ export function Reports() {
   const [client, setClient] = useState("");
   const clients = useApi<ClientEmissions>("/api/fleet/clients");
   const { data: r, error } = useApi<FleetReport>(`/api/fleet/report${query({ client_id: client || undefined })}`);
-  const section = "border-t-2 border-dashed border-rule px-6 py-6";
+  const section = "border-t border-rule px-6 py-6";
 
   const controls = (
     <section className="no-print px-6 pt-6" aria-label="Choose a report">
-      <h1 className="font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide">Reports</h1>
+      <h1 className="font-display text-6xl font-semibold leading-[1.02] tracking-tight">Reports</h1>
       <p className="mt-3 max-w-[70ch] text-ink-soft">
         A report you can print or save as a PDF. Every figure lists its sources. Choose the whole company, or a statement for one client farm to
         send with their invoice.
       </p>
       <div className="mt-4 flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 font-mono text-xs uppercase tracking-widest text-ink-soft">
+        <label className="flex flex-col gap-2 text-sm text-ink-soft">
           Report for
           <select value={client} onChange={(e) => setClient(e.target.value)} className="min-h-11 min-w-56 border-2 border-ink bg-paper px-2 font-sans text-base normal-case tracking-normal text-ink">
             <option value="">The whole company</option>
@@ -48,7 +48,7 @@ export function Reports() {
             ))}
           </select>
         </label>
-        <button onClick={() => window.print()} className="btn-solid min-h-11 border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper">
+        <button onClick={() => window.print()} className="btn-solid min-h-11 border-2 border-ink bg-ink px-4 text-sm font-bold text-paper">
           Print or save as PDF
         </button>
       </div>
@@ -59,7 +59,7 @@ export function Reports() {
     return (
       <>
         {controls}
-        <div role="alert" className="mx-6 my-6 border-2 border-ink p-4">
+        <div role="alert" className="mx-6 my-6 rounded-2xl border-2 border-clay p-4">
           <p className="font-bold">We could not build the report.</p>
           <p>{error}. Check the API is running and reload this page.</p>
         </div>
@@ -83,13 +83,13 @@ export function Reports() {
       {controls}
       <article aria-labelledby="report-h">
         <header className="px-6 pb-6 pt-8">
-          <h2 id="report-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+          <h2 id="report-h" className="font-display text-4xl font-semibold leading-tight">
             {r.meta.title}
           </h2>
           <p className="mt-2 font-bold">
             {r.meta.client ?? "The whole company"} · {r.meta.period} · prepared {when}
           </p>
-          {r.meta.demo_data && <p className="mt-2 inline-block bg-mark px-3 py-1 font-mono text-xs uppercase tracking-widest text-on-mark">Demo data: illustrative</p>}
+          {r.meta.demo_data && <p className="mt-2 inline-block rounded-full bg-mark px-3 py-1 font-mono text-xs uppercase tracking-widest text-on-mark">Demo data: illustrative</p>}
           <p className="mt-3 max-w-[65ch]">{r.meta.statement}</p>
         </header>
 
@@ -197,7 +197,7 @@ export function Reports() {
               {r.ideas.map((i) => (
                 <li key={i.intervention_id} className="border-b border-rule pb-4 last:border-b-0">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="font-display text-2xl font-extrabold uppercase leading-none">{i.name}</h3>
+                    <h3 className="font-display text-2xl font-semibold leading-tight">{i.name}</h3>
                     <StrengthTag robustness={i.robustness} n={i.n_sources} />
                     {i.litres_saved && <Stamp label={i.litres_saved.label} />}
                   </div>

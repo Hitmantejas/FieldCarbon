@@ -45,20 +45,20 @@ export function Docket({ current, onGo, farm, onFarm, attribution, children }: P
   }, [current]);
 
   return (
-    <div className="min-h-dvh bg-desk px-3 pb-16 pt-3 sm:px-6">
+    <div className="contours min-h-dvh bg-desk px-3 pb-16 pt-3 sm:px-6">
       <div className="no-print mx-auto flex max-w-[36rem] justify-end pb-3">
         <ThemeToggle />
       </div>
-      <main className="torn mx-auto max-w-[36rem] bg-paper text-ink shadow-[0_6px_18px_-8px_rgb(0_0_0/0.45)]">
+      <main className="mx-auto max-w-[36rem] overflow-hidden rounded-[1.75rem] bg-paper text-ink shadow-[0_1px_2px_oklch(0%_0_0/0.06),0_12px_32px_-12px_oklch(30%_0.04_150/0.3)]">
         <p
-          className="print border-b-2 border-dashed border-rule bg-mark px-4 py-2 font-mono text-xs uppercase tracking-widest text-on-mark"
+          className="rise border-b border-rule bg-mark px-4 py-2 font-mono text-xs uppercase tracking-widest text-on-mark"
           style={step(0)}
         >
           Demo data: illustrative
         </p>
-        <header className="print flex flex-wrap items-end justify-between gap-3 px-4 pb-1 pt-5" style={step(1)}>
-          <h1 className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide">FieldCarbon</h1>
-          <div role="group" aria-label="Which view of the farm" className="flex gap-1 font-mono text-xs uppercase tracking-widest">
+        <header className="rise flex flex-wrap items-end justify-between gap-3 px-4 pb-1 pt-5" style={step(1)}>
+          <h1 className="font-display text-4xl font-semibold leading-tight">FieldCarbon</h1>
+          <div role="group" aria-label="Which view of the farm" className="flex gap-2 text-sm">
             {FARMS.map((f) => (
               <button
                 key={f.id}
@@ -72,8 +72,8 @@ export function Docket({ current, onGo, farm, onFarm, attribution, children }: P
             ))}
           </div>
         </header>
-        <nav aria-label="Steps" className="print no-print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
-          <ol className="flex min-w-max items-end gap-5 border-b-2 border-ink font-mono text-xs uppercase tracking-widest">
+        <nav aria-label="Steps" className="rise no-print overflow-x-auto px-4 pb-4 pt-2" style={step(2)}>
+          <ol className="flex min-w-max items-end gap-5 border-b-2 border-rule font-mono text-xs uppercase tracking-widest">
             {STOPS.map((s) => (
               <li key={s.id}>
                 {s.built ? (
@@ -96,7 +96,7 @@ export function Docket({ current, onGo, farm, onFarm, attribution, children }: P
         <div ref={screen} key={current} tabIndex={-1} className="outline-none">
           {children}
         </div>
-        <footer className="border-t-2 border-dashed border-rule px-4 py-5 text-sm text-ink-soft">
+        <footer className="border-t border-rule px-4 py-5 text-sm text-ink-soft">
           <p className="max-w-[65ch]">{attribution ?? "Loading data source..."}</p>
         </footer>
       </main>

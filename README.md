@@ -65,10 +65,10 @@ TODO: dollar cost at current Vertex AI pricing.
 | Agent (21 questions): right tools / every number traced / figures with a label / ideas citing their source | 100% / 100% / 100% / 100% |
 
 How to read these honestly:
-- **Agent scores include one automatic rewrite:** 8 of 21 first answers missed a label, a source or a
+- **Agent scores include one automatic rewrite:** 8 of 21 first answers missed a label, a source, rounding or a
   traced number and were rewritten once, with the gaps named by the same deterministic checks the
   harness scores. Gemini varies between runs, so a re-run can score a little lower; an answer whose
-  numbers still do not trace carries a visible "Check needed" note. 15,743 tokens per question.
+  numbers still do not trace carries a visible "Check needed" note. 16,905 tokens per question.
 - The documents are synthetic images we rendered (with damage effects), so 100% shows the pipeline
   works; it is not a claim about every real-world receipt.
 - **Receipts-only vs telemetry:** the same real farm was estimated from fuel receipts alone (standard

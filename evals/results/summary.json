@@ -219,18 +219,6 @@
           "recommendations_named": 0
         },
         {
-          "case_id": "plain-whatif-hvo",
-          "sample": false,
-          "tool_selection": true,
-          "faithful": true,
-          "numbers": 15,
-          "unmatched": [],
-          "labelled_figures": 12,
-          "figures": 12,
-          "cited": 0,
-          "recommendations_named": 0
-        },
-        {
           "case_id": "plain-october-jobs",
           "sample": false,
           "tool_selection": true,
@@ -239,18 +227,6 @@
           "unmatched": [],
           "labelled_figures": 16,
           "figures": 16,
-          "cited": 0,
-          "recommendations_named": 0
-        },
-        {
-          "case_id": "plain-german-total",
-          "sample": false,
-          "tool_selection": true,
-          "faithful": true,
-          "numbers": 4,
-          "unmatched": [],
-          "labelled_figures": 4,
-          "figures": 4,
           "cited": 0,
           "recommendations_named": 0
         },
@@ -265,14 +241,38 @@
           "figures": 6,
           "cited": 0,
           "recommendations_named": 0
+        },
+        {
+          "case_id": "plain-whatif-hvo",
+          "sample": false,
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 8,
+          "unmatched": [],
+          "labelled_figures": 7,
+          "figures": 7,
+          "cited": 0,
+          "recommendations_named": 0
+        },
+        {
+          "case_id": "plain-german-total",
+          "sample": false,
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 4,
+          "unmatched": [],
+          "labelled_figures": 4,
+          "figures": 4,
+          "cited": 0,
+          "recommendations_named": 0
         }
       ],
       "tokens": {
         "runs": 21,
-        "input": 259238,
-        "output": 9170,
-        "thinking": 62205,
-        "per_question": 15743
+        "input": 280410,
+        "output": 9189,
+        "thinking": 65399,
+        "per_question": 16905
       }
     },
     "self_test": {

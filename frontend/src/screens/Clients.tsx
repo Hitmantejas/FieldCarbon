@@ -28,8 +28,8 @@ function ClientMonths({ id, name, open }: { id: string; name: string; open: (tit
         {months.map((m) => (
           <li key={m.month} className="grid grid-cols-[6.5rem_1fr_7rem_8rem] items-center gap-4">
             <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">{monthName(m.month)}</span>
-            <div className="h-4 border-b-2 border-ink-soft" role="img" aria-label={`${monthName(m.month)}: ${tonnes(m.co2e_kg.value ?? 0)} of CO2e`}>
-              <div className="span-in h-full bg-ink" style={{ width: `${((m.co2e_kg.value ?? 0) / top) * 100}%` }} />
+            <div className="h-3 overflow-hidden rounded-full bg-tint" role="img" aria-label={`${monthName(m.month)}: ${tonnes(m.co2e_kg.value ?? 0)} of CO2e`}>
+              <div className="span-in h-full rounded-full bg-moss" style={{ width: `${((m.co2e_kg.value ?? 0) / top) * 100}%` }} />
             </div>
             <button
               onClick={() => open(`${name}, ${monthName(m.month)}`, `${tonnes(m.co2e_kg.value ?? 0)} CO2e`, m.co2e_kg)}
@@ -59,7 +59,7 @@ export function Clients() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-clients">
-        <h1 id="h-clients" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-clients" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Clients
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -73,7 +73,7 @@ export function Clients() {
           <Loading what="clients" />
         </div>
       ) : (
-        <section aria-label="Client totals" className="mx-6 grid border-2 border-ink sm:grid-cols-3">
+        <section aria-label="Client totals" className="mx-6 grid gap-3 sm:grid-cols-3">
           <Tile title="Client farms" shown={String(rows.length)} unit="served" />
           {total && <Tile title="Fleet fuel" shown={litres(total.value ?? 0)} unit="L" figure={total} onOpen={() => open("Fleet fuel", `${litres(total.value ?? 0)} L`, total)} />}
           {overhead && (
@@ -97,7 +97,7 @@ export function Clients() {
           <table className="w-full text-left">
             <caption className="sr-only">Fuel, emissions and cost by client farm</caption>
             <thead>
-              <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+              <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                 <th scope="col" className="px-3 py-3 pl-0 font-normal">Client</th>
                 <th scope="col" className="px-3 py-3 text-right font-normal">Fuel (litres)</th>
                 <th scope="col" className="px-3 py-3 text-right font-normal">Emissions</th>
@@ -112,7 +112,7 @@ export function Clients() {
                 const isOpen = picked === r.client_id;
                 return (
                   <Fragment key={r.client_id}>
-                    <tr className={`border-b-2 border-dashed border-rule transition-colors ${isOpen ? "bg-mark/20" : "hover:bg-mark/20"}`}>
+                    <tr className={`border-b border-rule transition-colors ${isOpen ? "bg-mark/20" : "hover:bg-mark/20"}`}>
                       <th scope="row" className="px-3 py-4 pl-0 font-bold">
                         <button onClick={() => setPicked(isOpen ? null : r.client_id)} aria-expanded={isOpen} className="btn-link text-left underline underline-offset-4">
                           {r.name}
@@ -126,15 +126,15 @@ export function Clients() {
                       <td className="px-3 py-4 pr-0"><Stamp label={r.litres.label} /></td>
                     </tr>
                     {isOpen && (
-                      <tr className="border-b-2 border-dashed border-rule">
+                      <tr className="border-b border-rule">
                         <td colSpan={7} className="px-0 py-5">
                           <div className="space-y-4">
                             <ClientMonths id={r.client_id} name={r.name} open={open} />
                             <div className="no-print flex flex-wrap gap-3">
-                              <button onClick={() => open(r.name, `${litres(r.litres.value ?? 0)} L`, r.litres)} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+                              <button onClick={() => open(r.name, `${litres(r.litres.value ?? 0)} L`, r.litres)} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold">
                                 How this was worked out
                               </button>
-                              <button onClick={() => window.print()} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+                              <button onClick={() => window.print()} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold">
                                 Print or save as PDF
                               </button>
                             </div>
@@ -164,8 +164,8 @@ export function Clients() {
             {overhead.breakdown.map((b) => (
               <li key={b.key} className="grid grid-cols-[minmax(12rem,18rem)_1fr_8rem_8rem] items-center gap-4">
                 <span>{b.name}</span>
-                <div className="h-4 border-b-2 border-ink-soft" role="img" aria-label={`${b.name}: ${litres(b.litres.value ?? 0)} litres`}>
-                  <div className="span-in h-full bg-ink" style={{ width: `${((b.litres.value ?? 0) / Math.max(1, overhead.litres.value ?? 1)) * 100}%` }} />
+                <div className="h-3 overflow-hidden rounded-full bg-tint" role="img" aria-label={`${b.name}: ${litres(b.litres.value ?? 0)} litres`}>
+                  <div className="span-in h-full rounded-full bg-moss" style={{ width: `${((b.litres.value ?? 0) / Math.max(1, overhead.litres.value ?? 1)) * 100}%` }} />
                 </div>
                 <button onClick={() => open(b.name, `${litres(b.litres.value ?? 0)} L`, b.litres)} className="btn-link num text-right underline underline-offset-4">
                   {litres(b.litres.value ?? 0)} L

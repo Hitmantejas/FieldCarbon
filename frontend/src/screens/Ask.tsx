@@ -17,6 +17,8 @@ const SUGGESTED = [
   "How much CO2 did our work for each client farm produce?",
   "What should the arable site change first to save fuel?",
   "How sure are you about these numbers?",
+  "What if the arable site switched to HVO?",
+  "Wie viel Diesel hat die Flotte insgesamt verbraucht?",
 ];
 
 // What each tool looked at, in words a manager uses.
@@ -67,8 +69,8 @@ function AnswerText({ text }: { text: string }) {
 function Exchange({ a }: { a: Answer }) {
   const { audit } = a;
   return (
-    <li className="space-y-4 border-t-2 border-dashed border-rule py-6">
-      <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-wide">{a.question}</p>
+    <li className="space-y-4 border-t border-rule py-6">
+      <p className="font-display text-2xl font-semibold leading-tight">{a.question}</p>
       <AnswerText text={a.answer} />
       <p className={`border-l-4 pl-3 font-mono text-xs uppercase tracking-widest ${audit.faithful ? "border-mark" : "border-ink font-bold"}`}>
         {audit.numbers_checked === 0
@@ -121,7 +123,7 @@ export function Ask() {
   return (
     <div className="space-y-8 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-ask">
-        <h1 id="h-ask" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-ask" className="rise font-display text-6xl font-semibold leading-[1.02] tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Ask the analyst
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -159,14 +161,14 @@ export function Ask() {
             />
           </label>
           <div className="flex flex-wrap items-center gap-3">
-            <button type="submit" disabled={busy || text.trim().length < 3} className="btn-solid min-h-11 border-2 border-ink bg-ink px-5 font-mono text-sm uppercase tracking-widest text-paper disabled:opacity-40">
+            <button type="submit" disabled={busy || text.trim().length < 3} className="btn-solid min-h-11 border-2 border-ink bg-ink px-5 text-sm font-bold text-paper disabled:opacity-40">
               {busy ? "Looking at the data..." : "Ask"}
             </button>
-            {busy && <span className="font-mono text-xs uppercase tracking-widest text-ink-soft" role="status">This takes about ten seconds.</span>}
+            {busy && <span className="font-mono text-xs uppercase tracking-widest text-ink-soft" role="status">This can take up to a minute: every number is checked before you see it.</span>}
           </div>
         </form>
         {error && (
-          <p role="alert" className="mt-3 max-w-[70ch] border-2 border-ink p-3 font-bold">
+          <p role="alert" className="mt-3 max-w-[70ch] rounded-2xl border-2 border-clay p-3 font-bold">
             {error}
           </p>
         )}
@@ -181,7 +183,7 @@ export function Ask() {
                     void send(q);
                   }}
                   disabled={busy}
-                  className="btn-outline min-h-11 border-2 border-ink px-3 text-left text-sm disabled:opacity-40"
+                  className="btn-outline min-h-11 border-2 border-ink px-4 text-left text-sm disabled:opacity-40"
                 >
                   {q}
                 </button>
@@ -191,16 +193,19 @@ export function Ask() {
         </div>
       </section>
 
-      {answers.length > 0 && (
-        <section className="px-6" aria-labelledby="h-answers" aria-live="polite">
-          <SectionHead id="h-answers" title="Answers" tone="solid" />
-          <ul>
-            {answers.map((a, i) => (
-              <Exchange key={`${a.question}-${i}`} a={a} />
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Always mounted, so screen readers announce the first answer too. */}
+      <section className="px-6" aria-labelledby={answers.length > 0 ? "h-answers" : undefined} aria-label={answers.length > 0 ? undefined : "Answers"} aria-live="polite">
+        {answers.length > 0 && (
+          <>
+            <SectionHead id="h-answers" title="Answers" tone="solid" />
+            <ul>
+              {answers.map((a, i) => (
+                <Exchange key={`${a.question}-${i}`} a={a} />
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
     </div>
   );
 }

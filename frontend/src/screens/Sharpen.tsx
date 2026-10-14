@@ -29,7 +29,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
 
   if (error && !data) {
     return (
-      <div role="alert" className="mx-4 mb-6 border-2 border-ink p-4">
+      <div role="alert" className="mx-4 mb-6 rounded-2xl border-2 border-clay p-4">
         <p className="font-bold">We could not load this screen.</p>
         <p>{error}. Check the API is running and reload this page.</p>
       </div>
@@ -63,8 +63,8 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
 
   return (
     <>
-      <section aria-labelledby="sharpen-h" className="print px-4 pb-6" style={step(3)}>
-        <h2 id="sharpen-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+      <section aria-labelledby="sharpen-h" className="rise px-4 pb-6" style={step(3)}>
+        <h2 id="sharpen-h" className="font-display text-4xl font-semibold leading-tight">
           Make it more certain
         </h2>
         <p className="mt-3 max-w-[65ch]">
@@ -73,7 +73,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
       </section>
 
       {top ? (
-        <section aria-labelledby="top-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
+        <section aria-labelledby="top-h" className="rise border-t border-rule px-4 py-6" style={step(4)}>
           <SectionHead id="top-h" title="The one that helps most" tone="solid" />
           <h3 className="text-xl font-bold">{plain(top)}</h3>
           <QuestionBox field={top.field} answer={answers[top.field]} unsure={unsure[top.field]} onAnswer={onAnswer} />
@@ -85,7 +85,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
           {outcomes(top)}
         </section>
       ) : (
-        <section aria-labelledby="done-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
+        <section aria-labelledby="done-h" className="rise border-t border-rule px-4 py-6" style={step(4)}>
           <SectionHead id="done-h" title="Nothing more to ask" tone="mark" />
           <p className="max-w-[65ch]">
             You have answered every question. Your plan is as certain as your answers can make it. What is left is
@@ -95,7 +95,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
       )}
 
       {others.length > 0 && (
-        <section aria-labelledby="more-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
+        <section aria-labelledby="more-h" className="rise border-t border-rule px-4 py-6" style={step(5)}>
           <SectionHead id="more-h" title="Other questions" tone="dashed" note={`${others.length}`} />
           <ul>
             {others.map((q) => (
@@ -112,7 +112,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
       )}
 
       {answered.length > 0 && (
-        <section aria-labelledby="ans-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(6)}>
+        <section aria-labelledby="ans-h" className="rise border-t border-rule px-4 py-6" style={step(6)}>
           <SectionHead id="ans-h" title="Your answers" tone="muted" note={`${answered.length}`} />
           <ul>
             {answered.map((f) => (
@@ -130,7 +130,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
         </section>
       )}
 
-      <section aria-labelledby="left-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(7)}>
+      <section aria-labelledby="left-h" className="rise border-t border-rule px-4 py-6" style={step(7)}>
         <SectionHead id="left-h" title="What stays uncertain" tone="dashed" />
         <ul className="list-disc space-y-2 pl-5">
           {data.still_uncertain.map((t) => (
@@ -144,7 +144,7 @@ export function Sharpen({ farm, pct, answers, unsure, onAnswer, onNext }: Props)
       <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
-          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
         >
           Next: Report
           <Arrow />

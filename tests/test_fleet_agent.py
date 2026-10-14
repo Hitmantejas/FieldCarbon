@@ -135,3 +135,12 @@ def test_the_rewrite_request_quotes_the_sentences_without_a_label():
 
 def test_a_complete_answer_is_not_rewritten():
     assert run(["The fleet used 16,492 litres (allocated)."])["attempts"] == 1
+
+
+def test_a_figure_with_needless_decimals_is_rewritten_rounded():
+    m = Scripted(calls=[("fleet_summary", {"group_by": "site"})],
+                 answers=["Die Flotte hat 16492.14 Liter verbraucht (allocated).", "Die Flotte hat 16,492 Liter verbraucht (allocated)."], seen=[])
+    r = fleet_agent.ask("Wie viel Diesel?", model=m)
+    sent = "".join(p.text or "" for p in m.seen[-1].contents[-1].parts)
+    assert "more decimals than a person would write: 16492.14 Liter" in sent
+    assert r["attempts"] == 2 and r["audit"]["unrounded"] == [] and "16492.14" not in r["answer"]

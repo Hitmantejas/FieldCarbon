@@ -11,5 +11,5 @@
 | Agent numerical faithfulness | 100% |
 | Agent label coverage | 100% |
 | Agent citation coverage (ideas that name their research source) | 100% |
-| Agent tokens per question (input + output + thinking) | 15,743 over 21 runs |
+| Agent tokens per question (input + output + thinking) | 16,905 over 21 runs |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |
