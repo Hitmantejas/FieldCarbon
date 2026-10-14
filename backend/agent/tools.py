@@ -15,6 +15,8 @@ from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _n
                            fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
 
 MAX_JOBS = 10
+MAX_ROWS = 15
+FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg"}  # their `how` is the same fixed formula on every row
 
 
 def _plain(value):
@@ -22,11 +24,32 @@ def _plain(value):
     return json.loads(json.dumps(value, default=str))
 
 
+def _compact(node, in_list: bool = False, key: str | None = None):
+    """Fewer tokens for the model, same facts: rounded floats, no empty fields, and no repeated formula text inside lists.
+
+    The auditor checks answers against this compact output, so a number the model quotes still traces to it.
+    """
+    if isinstance(node, dict):
+        out = {}
+        for k, v in node.items():
+            if v is None and k != "value":
+                continue
+            if k == "how" and in_list and key in FORMULA_FIGURES:
+                continue
+            out[k] = _compact(v, in_list, k)
+        return out
+    if isinstance(node, list):
+        return [_compact(v, True, key) for v in node]
+    if isinstance(node, float) and node == node:
+        return round(node, 2) if abs(node) >= 1 else float(f"{node:.3g}")
+    return node
+
+
 def _safe(fn):
     @wraps(fn)
     def run(*args, **kwargs):
         try:
-            return _plain(fn(*args, **kwargs))
+            return _compact(_plain(fn(*args, **kwargs)))
         except (ValueError, KeyError) as e:
             return {"error": f"{type(e).__name__}: {e}"}
     return run
@@ -40,8 +63,13 @@ def fleet_summary(group_by: str = "site", site_id: str | None = None, machine_id
     group_by is one of: site, machine, operation, month, client, field. Optional filters: site_id (S1 arable site in
     Bavaria, S2 vineyard in Tuscany, S3 tillage site in Konya), machine_id (like S1-T4), client_id (like C09),
     operation_code, month (YYYY-MM, company year May 2025 to April 2026). Every figure has a confidence label.
+    At most 15 rows, largest first (months in date order); the totals cover every row.
     """
-    return _summary.fleet_summary(group_by, site_id, machine_id, client_id, operation_code, None, month)
+    r = _summary.fleet_summary(group_by, site_id, machine_id, client_id, operation_code, None, month)
+    if len(r["rows"]) > MAX_ROWS:
+        r["rows_not_shown"] = len(r["rows"]) - MAX_ROWS
+        r["rows"] = r["rows"][:MAX_ROWS]
+    return r
 
 
 @_safe
@@ -89,7 +117,13 @@ def detect_anomalies() -> dict:
 def benchmark_peers(site_id: str | None = None, operation_code: str | None = None) -> dict:
     """Compares machines doing the same job at the same site in litres per hectare. Flags machines that burn more than
     the typical machine and gives the litres at stake as a range. A difference is to investigate, not waste."""
-    return _peers.benchmark_peers(site_id, operation_code)
+    r = _peers.benchmark_peers(site_id, operation_code)
+    for group in r["groups"]:
+        for peer in group["peers"]:
+            if not peer["above_peers"]:  # value and label stay; the explanation matters only for the flagged ones
+                peer["l_per_ha"] = {k: v for k, v in peer["l_per_ha"].items() if k != "how"}
+    r["skipped"] = [{"operation": s["operation"], "site_id": s["site_id"], "reason": s["reason"]} for s in r["skipped"]]
+    return r
 
 
 @_safe
@@ -103,8 +137,11 @@ def fleet_opportunities(site_id: str | None = None, tyre_pressure_checked: bool 
     known = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
     out = _ideas.fleet_opportunities(site_id, {k: v for k, v in known.items() if v is not None})
     for idea in out["ideas"]:
+        sources = {e["source_id"]: e for e in idea["evidence"]}  # one row per source, not per coefficient
         idea["evidence"] = [{"title": e["title"], "region": e["region"], "year": e["year"], "source_id": e["source_id"],
-                            "link_status": e["link_status"], "is_manufacturer": e["is_manufacturer"]} for e in idea["evidence"]]
+                            "link_status": e["link_status"], "is_manufacturer": e["is_manufacturer"]} for e in sources.values()]
+        if idea.get("how") == ((idea.get("figures") or {}).get("litres_saved") or {}).get("how"):
+            idea.pop("how", None)  # the same text is in figures.litres_saved.how
     return out
 
 
