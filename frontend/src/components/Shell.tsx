@@ -5,6 +5,7 @@ import { ThemeToggle } from "./ThemeToggle";
 // Only built screens are links; the rest are struck through until they exist.
 export const SCREENS: { id: ScreenId; name: string; built: boolean }[] = [
   { id: "overview", name: "Fleet overview", built: true },
+  { id: "ask", name: "Ask the analyst", built: true },
   { id: "sites", name: "Sites & machines", built: true },
   { id: "jobs", name: "Jobs & fields", built: true },
   { id: "opportunities", name: "Opportunities", built: true },

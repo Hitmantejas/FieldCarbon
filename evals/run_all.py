@@ -146,6 +146,7 @@ def markdown(s: dict) -> str:
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),
         ("Agent label coverage", pct(a["label_coverage"])),
+        ("Agent citation coverage (ideas that name their research source)", pct(a["citation_coverage"])),
         ("Harness self-test (hand-written samples)",
          f"{st['runs']} runs; auditor flags {sum(1 for r in st['details'] if not r['faithful'])} unfaithful"),
     ]

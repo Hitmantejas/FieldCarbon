@@ -1,5 +1,6 @@
 import { Shell } from "./components/Shell";
 import { useRoute } from "./route";
+import { Ask } from "./screens/Ask";
 import { Clients } from "./screens/Clients";
 import { FuelControl } from "./screens/FuelControl";
 import { Jobs } from "./screens/Jobs";
@@ -19,6 +20,7 @@ export default function App() {
     <SourcesProvider>
       <Shell current={screen} onGo={go} attribution={ATTRIBUTION}>
         {screen === "overview" && <Overview />}
+        {screen === "ask" && <Ask />}
         {screen === "clients" && <Clients />}
         {screen === "jobs" && <Jobs />}
         {screen === "whatif" && <WhatIf />}
