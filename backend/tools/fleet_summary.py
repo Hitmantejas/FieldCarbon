@@ -56,4 +56,8 @@ def fleet_summary(group_by: str = "site", site_id: str | None = None, machine_id
                      "hours": float(g.hours.sum()), "area_ha": float(g.area_ha.sum()), "jobs": int(g.is_job.sum()),
                      "share_pct": 100 * float(g.litres.sum()) / total if total else 0.0})
     rows.sort(key=lambda r: -r["litres"]["value"] if group_by != "month" else r["key"])
-    return {"group_by": group_by, "rows": rows, "totals": slice_figures(df, synthetic) if len(df) else None}
+    totals = None
+    if len(df):
+        totals = {**slice_figures(df, synthetic), "hours": float(df.hours.sum()), "area_ha": float(df.area_ha.sum()),
+                  "jobs": int(df.is_job.sum())}
+    return {"group_by": group_by, "rows": rows, "totals": totals}

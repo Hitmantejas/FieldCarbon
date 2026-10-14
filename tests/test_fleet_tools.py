@@ -38,6 +38,15 @@ def test_fleet_totals_tie_to_the_real_litres():
     assert r["totals"]["litres"]["value"] == pytest.approx(REAL_TOTAL, abs=3)
 
 
+@pytest.mark.parametrize("kwargs", [{"group_by": "site"}, {"group_by": "machine", "site_id": "S2"}])
+def test_totals_carry_jobs_hours_and_area_summed_over_the_rows(kwargs):
+    r = fleet_summary(**kwargs)  # the Overview screen reads these; missing ones showed "NaN jobs over NaN engine hours"
+    t = r["totals"]
+    assert t["jobs"] == sum(x["jobs"] for x in r["rows"]) > 0
+    assert t["hours"] == pytest.approx(sum(x["hours"] for x in r["rows"])) and t["hours"] > 0
+    assert t["area_ha"] == pytest.approx(sum(x["area_ha"] for x in r["rows"]))
+    assert isinstance(t["jobs"], int) and isinstance(t["hours"], float)
+
 def test_site_rows_carry_the_weakest_label_of_their_inputs():
     rows = by_key(fleet_summary("site"))
     assert rows["S1"]["litres"]["label"] == "allocated"      # S1 includes fuel burned outside jobs, shared out by rule
