@@ -133,7 +133,7 @@ def reconcile_fuel(ratio_limit: float = 1.10, min_litres: float = 50.0, stock_to
                 loss = step > 0
                 findings.append({
                     "kind": "stock_gap" if loss else "stock_surplus", "severity": _severity(abs(step)),
-                    "title": (f"About {abs(step):,.0f} litres {'are missing from' if loss else 'extra were found in'} the "
+                    "title": (f"About {abs(step):,.0f} litres {'less' if loss else 'more'} than the books show at the "
                               f"{data.site_name(site)} depot, first seen in {month_name(month)}"),
                     "site_id": site, "site": data.site_name(site), "machine_id": None, "machine": None, "depot_id": depot_id,
                     "month": month, "ratio": None, "night_dispenses": 0,

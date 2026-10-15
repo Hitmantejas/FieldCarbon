@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from backend.agent import fleet_agent
+from backend.api.limits import AskLimiter, Refused, caller_of
 
 router = APIRouter(prefix="/api/agent")
+limiter = AskLimiter.from_env()
 
 
 class Question(BaseModel):
@@ -11,9 +13,14 @@ class Question(BaseModel):
 
 
 @router.post("/ask")
-def ask(body: Question):
+def ask(body: Question, request: Request):
     """Ask the fleet analyst one question. Tool outputs stay on the server; the reply carries the answer, which tools
     were called, and whether every number in the answer traced back to a tool."""
+    caller = caller_of(request.headers.get("x-forwarded-for"), request.client.host if request.client else None)
+    try:  # counted before the model is called: a failed call may still have spent tokens
+        limiter.admit(caller)
+    except Refused as e:
+        raise HTTPException(429, e.message, headers={"Retry-After": str(e.retry_after_s)}) from e
     try:
         r = fleet_agent.ask(body.question.strip())
     except Exception as e:  # noqa: BLE001 - the model endpoint failing is an answer for the user, not a crash

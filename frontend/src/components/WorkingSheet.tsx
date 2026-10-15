@@ -102,7 +102,7 @@ export function WorkingSheet({ opened, onClose }: { opened: Opened | null; onClo
       {opened && (
         <div className="space-y-4 p-5">
           <div className="flex items-start justify-between gap-4">
-            <h2 id="working-title" className="font-display text-3xl font-bold uppercase leading-none">{opened.title}</h2>
+            <h2 id="working-title" className="font-display text-3xl font-semibold leading-tight">{opened.title}</h2>
             <Stamp label={opened.label} />
           </div>
           {opened.facts ? (
@@ -133,7 +133,7 @@ export function WorkingSheet({ opened, onClose }: { opened: Opened | null; onClo
               <SourceList ids={opened.sourceIds} />
             </div>
           )}
-          <button onClick={onClose} className="btn-solid min-h-11 w-full border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper">
+          <button onClick={onClose} className="btn-solid min-h-11 w-full border-2 border-ink bg-ink px-4 text-sm font-bold text-paper">
             Close
           </button>
         </div>

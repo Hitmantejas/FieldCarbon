@@ -21,7 +21,7 @@ function Loading({ what }: { what: string }) {
 
 function Pick({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { key: string; name: string }[] }) {
   return (
-    <label className="flex flex-col gap-1 font-mono text-xs uppercase tracking-widest text-ink-soft">
+    <label className="flex flex-col gap-2 text-sm text-ink-soft">
       {label}
       <select value={value} onChange={(e) => onChange(e.target.value)} className="min-h-11 min-w-40 border-2 border-ink bg-paper px-2 font-sans text-base normal-case tracking-normal text-ink">
         <option value="">All</option>
@@ -66,20 +66,20 @@ export function Jobs() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-jobs">
-        <h1 id="h-jobs" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-jobs" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Jobs &amp; fields
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
           Every job the fleet did, and the fields it was done on. Narrow the list with the filters, then open a figure to see how it was worked
           out. Job dates in this demo are assigned, not recorded.
         </p>
-        <div role="group" aria-label="Jobs or fields" className="mt-4 flex gap-1 font-mono text-xs uppercase tracking-widest">
+        <div role="group" aria-label="Jobs or fields" className="mt-4 flex gap-2 text-sm">
           {(["jobs", "fields"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               aria-pressed={tab === t}
-              className={`btn-tab min-h-11 border-2 px-4 uppercase ${tab === t ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
+              className={`btn-tab min-h-11 border-2 px-4 ${tab === t ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
             >
               {t === "jobs" ? "Jobs" : "Fields"}
             </button>
@@ -103,7 +103,7 @@ export function Jobs() {
               setF(NONE);
               setPage(0);
             }}
-            className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest"
+            className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold"
           >
             Clear filters
           </button>
@@ -141,10 +141,11 @@ export function Jobs() {
             <p>No jobs match these filters.</p>
           ) : (
             <>
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Jobs with their fuel and emissions</caption>
                 <thead>
-                  <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                  <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                     <th scope="col" className="px-2 py-3 pl-0 font-normal">Date</th>
                     <th scope="col" className="px-2 py-3 font-normal">Job</th>
                     <th scope="col" className="px-2 py-3 font-normal">Machine</th>
@@ -158,12 +159,12 @@ export function Jobs() {
                 </thead>
                 <tbody>
                   {jobs.data.rows.map((j) => (
-                    <tr key={j.job_id} className="border-b-2 border-dashed border-rule transition-colors hover:bg-mark/20">
+                    <tr key={j.job_id} className="border-b border-rule transition-colors hover:bg-mark/20">
                       <th scope="row" className="whitespace-nowrap px-2 py-3 pl-0 font-normal">{dateText(j.date)}</th>
                       <td className="px-2 py-3 font-bold">{j.operation}</td>
                       <td className="px-2 py-3">{j.machine}</td>
-                      <td className="px-2 py-3">{j.client ?? <span className="text-ink-soft">Field not matched</span>}</td>
-                      <td className="px-2 py-3">{j.field ?? <span className="text-ink-soft">None</span>}</td>
+                      <td className="whitespace-nowrap px-2 py-3">{j.client ?? <span className="text-ink-soft">Field not matched</span>}</td>
+                      <td className="whitespace-nowrap px-2 py-3">{j.field ?? <span className="text-ink-soft">None</span>}</td>
                       <td className="num px-2 py-3 text-right">{j.hours.toFixed(1)}</td>
                       <td className="num px-2 py-3 text-right">
                         <button onClick={() => open(`${j.operation}, ${dateText(j.date)}`, `${j.litres.value?.toFixed(1)} L`, j.litres)} className="btn-link underline underline-offset-4">
@@ -184,14 +185,15 @@ export function Jobs() {
                   ))}
                 </tbody>
               </table>
+              </div>
               <nav aria-label="Pages" className="mt-4 flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-widest">
-                <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="btn-outline min-h-11 border-2 border-ink px-3 disabled:opacity-40">
+                <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} className="btn-outline min-h-11 border-2 border-ink px-4 disabled:opacity-40">
                   Previous
                 </button>
                 <span aria-live="polite">
                   {first} to {last} of {litres(total)}
                 </span>
-                <button disabled={last >= total} onClick={() => setPage((p) => p + 1)} className="btn-outline min-h-11 border-2 border-ink px-3 disabled:opacity-40">
+                <button disabled={last >= total} onClick={() => setPage((p) => p + 1)} className="btn-outline min-h-11 border-2 border-ink px-4 disabled:opacity-40">
                   Next
                 </button>
               </nav>
@@ -209,10 +211,11 @@ export function Jobs() {
             <Loading what="fields" />
           ) : (
             <>
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Fuel and emissions by field</caption>
                 <thead>
-                  <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                  <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                     <th scope="col" className="px-3 py-3 pl-0 font-normal">Field</th>
                     <th scope="col" className="px-3 py-3 text-right font-normal">Fuel (litres)</th>
                     <th scope="col" className="px-3 py-3 text-right font-normal">Emissions</th>
@@ -223,7 +226,7 @@ export function Jobs() {
                 </thead>
                 <tbody>
                   {shownFields.map((r) => (
-                    <tr key={r.key} className="border-b-2 border-dashed border-rule transition-colors hover:bg-mark/20">
+                    <tr key={r.key} className="border-b border-rule transition-colors hover:bg-mark/20">
                       <th scope="row" className="px-3 py-3 pl-0 font-bold">
                         <button onClick={() => open(r.name, `${litres(r.litres.value ?? 0)} L`, r.litres)} className="btn-link text-left underline underline-offset-4">
                           {r.name}
@@ -241,8 +244,9 @@ export function Jobs() {
                   ))}
                 </tbody>
               </table>
+              </div>
               {fieldRows.length > PAGE && (
-                <button onClick={() => setShowAllFields((v) => !v)} aria-pressed={showAllFields} className="btn-outline mt-4 min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+                <button onClick={() => setShowAllFields((v) => !v)} aria-pressed={showAllFields} className="btn-outline mt-4 min-h-11 border-2 border-ink px-4 text-sm font-bold">
                   {showAllFields ? "Show only the top 25" : `Show all ${fieldRows.length} fields`}
                 </button>
               )}

@@ -1,6 +1,8 @@
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.staticfiles import StaticFiles
 
 from backend.api.agent import router as agent_router
 from backend.api.fleet import router as fleet_router
@@ -136,3 +138,18 @@ def get_report(farm_id: str, target_pct: float | None = Query(None, ge=1, le=90)
                has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
     _require_farm(farm_id)
     return generate_report(target_pct, farm_id, _answers(tyre_pressure_checked, has_ctis, ballast_type))
+
+
+UI_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+
+
+def mount_ui(target: FastAPI, dist: Path = UI_DIST) -> bool:
+    """Serve the built React app at "/" when it exists (in the container). Mounted after every API route, so the API
+    always wins; the app uses hash routes, so index.html is the only page. Without a build, the API runs alone."""
+    if not (dist / "index.html").is_file():
+        return False
+    target.mount("/", StaticFiles(directory=dist, html=True), name="ui")
+    return True
+
+
+mount_ui(app)

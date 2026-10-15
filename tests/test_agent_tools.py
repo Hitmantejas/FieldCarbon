@@ -52,7 +52,7 @@ def test_opportunities_keep_names_sources_and_figures_without_the_long_evidence_
     ideas = tools.fleet_opportunities(site_id="S1")["ideas"]
     first = ideas[0]
     assert first["name"] and first["figures"]["litres_saved"]["label"] == "estimated"
-    assert first["evidence"] and all({"title", "region", "year", "source_id", "link_status"} <= e.keys() for e in first["evidence"])
+    assert first["evidence"] and all({"title", "region", "source_id", "link_status"} <= e.keys() for e in first["evidence"])  # year is left out when unknown
     assert all("derivation" not in e and "baseline" not in e for e in first["evidence"])
 
 
@@ -60,3 +60,66 @@ def test_numbers_in_a_tool_output_pass_the_auditor():
     out = tools.fleet_summary(group_by="site")
     assert audit("The fleet burned 16,492 litres in total.", [out]).faithful
     assert not audit("The fleet burned 18,000 litres in total.", [out]).faithful
+
+
+def figures(node):
+    if isinstance(node, dict):
+        if "label" in node and "source_ids" in node:
+            yield node
+        for v in node.values():
+            yield from figures(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from figures(v)
+
+
+def all_floats(node):
+    if isinstance(node, dict):
+        for v in node.values():
+            yield from all_floats(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from all_floats(v)
+    elif isinstance(node, float):
+        yield node
+
+
+@pytest.mark.parametrize("name,kwargs", [("fleet_summary", {"group_by": "machine"}), ("emissions_per_client", {}),
+                                         ("benchmark_peers", {}), ("fleet_opportunities", {}), ("fleet_jobs", {"limit": 10})])
+def test_compact_outputs_keep_every_label_and_source_and_round_the_numbers(name, kwargs):
+    out = tools.BY_NAME[name](**kwargs)
+    figs = list(figures(out))
+    assert figs and all(f["label"] in {"measured", "allocated", "estimated"} and f["source_ids"] for f in figs)
+    assert all(abs(x) < 1 or round(x, 2) == x for x in all_floats(out))
+    assert '"low": null' not in json.dumps(out)
+
+
+def test_compact_totals_match_the_full_tool_and_keep_their_explanations():
+    full, small = TOOLS["fleet_summary"]("client"), tools.fleet_summary(group_by="client")
+    assert small["totals"]["litres"]["value"] == pytest.approx(full["totals"]["litres"]["value"], abs=0.01)
+    assert all("how" in small["totals"][k] for k in ("litres", "co2e_kg", "cost_gbp"))
+    row = small["rows"][0]
+    assert "how" in row["litres"] and "how" not in row["co2e_kg"] and "how" not in row["cost_gbp"]
+
+
+@pytest.mark.parametrize("group_by", ["field", "operation"])
+def test_long_groupings_are_capped_and_say_how_many_rows_are_left_out(group_by):
+    full, small = TOOLS["fleet_summary"](group_by), tools.fleet_summary(group_by=group_by)
+    assert len(small["rows"]) == tools.MAX_ROWS and small["rows_not_shown"] == len(full["rows"]) - tools.MAX_ROWS
+    assert [r["key"] for r in small["rows"]] == [r["key"] for r in full["rows"][:tools.MAX_ROWS]]   # largest first
+    assert small["totals"]["litres"]["value"] == pytest.approx(full["totals"]["litres"]["value"], abs=0.01)
+    assert len(json.dumps(small)) < 20_000
+
+
+def test_peers_explain_only_the_machines_above_their_peers():
+    peers = [p for g in tools.benchmark_peers()["groups"] for p in g["peers"]]
+    assert any(p["above_peers"] for p in peers)
+    for p in peers:
+        assert "label" in p["l_per_ha"] and ("how" in p["l_per_ha"]) == p["above_peers"]
+        assert ("litres_at_stake" in p) == p["above_peers"]
+
+
+def test_each_idea_lists_each_source_once():
+    for idea in tools.fleet_opportunities()["ideas"]:
+        ids = [e["source_id"] for e in idea["evidence"]]
+        assert ids and len(ids) == len(set(ids))

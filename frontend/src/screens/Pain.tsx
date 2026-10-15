@@ -74,7 +74,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
 
   if (pain.error) {
     return (
-      <div role="alert" className="mx-4 mb-6 border-2 border-ink p-4">
+      <div role="alert" className="mx-4 mb-6 rounded-2xl border-2 border-clay p-4">
         <p className="font-bold">We could not load the pain points.</p>
         <p>{pain.error}. Check the API is running and reload this page.</p>
       </div>
@@ -85,8 +85,8 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
   if (pain.data.available === false) {
     return (
       <>
-        <section aria-labelledby="pain-h" className="print px-4 pb-6" style={step(3)}>
-          <h2 id="pain-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+        <section aria-labelledby="pain-h" className="rise px-4 pb-6" style={step(3)}>
+          <h2 id="pain-h" className="font-display text-4xl font-semibold leading-tight">
             Pain points
           </h2>
           <div className="mt-4 border-2 border-dashed border-ink p-4">
@@ -101,7 +101,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
         <div className="no-print px-4 pb-6">
           <button
             onClick={onNext}
-            className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+            className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
           >
             Next: Plan
             <Arrow />
@@ -119,8 +119,8 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
 
   return (
     <>
-      <section aria-labelledby="pain-h" className="print px-4 pb-6" style={step(3)}>
-        <h2 id="pain-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+      <section aria-labelledby="pain-h" className="rise px-4 pb-6" style={step(3)}>
+        <h2 id="pain-h" className="font-display text-4xl font-semibold leading-tight">
           Pain points
         </h2>
         <p className="mt-3 max-w-[65ch]">
@@ -146,7 +146,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
       </section>
 
       {flagged.length > 0 && (
-        <section aria-labelledby="above-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
+        <section aria-labelledby="above-h" className="rise border-t border-rule px-4 py-6" style={step(4)}>
           <SectionHead id="above-h" title="Above the typical range" tone="solid" note={`${flagged.length}`} />
           <ul>
             {flagged.map((r) => (
@@ -188,7 +188,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
         </section>
       )}
 
-      <section aria-labelledby="idle-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
+      <section aria-labelledby="idle-h" className="rise border-t border-rule px-4 py-6" style={step(5)}>
         <SectionHead id="idle-h" title="Also worth knowing" tone="mark" aside={<Stamp label={idle.label} />} />
         <p className="mt-2 max-w-[65ch]">
           <span className="font-bold">{pct(idle.share_pct)} of your fuel was not doing work</span> ({litres(idle.litres)} L).
@@ -197,7 +197,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
       </section>
 
       {fine.length > 0 && (
-        <section aria-labelledby="fine-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(6)}>
+        <section aria-labelledby="fine-h" className="rise border-t border-rule px-4 py-6" style={step(6)}>
           <SectionHead id="fine-h" title="In line with typical" tone="dashed" note={`${fine.length}`} />
           <ul>
             {fine.map((r) => (
@@ -218,7 +218,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
       )}
 
       {unrated.length > 0 && (
-        <section aria-labelledby="unrated-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(7)}>
+        <section aria-labelledby="unrated-h" className="rise border-t border-rule px-4 py-6" style={step(7)}>
           <SectionHead id="unrated-h" title="Not rated" tone="muted" note={`${unrated.length}`} />
           <ul>
             {unrated.map((r) => (
@@ -240,7 +240,7 @@ export function Pain({ pain, onNext }: { pain: State<PainPoints>; onNext: () => 
       <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
-          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
         >
           Next: Plan
           <Arrow />

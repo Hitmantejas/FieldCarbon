@@ -110,3 +110,41 @@ def test_a_negative_tool_value_is_matched_by_its_size_because_the_words_carry_th
                             "source_ids": ["sondors2014"], "low": None, "high": None}}
     assert fa.audit("It would burn 443 extra litres a year.", [out]).faithful
     assert not fa.audit("It would burn 500 extra litres a year.", [out]).faithful
+
+
+def test_agent_tokens_count_only_real_runs_that_recorded_them():
+    runs = [{"tokens": {"input": 4000, "output": 300, "thinking": 1700}}, {"tokens": None},
+            {"tokens": {"input": 9000, "output": 999, "thinking": 999}, "sample": True}]
+    assert run_all.agent_tokens(runs) == {"runs": 1, "input": 4000, "output": 300, "thinking": 1700, "per_question": 6000}
+    assert run_all.agent_tokens([{"tokens": None}]) is None
+
+
+SAVING = {"litres_saved": {"value": -443.36, "unit": "L per year", "label": "estimated", "how": "- **443 extra litres** a year.",
+                           "source_ids": ["sondors2014"], "low": -600.0, "high": 120.0}}
+
+
+@pytest.mark.parametrize("answer", ["It would save 443 litres a year.", "That is 443 litres less fuel.",
+                                    "You could cut fuel by 443 litres."])
+def test_an_increase_called_a_saving_fails_even_though_the_size_matches(answer):
+    a = fa.audit(answer, [SAVING])
+    assert not a.faithful and a.unmatched[0].wrong_direction
+    ok, note = fa.guard(answer, [SAVING])
+    assert not ok and "opposite direction" in note
+
+
+def test_a_real_saving_called_an_increase_fails_and_neutral_wording_passes():
+    saved = {"litres_saved": {**SAVING["litres_saved"], "value": 812.0, "how": "Saves **812 litres** a year."}}
+    assert fa.audit("It saves 812 litres a year (estimated).", [saved]).faithful
+    assert not fa.audit("It needs 812 extra litres a year.", [saved]).faithful
+    assert fa.audit("The change is 812 litres a year (estimated).", [saved]).faithful  # no direction stated: size only
+
+
+def test_a_range_that_crosses_zero_keeps_each_ends_direction():
+    assert fa.audit("Between 600 extra litres and a saving of 120 litres.", [SAVING]).faithful
+    assert not fa.audit("It saves between 120 and 600 litres.", [SAVING]).faithful  # 600 is an increase
+
+
+def test_direction_only_applies_to_savings_and_mixed_wording_is_not_judged():
+    gap = {"gap_l": -900.0}  # not a saving-type key: the sign has no agreed meaning, so size only
+    assert fa.audit("The depot is 900 litres short, more than expected.", [gap]).faithful
+    assert fa.audit("It saves fuel on some jobs and uses more on others: 443 litres overall.", [SAVING]).faithful

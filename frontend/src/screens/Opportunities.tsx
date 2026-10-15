@@ -50,7 +50,7 @@ function Idea({ idea, names, open, answers, unsure, onAnswer }: IdeaProps) {
   return (
     <li className="py-7">
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="font-display text-2xl font-extrabold uppercase leading-none tracking-wide">{idea.name}</h3>
+        <h3 className="font-display text-2xl font-semibold leading-tight">{idea.name}</h3>
         <StrengthTag robustness={idea.robustness} n={idea.n_sources} />
         <Stamp label={idea.label} />
       </div>
@@ -93,11 +93,11 @@ function Idea({ idea, names, open, answers, unsure, onAnswer }: IdeaProps) {
         <QuestionBox field={field} answer={answers[field]} unsure={unsure[field]} onAnswer={onAnswer} />
       )}
       <div className="mt-5 flex flex-wrap gap-3">
-        <button onClick={showWorking} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+        <button onClick={showWorking} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold">
           How this was worked out
         </button>
         {idea.state !== "not_feasible" && (
-          <button onClick={() => setMore((v) => !v)} aria-expanded={more} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+          <button onClick={() => setMore((v) => !v)} aria-expanded={more} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold">
             {more ? "Hide details" : "Show details"}
           </button>
         )}
@@ -172,20 +172,20 @@ export function Opportunities() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-opp">
-        <h1 id="h-opp" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-opp" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Opportunities
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
           Two kinds of lead. Ideas from published research, applied to the fuel your machines really burned. And machines that burn more than
           others doing the same job. Savings are ranges, and ideas overlap, so they are never added together.
         </p>
-        <div role="group" aria-label="Which site" className="mt-4 flex flex-wrap gap-1 font-mono text-xs uppercase tracking-widest">
+        <div role="group" aria-label="Which site" className="mt-4 flex flex-wrap gap-2 text-sm">
           {[{ key: "", name: "All sites" }, ...(sites.data?.rows ?? [])].map((s) => (
             <button
               key={s.key}
               onClick={() => setSite(s.key)}
               aria-pressed={site === s.key}
-              className={`btn-tab min-h-11 border-2 px-3 uppercase ${site === s.key ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
+              className={`btn-tab min-h-11 border-2 px-4 ${site === s.key ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
             >
               {s.name}
             </button>
@@ -211,7 +211,7 @@ export function Opportunities() {
           <p className="max-w-[70ch]">{ideas.data.reason}</p>
         ) : (
           <>
-            <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-ink">
+            <ul className="divide-y divide-rule">
               {ready.map((i) => (
                 <Idea key={i.intervention_id} idea={i} names={names} open={setOpened} answers={answers} unsure={unsure} onAnswer={onAnswer} />
               ))}
@@ -221,7 +221,7 @@ export function Opportunities() {
                 <div className="mt-10">
                   <SectionHead id="h-wait" title="Waiting for an answer" tone="dashed" note="answer the question on each card" />
                 </div>
-                <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-rule">
+                <ul className="divide-y divide-rule">
                   {waiting.map((i) => (
                     <Idea key={i.intervention_id} idea={i} names={names} open={setOpened} answers={answers} unsure={unsure} onAnswer={onAnswer} />
                   ))}
@@ -233,7 +233,7 @@ export function Opportunities() {
                 <div className="mt-10">
                   <SectionHead id="h-no" title="Does not apply" tone="muted" note="and why" />
                 </div>
-                <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-rule">
+                <ul className="divide-y divide-rule">
                   {no.map((i) => (
                     <Idea key={i.intervention_id} idea={i} names={names} open={setOpened} answers={answers} unsure={unsure} onAnswer={onAnswer} />
                   ))}
@@ -264,10 +264,11 @@ export function Opportunities() {
             {flagged.length === 0 ? (
               <p>No machine is more than {bench.data.settings.flag_pct}% above its peers.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Machines using more fuel per hectare than their peers</caption>
                 <thead>
-                  <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                  <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                     <th scope="col" className="px-3 py-3 pl-0 font-normal">Machine</th>
                     <th scope="col" className="px-3 py-3 font-normal">Job</th>
                     <th scope="col" className="px-3 py-3 text-right font-normal">This machine<br />(litres per ha)</th>
@@ -279,7 +280,7 @@ export function Opportunities() {
                 </thead>
                 <tbody>
                   {flagged.map(({ g, p }) => (
-                    <tr key={g.site_id + g.operation_code + p.machine_id} className="border-b-2 border-dashed border-rule transition-colors hover:bg-mark/20">
+                    <tr key={g.site_id + g.operation_code + p.machine_id} className="border-b border-rule transition-colors hover:bg-mark/20">
                       <th scope="row" className="px-3 py-4 pl-0 font-bold">
                         <button
                           onClick={() =>
@@ -303,6 +304,7 @@ export function Opportunities() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
             {bench.data.skipped.length > 0 && (
               <details className="mt-4">

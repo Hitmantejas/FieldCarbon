@@ -1,24 +1,30 @@
 @import "tailwindcss";
 
-/* Docket world: thermal paper in light, amber print on a black roll in dark. */
+/* Organic tech: oat and moss by day, a night field in dark. */
 :root {
-  --desk: oklch(87% 0.014 190);
-  --paper: oklch(96.5% 0.006 200);
-  --ink: oklch(17% 0.012 250);
-  --ink-soft: oklch(38% 0.012 250);
-  --rule: oklch(70% 0.012 220);
-  --mark: oklch(91% 0.21 118);
-  --on-mark: oklch(17% 0.012 250);
+  --desk: oklch(92% 0.022 95);
+  --paper: oklch(98.5% 0.008 95);
+  --ink: oklch(25% 0.035 150);
+  --ink-soft: oklch(44% 0.03 140);
+  --rule: oklch(84% 0.02 110);
+  --mark: oklch(84% 0.13 128);
+  --on-mark: oklch(24% 0.04 150);
+  --moss: oklch(46% 0.09 145);
+  --clay: oklch(55% 0.13 45);
+  --tint: oklch(95.5% 0.025 115);
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --desk: oklch(9% 0.008 70);
-  --paper: oklch(15% 0.012 70);
-  --ink: oklch(83% 0.16 78);
-  --ink-soft: oklch(70% 0.12 74);
-  --rule: oklch(40% 0.06 72);
-  --mark: oklch(86% 0.145 182);
-  --on-mark: oklch(14% 0.02 190);
+  --desk: oklch(15% 0.015 155);
+  --paper: oklch(20% 0.02 155);
+  --ink: oklch(94% 0.02 95);
+  --ink-soft: oklch(78% 0.03 120);
+  --rule: oklch(36% 0.03 145);
+  --mark: oklch(80% 0.14 128);
+  --on-mark: oklch(20% 0.03 150);
+  --moss: oklch(74% 0.11 140);
+  --clay: oklch(75% 0.12 50);
+  --tint: oklch(24.5% 0.03 150);
   color-scheme: dark;
 }
 
@@ -30,57 +36,69 @@
   --color-rule: var(--rule);
   --color-mark: var(--mark);
   --color-on-mark: var(--on-mark);
-  --font-display: "Big Shoulders Display Variable", "Arial Narrow", sans-serif;
+  --color-moss: var(--moss);
+  --color-clay: var(--clay);
+  --color-tint: var(--tint);
+  --font-display: "Fraunces Variable", Georgia, serif;
   --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
-  --font-mono: "Martian Mono Variable", ui-monospace, monospace;
-  --ease-print: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --ease-grow: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html { background: var(--desk); color: var(--ink); scrollbar-color: var(--rule) var(--desk); }
 body { margin: 0; font-family: var(--font-sans); font-size: 1.0625rem; line-height: 1.5; }
 ::selection { background: var(--mark); color: var(--on-mark); }
-:focus-visible { outline: 3px solid var(--mark); outline-offset: 3px; }
-:root[data-theme="light"] :focus-visible { outline-color: var(--ink); }
+:focus-visible { outline: 3px solid var(--moss); outline-offset: 3px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-feature-settings: "zero"; }
+/* Fraunces at its softest: rounded terminals, tuned for large sizes. */
+.font-display { font-variation-settings: "SOFT" 100, "WONK" 0; font-optical-sizing: auto; }
 
-/* Thermal-printer reveal: each block prints top to bottom, staggered by --i. Visible by default. */
-@keyframes print {
-  from { clip-path: inset(0 0 100% 0); transform: translateY(-6px); }
-  to { clip-path: inset(0 0 0 0); transform: none; }
-}
-.print { animation: print 0.7s var(--ease-print) both; animation-delay: calc(var(--i, 0) * 80ms); }
-
-/* Zigzag torn edge hanging off the bottom of the docket. */
-.torn { position: relative; margin-bottom: 14px; }
-.torn::after {
-  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: var(--paper);
-  mask: conic-gradient(from -45deg at bottom, #000 90deg, #0000 0) 50% / 18px 100%;
+/* Fine contour lines in the background, like fields seen from above. */
+.contours {
+  background-image: repeating-radial-gradient(ellipse at 110% -10%, transparent 0 22px,
+    color-mix(in oklab, var(--ink) 5%, transparent) 22px 23px);
+  background-attachment: fixed;
 }
 
-/* Receipt line: label, dot leader, value. */
+/* Each block rises gently into place, staggered by --i. Visible by default. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.rise { animation: rise 0.6s var(--ease-grow) both; animation-delay: calc(var(--i, 0) * 80ms); }
+
+/* Component classes sit below Tailwind utilities, so a utility on an element can still adjust them. */
+@layer components {
+/* Report line: label, dot leader, value. */
 .leader { flex: 1; align-self: end; margin: 0 0.5rem 0.4em; border-bottom: 2px dotted var(--rule); min-width: 1rem; }
 
-/* Confidence stamps. The outline form carries the meaning as well as the word. */
+/* Confidence labels. The word always shows; fill, dashed and dotted outlines repeat it for a quick scan. */
 .stamp {
-  display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
-  text-transform: uppercase; line-height: 1; padding: 0.35rem 0.5rem; border: 2px solid var(--ink);
-  transform: rotate(-1.5deg); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; padding: 0.35rem 0.65rem;
+  border: 1.5px solid var(--moss); border-radius: 999px; color: var(--moss); white-space: nowrap; width: max-content;
 }
-.stamp-measured { background: var(--ink); color: var(--paper); }
+.stamp::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: currentColor; flex: none; }
+.stamp-measured { background: var(--moss); color: var(--paper); }
 .stamp-allocated { border-style: dashed; }
-.stamp-estimated { border-style: dotted; border-width: 3px; }
+.stamp-estimated { border: 1.5px dotted var(--ink-soft); color: var(--ink-soft); }
+.stamp-estimated::before { background: transparent; border: 1.5px solid currentColor; }
 
-/* Bracketed range: the bar spans low to high inside a 0..max track. */
-@keyframes span-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-.span-in { animation: span-in 0.9s var(--ease-print) 0.25s both; }
+/* A range: the capsule spans low to high inside a 0..max track. */
+@keyframes span-in { from { clip-path: inset(0 100% 0 0 round 999px); } to { clip-path: inset(0 0 0 0 round 999px); } }
+.span-in { animation: span-in 0.9s var(--ease-grow) 0.25s both; }
 
 dialog.sheet { margin: auto 0 0 0; max-width: none; width: 100%; background: var(--paper); color: var(--ink);
-  border: 0; border-top: 3px solid var(--ink); padding: 0; }
-dialog.sheet::backdrop { background: color-mix(in oklab, var(--desk) 70%, transparent); }
-@media (min-width: 40rem) { dialog.sheet { margin: auto; width: 34rem; border: 3px solid var(--ink); } }
+  border: 0; border-radius: 1.75rem 1.75rem 0 0; padding: 0;
+  box-shadow: 0 -8px 40px -12px oklch(20% 0.04 150 / 0.4); }
+dialog.sheet::backdrop { background: color-mix(in oklab, var(--desk) 70%, transparent); backdrop-filter: blur(2px); }
+@media (min-width: 40rem) { dialog.sheet { margin: auto; width: 34rem; border-radius: 1.75rem; } }
+
+/* Form controls are soft too. */
+select, textarea, input[type="number"], input[type="text"] { border-radius: 0.9rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .print, .span-in { animation: none; }
+  .rise, .span-in { animation: none; }
 }
 
 /* Clickable things say so: a hand cursor, a hover, and a press. Tailwind's base resets buttons to the arrow. */
@@ -88,36 +106,39 @@ button:not(:disabled), [role="switch"], summary, a[href] { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
 .btn-outline, .btn-solid, .btn-row, .btn-link, .btn-tab {
-  transition: background-size 0.3s var(--ease-print), background-color 0.2s, color 0.2s, border-color 0.2s,
+  transition: background-size 0.3s var(--ease-grow), background-color 0.2s, color 0.2s, border-color 0.2s,
     transform 0.1s ease-out, text-decoration-thickness 0.15s;
 }
-/* Outlined: ink rises from the bottom like a print head. Longhands keep any background colour. */
+.btn-outline, .btn-solid, .btn-tab { border-radius: 999px; }
+/* Outlined: ink rises from the bottom. Longhands keep any background colour. */
 .btn-outline {
   background-image: linear-gradient(var(--ink), var(--ink));
   background-repeat: no-repeat;
   background-position: left bottom;
   background-size: 100% 0%;
 }
-.btn-solid svg { transition: transform 0.25s var(--ease-print); }
+.btn-solid svg { transition: transform 0.25s var(--ease-grow); }
 /* Rows grow 0.5rem into the section padding so the hover tint has room; content does not move. */
-.btn-row { margin-inline: -0.5rem; padding-inline: 0.5rem; width: calc(100% + 1rem); }
+.btn-row { margin-inline: -0.5rem; padding-inline: 0.5rem; width: calc(100% + 1rem); border-radius: 1rem; }
 .btn-link { text-decoration-thickness: 1px; }
 
 @media (hover: hover) {
   .btn-outline:hover:not(:disabled) { background-size: 100% 100%; color: var(--paper); }
-  .btn-solid:hover:not(:disabled) { background-color: var(--mark); color: var(--on-mark); }
+  .btn-solid:hover:not(:disabled) { background-color: var(--mark); border-color: var(--mark); color: var(--on-mark); }
   .btn-solid:hover:not(:disabled) svg { transform: translateX(5px); }
-  .btn-row:hover:not(:disabled) { background-color: color-mix(in oklab, var(--ink) 7%, transparent); }
-  .btn-link:hover { text-decoration-thickness: 4px; }
-  .btn-tab:hover:not([aria-current]) { color: var(--ink); border-color: var(--ink); }
+  .btn-row:hover:not(:disabled) { background-color: var(--tint); }
+  .btn-link:hover { text-decoration-thickness: 3px; }
+  .btn-tab:hover:not([aria-current]):not([aria-pressed="true"]) { color: var(--ink); border-color: var(--ink); }
 }
-/* Press: a quick stamp. */
-.btn-outline:active:not(:disabled), .btn-solid:active:not(:disabled) { transform: translateY(2px) rotate(-0.4deg); }
+/* Press: a soft push. */
+.btn-outline:active:not(:disabled), .btn-solid:active:not(:disabled), .btn-tab:active:not(:disabled) { transform: scale(0.97); }
 .btn-row:active:not(:disabled) { transform: translateY(1px); }
 
 @media (prefers-reduced-motion: reduce) {
   .btn-outline, .btn-solid, .btn-row, .btn-link, .btn-tab, .btn-solid svg { transition: none; }
-  .btn-outline:active, .btn-solid:active, .btn-row:active { transform: none; }
+  .btn-outline:active, .btn-solid:active, .btn-tab:active, .btn-row:active { transform: none; }
+}
+
 }
 
 /* Printing the report: plain light paper, no controls, nothing animated or cut off. */
@@ -125,11 +146,12 @@ button:disabled { cursor: not-allowed; }
   .no-print { display: none !important; }
   :root, :root[data-theme="dark"] {
     --desk: #fff; --paper: #fff; --ink: #000; --ink-soft: #333; --rule: #999;
-    --mark: oklch(91% 0.21 118); --on-mark: #000; color-scheme: light;
+    --mark: oklch(84% 0.13 128); --on-mark: #000; --moss: oklch(40% 0.09 145); --clay: oklch(50% 0.13 45);
+    --tint: #fff; color-scheme: light;
   }
   html, body { background: #fff; }
-  main.torn { box-shadow: none !important; max-width: none !important; }
-  .torn::after { display: none; }
-  .print, .span-in { animation: none !important; clip-path: none !important; transform: none !important; }
-  .bg-ink, .bg-mark { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .contours { background-image: none; }
+  main { box-shadow: none !important; max-width: none !important; border-radius: 0 !important; }
+  .rise, .span-in { animation: none !important; clip-path: none !important; transform: none !important; opacity: 1 !important; }
+  .bg-ink, .bg-mark, .bg-moss, .bg-clay, .stamp-measured { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }

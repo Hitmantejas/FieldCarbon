@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Figure } from "../api";
 import { useApi } from "../api";
-import { FindingList } from "../components/FindingList";
+import { FindingList, SeverityTag } from "../components/FindingList";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
@@ -22,11 +22,11 @@ const amount = (f: Figure) => (f.unit === "GBP" ? `£${Math.abs(f.value ?? 0).to
 
 function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (title: string, shown: string, f: Figure) => void }) {
   return (
-    <ul className="divide-y-2 divide-dashed divide-rule border-y-2 border-ink">
+    <ul className="divide-y divide-rule">
       {findings.map((f) => {
         const row = (
           <>
-            <span className="bg-mark px-2 py-1 text-center font-mono text-xs font-bold uppercase tracking-widest text-on-mark">{f.severity}</span>
+            <SeverityTag severity={f.severity} />
             <span className="max-w-[75ch]">
               {f.title}
               {f.on_note !== undefined && f.in_log !== undefined && f.kind === "date_differs" && (
@@ -35,7 +35,7 @@ function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (
               {f.reasons && <span className="block text-sm text-ink-soft">{f.reasons.join(" ")}</span>}
             </span>
             {f.figure ? (
-              <span className="flex items-center gap-3">
+              <span className="col-start-2 flex items-center gap-3 sm:col-start-auto">
                 <span className="num text-sm">{amount(f.figure)}</span>
                 <Stamp label={f.figure.label} />
               </span>
@@ -47,11 +47,11 @@ function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (
         return (
           <li key={f.kind + f.doc_no}>
             {f.figure ? (
-              <button onClick={() => onOpen(f.title, amount(f.figure!), f.figure!)} className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5rem_1fr_auto] items-center gap-4 py-3 text-left">
+              <button onClick={() => onOpen(f.title, amount(f.figure!), f.figure!)} className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3 text-left">
                 {row}
               </button>
             ) : (
-              <div className="grid grid-cols-[5rem_1fr_auto] items-center gap-4 py-3">{row}</div>
+              <div className="grid grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3">{row}</div>
             )}
           </li>
         );
@@ -62,7 +62,7 @@ function NoteFindings({ findings, onOpen }: { findings: NoteFinding[]; onOpen: (
 
 function HowButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest" aria-label={`How ${label} was worked out`}>
+    <button onClick={onClick} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold" aria-label={`How ${label} was worked out`}>
       How this was worked out
     </button>
   );
@@ -92,7 +92,7 @@ export function FuelControl() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-control">
-        <h1 id="h-control" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-control" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           Fuel control
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -121,7 +121,7 @@ export function FuelControl() {
             </p>
             <dl className="mb-4 grid max-w-xl grid-cols-2 gap-4">
               {([["On the notes", notes.data.litres_on_notes], ["In the fuel log", notes.data.litres_in_log]] as [string, Figure][]).map(([name, f]) => (
-                <button key={name} onClick={() => open(`Litres ${name.toLowerCase()}`, amount(f), f)} className="btn-row border-2 border-ink p-3 text-left">
+                <button key={name} onClick={() => open(`Litres ${name.toLowerCase()}`, amount(f), f)} className="rounded-3xl bg-tint p-4 text-left transition-colors hover:bg-mark/40">
                   <dt className="font-mono text-xs uppercase tracking-widest text-ink-soft">{name}</dt>
                   <dd className="mt-1 flex items-center gap-3">
                     <span className="num text-2xl font-bold">{amount(f)}</span>
@@ -152,22 +152,23 @@ export function FuelControl() {
           <Loading what="depots" />
         ) : (
           <>
-            <div role="group" aria-label="Which depot" className="mb-3 flex flex-wrap gap-1 font-mono text-xs uppercase tracking-widest">
+            <div role="group" aria-label="Which depot" className="mb-3 flex flex-wrap gap-2 text-sm">
               {depots.map(([id, name]) => (
                 <button
                   key={id}
                   onClick={() => setDepot(id)}
                   aria-pressed={id === depotId}
-                  className={`btn-tab min-h-11 border-2 px-3 uppercase ${id === depotId ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
+                  className={`btn-tab min-h-11 border-2 px-4 ${id === depotId ? "border-ink bg-ink font-bold text-paper" : "border-rule hover:border-ink"}`}
                 >
                   {name}
                 </button>
               ))}
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-left">
               <caption className="sr-only">Book stock against measured stock at each month end</caption>
               <thead>
-                <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                   <th scope="col" className="py-2 font-normal">Month end</th>
                   <th scope="col" className="py-2 text-right font-normal">Books say (L)</th>
                   <th scope="col" className="py-2 text-right font-normal">Tank holds (L)</th>
@@ -179,7 +180,7 @@ export function FuelControl() {
                 {depotRows.map((d) => {
                   const off = Math.abs(d.gap_l) >= tolerance;
                   return (
-                    <tr key={d.month_end} className={`border-b-2 border-dashed border-rule ${off ? "bg-mark text-on-mark" : ""}`}>
+                    <tr key={d.month_end} className={`border-b border-rule ${off ? "bg-mark text-on-mark" : ""}`}>
                       <th scope="row" className="py-2 pr-2 font-normal">{monthName(d.month_end)}</th>
                       <td className="num py-2 text-right">{litres(d.book_l)}</td>
                       <td className="num py-2 text-right">{litres(d.measured_l)}</td>
@@ -190,7 +191,8 @@ export function FuelControl() {
                 })}
               </tbody>
             </table>
-            <p className="mt-2 text-sm text-ink-soft">A difference of {litres(tolerance)} litres or more is marked. Books say = deliveries minus fuel handed out. A positive difference means fuel is missing from the tank.</p>
+            </div>
+            <p className="mt-2 text-sm text-ink-soft">A difference of {litres(tolerance)} litres or more is marked. Books say = deliveries minus fuel handed out. A positive difference means the tank holds less than the books say.</p>
           </>
         )}
       </section>
@@ -208,17 +210,18 @@ export function FuelControl() {
           <>
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <Stamp label={r.machine_months.label} />
-              <button onClick={() => setShowAll((v) => !v)} aria-pressed={showAll} className="btn-outline min-h-11 border-2 border-ink px-3 font-mono text-xs uppercase tracking-widest">
+              <button onClick={() => setShowAll((v) => !v)} aria-pressed={showAll} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold">
                 {showAll ? "Show only the ones to look at" : `Show all ${r.machine_months.rows.length} machine-months`}
               </button>
             </div>
             {machineRows.length === 0 ? (
               <p>No machine took more than {Math.round((r.settings.ratio_limit - 1) * 100)}% above what it burned.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <caption className="sr-only">Fuel handed to each machine against fuel it burned, by month</caption>
                 <thead>
-                  <tr className="border-b-2 border-ink font-mono text-xs uppercase tracking-widest text-ink-soft">
+                  <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
                     <th scope="col" className="py-2 font-normal">Machine</th>
                     <th scope="col" className="py-2 font-normal">Month</th>
                     <th scope="col" className="py-2 text-right font-normal">Handed out (L)</th>
@@ -229,7 +232,7 @@ export function FuelControl() {
                 </thead>
                 <tbody>
                   {machineRows.map((m) => (
-                    <tr key={m.machine_id + m.month} className={`border-b-2 border-dashed border-rule ${m.flagged ? "bg-mark text-on-mark" : ""}`}>
+                    <tr key={m.machine_id + m.month} className={`border-b border-rule ${m.flagged ? "bg-mark text-on-mark" : ""}`}>
                       <th scope="row" className="py-2 pr-2 font-bold">{m.machine}</th>
                       <td className="py-2">{monthName(m.month + "-01")}</td>
                       <td className="num py-2 text-right">{litres(m.dispensed_l)}</td>
@@ -240,6 +243,7 @@ export function FuelControl() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
             <p className="mt-2 text-sm text-ink-soft">Marked when a machine was handed {Math.round((r.settings.ratio_limit - 1) * 100)}% or more above what it burned, and at least {litres(r.settings.min_litres)} litres.</p>
           </>

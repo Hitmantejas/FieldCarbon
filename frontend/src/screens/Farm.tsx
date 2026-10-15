@@ -33,7 +33,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
   return (
     <>
       {failed && (
-        <div role="alert" className="mx-4 mb-6 border-2 border-ink p-4">
+        <div role="alert" className="mx-4 mb-6 rounded-2xl border-2 border-clay p-4">
           <p className="font-bold">We could not load your farm's figures.</p>
           <p>
             {failed}. Start the API with <span className="num text-sm">uvicorn backend.api.main:app --port 8080</span>{" "}
@@ -43,7 +43,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
       )}
 
       {s && (
-        <section aria-labelledby="fuel-h" className="print px-4 pb-6" style={step(3)}>
+        <section aria-labelledby="fuel-h" className="rise px-4 pb-6" style={step(3)}>
           <SectionHead id="fuel-h" title="Fuel used" tone="solid" aside={<Stamp label={s.litres.label} />} />
           <button
             onClick={() =>
@@ -54,7 +54,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
             aria-label="Fuel used, how it was worked out"
           >
             <span className="flex items-baseline gap-2">
-              <span className="font-display text-[7.5rem] font-extrabold leading-[0.9] tracking-tight">
+              <span className="font-display text-[7.5rem] font-semibold leading-[0.9] tracking-tight">
                 <CountUp to={s.litres.value!} format={litres} />
               </span>
               <span className="font-display text-3xl font-bold uppercase">litres</span>
@@ -123,10 +123,10 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
       )}
 
       {pain.data && (
-        <section aria-labelledby="idle-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(4)}>
+        <section aria-labelledby="idle-h" className="rise border-t border-rule px-4 py-6" style={step(4)}>
           <SectionHead id="idle-h" title="Fuel not doing work" tone="mark" aside={<Stamp label={pain.data.not_working.label} />} />
           <p className="mt-2 flex items-baseline gap-3">
-            <span className="bg-mark px-2 font-display text-6xl font-extrabold leading-none text-on-mark">
+            <span className="bg-mark px-2 font-display text-6xl font-semibold leading-none text-on-mark">
               <CountUp to={pain.data.not_working.share_pct} format={pct} />
             </span>
             <span className="num text-sm text-ink-soft">
@@ -151,7 +151,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
       )}
 
       {ops.data && (
-        <section aria-labelledby="ops-h" className="print border-t-2 border-dashed border-rule px-4 py-6" style={step(5)}>
+        <section aria-labelledby="ops-h" className="rise border-t border-rule px-4 py-6" style={step(5)}>
           <SectionHead id="ops-h" title="Where it went" tone="dashed" />
           <ul>
             {(showAll ? ops.data : ops.data.slice(0, TOP_ROWS)).map((r) => (
@@ -186,7 +186,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
           {ops.data.length > TOP_ROWS && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="btn-outline mt-4 min-h-11 w-full border-2 border-ink px-4 font-mono text-xs uppercase tracking-widest"
+              className="btn-outline mt-4 min-h-11 w-full border-2 border-ink px-4 text-sm font-bold"
             >
               {showAll ? "Show fewer" : `Show all ${ops.data.length}`}
             </button>
@@ -197,7 +197,7 @@ export function Farm({ farm, summary, pain, onNext }: Props) {
       <div className="no-print px-4 pb-6">
         <button
           onClick={onNext}
-          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+          className="btn-solid flex min-h-14 w-full items-center justify-between border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
         >
           Next: Pain points
           <Arrow />

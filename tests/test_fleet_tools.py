@@ -38,10 +38,29 @@ def test_fleet_totals_tie_to_the_real_litres():
     assert r["totals"]["litres"]["value"] == pytest.approx(REAL_TOTAL, abs=3)
 
 
+@pytest.mark.parametrize("kwargs", [{"group_by": "site"}, {"group_by": "machine", "site_id": "S2"}])
+def test_totals_carry_jobs_hours_and_area_summed_over_the_rows(kwargs):
+    r = fleet_summary(**kwargs)  # the Overview screen reads these; missing ones showed "NaN jobs over NaN engine hours"
+    t = r["totals"]
+    assert t["jobs"] == sum(x["jobs"] for x in r["rows"]) > 0
+    assert t["hours"] == pytest.approx(sum(x["hours"] for x in r["rows"])) and t["hours"] > 0
+    assert t["area_ha"] == pytest.approx(sum(x["area_ha"] for x in r["rows"]))
+    assert isinstance(t["jobs"], int) and isinstance(t["hours"], float)
+
 def test_site_rows_carry_the_weakest_label_of_their_inputs():
     rows = by_key(fleet_summary("site"))
     assert rows["S1"]["litres"]["label"] == "allocated"      # S1 includes fuel burned outside jobs, shared out by rule
     assert rows["S2"]["litres"]["label"] == rows["S3"]["litres"]["label"] == "measured"
+
+
+def test_vineyard_fuel_stays_measured_but_says_it_comes_from_the_tank_level():
+    r = fleet_summary("site")
+    rows = by_key(r)
+    s2, s3 = rows["S2"]["litres"]["how"], rows["S3"]["litres"]["how"]
+    assert "tank levels" in s2 and "fuel-flow sensor" in s2 and "own fuel data" not in s2
+    assert "tank level" not in s3 and "own fuel data" in s3
+    assert "Vineyard fuel is" in r["totals"]["litres"]["how"]          # the fleet total includes the vineyard
+    assert "Vineyard" not in by_key(fleet_summary("site", site_id="S1"))["S1"]["litres"]["how"]
 
 
 def test_month_view_covers_the_company_year_and_adds_up():
@@ -189,3 +208,8 @@ def test_machine_rows_name_their_site_and_site_rows_say_what_kind_of_data_they_h
     assert all(r["site_id"] == r["key"][:2] for r in machines)
     kinds = {r["key"]: r["data_kind"] for r in fleet_summary("site")["rows"]}
     assert kinds == {"S1": "raw telemetry", "S2": "per-operation summary", "S3": "raw telemetry, tillage only"}
+
+
+def test_a_stock_gap_is_described_against_the_books_not_as_missing_fuel():
+    gaps = [f["title"] for f in reconcile_fuel()["findings"] if f["kind"].startswith("stock")]
+    assert gaps and all("than the books show" in t and "missing" not in t for t in gaps)

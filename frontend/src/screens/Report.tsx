@@ -39,7 +39,7 @@ export function Report({ farm, pct, answers }: { farm: FarmId; pct: number | nul
 
   if (error && !r) {
     return (
-      <div role="alert" className="mx-4 mb-6 border-2 border-ink p-4">
+      <div role="alert" className="mx-4 mb-6 rounded-2xl border-2 border-clay p-4">
         <p className="font-bold">We could not build the report.</p>
         <p>{error}. Check the API is running and reload this page.</p>
       </div>
@@ -49,12 +49,12 @@ export function Report({ farm, pct, answers }: { farm: FarmId; pct: number | nul
 
   const when = new Date(r.meta.generated_at).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" });
   const given = (Object.keys(r.answers) as (keyof Answers)[]).filter((f) => r.answers[f] !== undefined);
-  const section = "print border-t-2 border-dashed border-rule px-4 py-6";
+  const section = "rise border-t border-rule px-4 py-6";
 
   const print = (
     <button
       onClick={() => window.print()}
-      className="btn-solid no-print flex min-h-14 w-full items-center justify-center border-2 border-ink bg-ink px-4 font-mono text-sm uppercase tracking-widest text-paper"
+      className="btn-solid no-print flex min-h-14 w-full items-center justify-center border-2 border-ink bg-ink px-4 text-sm font-bold text-paper"
     >
       Print or save as PDF
     </button>
@@ -62,8 +62,8 @@ export function Report({ farm, pct, answers }: { farm: FarmId; pct: number | nul
 
   return (
     <>
-      <section aria-labelledby="report-h" className="print px-4 pb-6" style={step(3)}>
-        <h2 id="report-h" className="font-display text-4xl font-extrabold uppercase leading-none">
+      <section aria-labelledby="report-h" className="rise px-4 pb-6" style={step(3)}>
+        <h2 id="report-h" className="font-display text-4xl font-semibold leading-tight">
           {r.meta.title}
         </h2>
         <p className="mt-2 font-bold">

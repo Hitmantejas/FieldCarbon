@@ -66,7 +66,7 @@ export function WhatIf() {
   return (
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-whatif">
-        <h1 id="h-whatif" className="print font-display text-6xl font-extrabold uppercase leading-[0.95] tracking-wide" style={{ "--i": 1 } as React.CSSProperties}>
+        <h1 id="h-whatif" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           What if
         </h1>
         <p className="mt-3 max-w-[70ch] text-ink-soft">
@@ -83,9 +83,9 @@ export function WhatIf() {
               <button
                 onClick={() => setScenario(s.id)}
                 aria-pressed={scenario === s.id}
-                className={`flex h-full w-full flex-col gap-2 border-2 p-4 text-left transition-colors ${scenario === s.id ? "border-ink bg-ink text-paper" : "border-ink hover:bg-ink/10"}`}
+                className={`flex h-full w-full flex-col gap-2 rounded-3xl border-2 p-5 text-left transition-colors ${scenario === s.id ? "border-ink bg-ink text-paper" : "border-rule bg-tint hover:border-ink"}`}
               >
-                <span className="font-display text-2xl font-extrabold uppercase leading-none tracking-wide">{s.name}</span>
+                <span className="font-display text-2xl font-semibold leading-tight">{s.name}</span>
                 <span className="text-sm">{s.about}</span>
               </button>
             </li>
@@ -123,7 +123,7 @@ export function WhatIf() {
               </label>
             </div>
           </div>
-          <label className="flex flex-col gap-1 font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <label className="flex flex-col gap-2 text-sm text-ink-soft">
             Where
             <select value={site} onChange={(e) => setSite(e.target.value)} className="min-h-11 min-w-48 border-2 border-ink bg-paper px-2 font-sans text-base normal-case tracking-normal text-ink">
               <option value="">Whole fleet</option>
@@ -158,7 +158,7 @@ export function WhatIf() {
                     {row.f && (
                       <button
                         onClick={() => open(row.title, `${row.shown} a year`, row.f!)}
-                        className="btn-link ml-4 font-sans text-sm underline underline-offset-4"
+                        className="btn-link ml-2 inline-flex min-h-11 items-center px-2 font-sans text-sm underline underline-offset-4"
                         aria-label={`How ${row.title} was worked out`}
                       >
                         How
