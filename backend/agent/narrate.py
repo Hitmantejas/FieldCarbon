@@ -55,14 +55,18 @@ def foreign_number_format(text: str) -> list[str]:
     return list(dict.fromkeys(out))
 
 
-def _problems(text: str, facts: dict) -> tuple[str | None, int]:
-    """The rewrite message for every problem in `text` (None if it passes), and how many numbers were checked."""
+def _problems(text: str, facts: dict, extra_check: Callable[[str], str | None] | None = None) -> tuple[str | None, int]:
+    """The rewrite message for every problem in `text` (None if it passes), and how many numbers were checked.
+    `extra_check(text)` adds a feature's own rule (a message, or None when the text passes it)."""
     verdict = audit(text, [facts])
     unlabelled, unrounded = unlabelled_sentences(text), unrounded_numbers(text)
     foreign, forbidden = foreign_number_format(text), FORBIDDEN_WORDS.findall(text)
-    if verdict.faithful and not (unlabelled or unrounded or foreign or forbidden):
+    extra = extra_check(text) if extra_check else None
+    if verdict.faithful and not (unlabelled or unrounded or foreign or forbidden or extra):
         return None, verdict.checked
     parts = []
+    if extra:
+        parts.append(extra)
     if foreign:
         parts.append(f"These numbers are not written the required way: {', '.join(foreign)}. Use the digits 0-9, a full stop "
                      "for decimals and a comma for thousands in every language (16,492 and 29.8).")
@@ -79,7 +83,8 @@ def _add(total: dict, usage: dict | None) -> None:
         total[k] += (usage or {}).get(k) or 0
 
 
-def narrate_with_audit(facts: dict, write: Write, template: Template, language: str = "en") -> dict:
+def narrate_with_audit(facts: dict, write: Write, template: Template, language: str = "en",
+                       extra_check: Callable[[str], str | None] | None = None) -> dict:
     """{text, narrative_source: gemini | template, narrative_language, audited, attempts, numbers_checked, usage, error}."""
     clean = clean_facts(facts)
     usage = dict.fromkeys(USAGE_KEYS, 0)
@@ -93,7 +98,7 @@ def narrate_with_audit(facts: dict, write: Write, template: Template, language: 
             break
         _add(usage, r.get("usage"))
         text = (r.get("text") or "").strip()
-        rewrite, checked = _problems(text, clean) if text else ("Your previous text was empty. Write the text.", 0)
+        rewrite, checked = _problems(text, clean, extra_check) if text else ("Your previous text was empty. Write the text.", 0)
         if rewrite is None:
             return {"text": text, "narrative_source": "gemini", "narrative_language": language, "audited": True,
                     "attempts": attempts, "numbers_checked": checked, "usage": usage, "error": None}

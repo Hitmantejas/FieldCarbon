@@ -14,6 +14,7 @@ from backend.tools.rank_interventions import rank_interventions
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
+from backend.tools.diagnose_anomaly import diagnose_anomaly
 from backend.tools.fleet_jobs import fleet_jobs
 from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_opportunities import fleet_opportunities
@@ -33,7 +34,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
          "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
-         "check_uploaded_note": check_demo_note}
+         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly}
 
 
 def figures(node):
@@ -98,6 +99,10 @@ def check(case: dict, output, spec: dict) -> None:
     elif kind == "note_verdict":
         assert output["verdict"] == spec["equals"], output["verdict"]
         assert all(f["figure"] is None or (f["figure"]["source_ids"] and f["figure"]["label"]) for f in output["findings"])
+    elif kind == "diagnosis_top":
+        top = output["hypotheses"][0]
+        assert top["status"] == "supported" and top["id"] == spec["equals"], (top["id"], top["status"])
+        assert all(h["evidence"] is None or (h["evidence"]["source_ids"] and h["evidence"]["label"]) for h in output["hypotheses"])
     else:
         raise AssertionError(f"unknown check {kind}")
 

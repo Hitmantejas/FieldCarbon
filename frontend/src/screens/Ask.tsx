@@ -29,6 +29,7 @@ const LOOKED_AT: Record<string, string> = {
   reconcile_fuel: "Fuel handed out against fuel burned, and depot stock",
   check_delivery_notes: "Delivery notes against the fuel log",
   detect_anomalies: "Odd jobs and recorders",
+  diagnose_anomaly: "Possible causes, tested against the data",
   benchmark_peers: "Machines compared with similar machines",
   fleet_opportunities: "Ideas from research",
   what_if: "A what-if scenario",

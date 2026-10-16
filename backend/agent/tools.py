@@ -11,7 +11,7 @@ import json
 from functools import wraps
 
 from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, client_statement as _statement,
-                           data_quality as _quality,
+                           data_quality as _quality, diagnose_anomaly as _diagnose,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
                            fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
 
@@ -92,7 +92,8 @@ def data_quality() -> dict:
 @_safe
 def reconcile_fuel() -> dict:
     """Checks fuel handed out against fuel burned, each depot's book stock against its measured stock, delivery notes
-    entered twice, and night-time dispenses. Returns the findings and only the table rows that need a look."""
+    entered twice, and night-time dispenses. Returns the findings and only the table rows that need a look. Each finding
+    has an id; where diagnosable is true, pass that id to diagnose_anomaly to test its possible causes."""
     r = _recon.reconcile_fuel()
     tol = r["settings"]["stock_tolerance_l"]
     r["machine_months"] = {**r["machine_months"], "rows": [m for m in r["machine_months"]["rows"] if m["flagged"]]}
@@ -110,8 +111,18 @@ def check_delivery_notes() -> dict:
 @_safe
 def detect_anomalies() -> dict:
     """Things in the machines' own data that are worth a look: recorders that froze, jobs that burned far more or less
-    fuel per hour than usual, and tractors with a large share of fuel spent on idling and travel. Not proof of a fault."""
+    fuel per hour than usual, and tractors with a large share of fuel spent on idling and travel. Not proof of a fault.
+    Each finding has an id (diagnose_anomaly takes the ids marked diagnosable)."""
     return _anomalies.detect_anomalies()
+
+
+@_safe
+def diagnose_anomaly(finding_id: str) -> dict:
+    """Possible causes of one finding, each tested against the data by code: supported by the data, not supported by
+    the data, or cannot be tested with our data, in that order, with the evidence and what record would settle it.
+    finding_id is a finding's id from reconcile_fuel or detect_anomalies (like machine_over_dispense:S1:S1-T4:2025-10).
+    Say "supported by the data", never "proven" or "confirmed"; a person decides."""
+    return _diagnose.diagnose_anomaly(finding_id)
 
 
 @_safe
@@ -184,5 +195,5 @@ def client_statement(client_id: str) -> dict:
 
 
 AGENT_TOOLS = [fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
-               benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement]
+               diagnose_anomaly, benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement]
 BY_NAME = {t.__name__: t for t in AGENT_TOOLS}

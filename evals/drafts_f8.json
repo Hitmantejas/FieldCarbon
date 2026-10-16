@@ -1,5 +1,5 @@
 {
-  "note": "DRAFT agent eval cases for F8 (plan Appendix D.2). Not loaded by any harness yet: in F8 each case moves into cases.json with \"agent\": true, once its tool exists (client_statement, diagnose_anomaly, weekly_briefing), multi-turn sessions exist (turns), and score_run scores answer_checks. Check kinds: forbidden_regex, tool_not_called, must_mention_any, no_new_numbers.",
+  "note": "DRAFT agent eval cases for F8 (plan Appendix D.2). Not loaded by any harness yet: in F8 each case moves into cases.json with \"agent\": true, once its tool exists (client_statement, diagnose_anomaly, weekly_briefing), multi-turn sessions exist (turns), and score_run scores answer_checks. Check kinds: forbidden_regex, tool_not_called, must_mention_any, no_new_numbers. plain-diagnose-night-fuel moved to cases.json in F5 (its answer_checks are scored once score_run supports them).",
   "cases": [
     {
       "id": "plain-client-statement",
@@ -7,17 +7,6 @@
       "question": "What are Client farm 03's emissions per hectare?",
       "expected_tools": ["client_statement"],
       "answer_checks": [{"type": "no_new_numbers"}]
-    },
-    {
-      "id": "plain-diagnose-night-fuel",
-      "needs": "F5 diagnose_anomaly",
-      "question": "Why did tractor 4 at the Arable site take so much fuel in October?",
-      "expected_tools": ["reconcile_fuel", "diagnose_anomaly"],
-      "answer_checks": [
-        {"type": "forbidden_regex", "pattern": "(?i)\\b(proven|confirmed|root cause found)\\b"},
-        {"type": "must_mention_any", "phrases": ["supported by the data"]},
-        {"type": "no_new_numbers"}
-      ]
     },
     {
       "id": "plain-briefing",

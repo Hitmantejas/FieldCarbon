@@ -4,7 +4,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
 
-from backend.agent import statement_text
+from backend.agent import diagnosis_text, statement_text
+from backend.agent.gemini_text import vertex_generate
 from backend.api.limits import AskLimiter, Refused, caller_of
 
 from backend.tools import upload_note
@@ -13,6 +14,7 @@ from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.client_statement import client_statement
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
+from backend.tools.diagnose_anomaly import diagnose_anomaly
 from backend.tools.emissions_per_client import emissions_per_client
 from backend.tools.fleet_jobs import fleet_jobs
 from backend.tools.fleet_opportunities import fleet_opportunities
@@ -133,6 +135,37 @@ def get_client_statement(request: Request, client_id: str, language: Literal["en
         with _statement_lock:
             _statement_cache[key] = narrative
     return {**s, "language": language, "narrative": narrative}
+
+
+# F5 anomaly diagnosis
+diagnosis_generate = vertex_generate
+_diagnosis_cache: dict[str, dict] = {}
+_diagnosis_lock = threading.Lock()
+
+
+@router.get("/diagnosis")
+def get_diagnosis(request: Request, finding_id: str = Query(min_length=1, max_length=120), narrate: bool = False):
+    """Possible causes of one finding, each tested against the data by code. `narrate=true` adds Gemini's one-line
+    reasons, up to two untested ideas and a checked summary; it never changes a result or the order."""
+    try:
+        d = diagnose_anomaly(finding_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e)) from e
+    if not narrate:
+        return d
+    with _diagnosis_lock:
+        cached = _diagnosis_cache.get(finding_id)
+    if cached is not None:
+        return cached
+    _admit(request)
+    try:
+        out = diagnosis_text.explain(d, diagnosis_generate)
+    except Exception as e:  # noqa: BLE001 - the checks or the fixed wording failed; the tests are still at narrate=false
+        raise HTTPException(502, "The explanation could not be written. The tested causes are still shown.") from e
+    if out["summary"]["error"] is None:  # a model outage is not cached, so a reload can try again
+        with _diagnosis_lock:
+            _diagnosis_cache[finding_id] = out
+    return out
 
 
 # F7 live delivery-note upload

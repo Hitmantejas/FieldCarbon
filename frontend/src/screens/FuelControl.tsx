@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { Figure } from "../api";
 import { useApi } from "../api";
+import { DiagnosisPanel } from "../components/DiagnosisPanel";
 import { FindingList, SeverityTag } from "../components/FindingList";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 import { checkDeliveryNote, NOTE_MAX_BYTES, NOTE_TYPES } from "../fleetApi";
-import type { Anomalies, DeliveryNotes, DepotMonth, NoteCheck, NoteFinding, NoteVerdict, ReadLine, Reconciliation, Severity } from "../fleetApi";
+import type { Anomalies, DeliveryNotes, DepotMonth, Finding, NoteCheck, NoteFinding, NoteVerdict, ReadLine, Reconciliation, Severity } from "../fleetApi";
 import { litres } from "../format";
 
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
@@ -228,6 +229,7 @@ export function FuelControl() {
   const anomalies = useApi<Anomalies>("/api/fleet/anomalies");
   const notes = useApi<DeliveryNotes>("/api/fleet/delivery-notes");
   const [opened, setOpened] = useState<Opened | null>(null);
+  const [diagnosing, setDiagnosing] = useState<Finding | null>(null);
   const [depot, setDepot] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
@@ -258,7 +260,7 @@ export function FuelControl() {
 
       <section className="px-6" aria-labelledby="h-recon">
         <SectionHead id="h-recon" title="Fuel that does not add up" tone="mark" aside={r && <HowButton onClick={() => openChecked("Fuel that does not add up", r.depots)} label="the depot check" />} />
-        {!r ? <Loading what="reconciliation" /> : r.findings.length === 0 ? <p>Nothing found.</p> : <FindingList findings={bySeverity(r.findings)} onOpen={open} />}
+        {!r ? <Loading what="reconciliation" /> : r.findings.length === 0 ? <p>Nothing found.</p> : <FindingList findings={bySeverity(r.findings)} onOpen={open} onDiagnose={setDiagnosing} />}
       </section>
 
       <section className="px-6" aria-labelledby="h-notes">
@@ -299,7 +301,7 @@ export function FuelControl() {
 
       <section className="px-6" aria-labelledby="h-odd">
         <SectionHead id="h-odd" title="Odd in the machines' data" tone="dashed" />
-        {!anomalies.data ? <Loading what="machine findings" /> : <FindingList findings={anomalies.data.findings} onOpen={open} />}
+        {!anomalies.data ? <Loading what="machine findings" /> : <FindingList findings={anomalies.data.findings} onOpen={open} onDiagnose={setDiagnosing} />}
       </section>
 
       <section className="px-6" aria-labelledby="h-depot">
@@ -407,6 +409,7 @@ export function FuelControl() {
       </section>
 
       <WorkingSheet opened={opened} onClose={() => setOpened(null)} />
+      <DiagnosisPanel finding={diagnosing} onClose={() => setDiagnosing(null)} />
     </div>
   );
 }

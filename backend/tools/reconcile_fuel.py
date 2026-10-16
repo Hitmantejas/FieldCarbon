@@ -7,6 +7,7 @@ import pandas as pd
 from backend.emissions.text import bullets, month_name
 from backend.fleet import data
 from backend.tools.contracts import Figure
+from backend.tools.finding_id import tag
 
 SYNTHETIC = "fleet_synthetic"
 
@@ -49,6 +50,7 @@ def reconcile_fuel(ratio_limit: float = 1.10, min_litres: float = 50.0, stock_to
     """Does the fuel handed out match the fuel burned, and does the depot's book stock match its measured stock?
 
     Works only from the logs and the machines' fuel data; it never reads the planted-problem answer file.
+    Each finding has a stable `id`; where `diagnosable` is true, `diagnose_anomaly(id)` tests its possible causes.
     """
     findings: list[dict] = []
     deliveries, disp = data.deliveries(), data.dispenses().assign(month=lambda d: d.ts.dt.to_period("M").astype(str))
@@ -65,7 +67,7 @@ def reconcile_fuel(ratio_limit: float = 1.10, min_litres: float = 50.0, stock_to
             "kind": "duplicate_delivery_note", "severity": _severity(r.litres), "title":
             f"Delivery note {r.doc_no} was entered twice at the {data.site_name(site)} depot",
             "site_id": site, "site": data.site_name(site), "machine_id": None, "machine": None, "depot_id": r.depot_id,
-            "month": str(r.ts.to_period("M")), "ratio": None, "night_dispenses": 0,
+            "month": str(r.ts.to_period("M")), "ratio": None, "night_dispenses": 0, "doc_no": r.doc_no,
             "litres": _litres(r.litres, bullets(
                 f"Delivery note **{r.doc_no}** from {r.supplier} for **{r.litres:,.0f} litres** was entered twice, {when}.",
                 "The same note number, depot and litres can only be one delivery, so we count it once when comparing the depot's stock.",
@@ -146,6 +148,7 @@ def reconcile_fuel(ratio_limit: float = 1.10, min_litres: float = 50.0, stock_to
             prev_gap, prev_date = gap, rd.date
 
     findings.sort(key=lambda f: -f["litres"]["value"])
+    tag(findings)
     label = {"label": "measured", "source_ids": [SYNTHETIC]}
     return {
         "findings": findings,

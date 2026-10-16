@@ -646,6 +646,98 @@
       "checks": []
     },
     {
+      "id": "diagnose-a1",
+      "question": "Why was tractor 4 at the arable site given more fuel than it burned in October 2025?",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "machine_over_dispense:S1:S1-T4:2025-10"
+      },
+      "checks": [
+        {
+          "type": "diagnosis_top",
+          "equals": "night_fuel_outside_shift"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "diagnose-a2",
+      "question": "Why is fuel missing from the arable site depot in January 2026?",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "stock_gap:S1:S1-D1:2026-01"
+      },
+      "checks": [
+        {
+          "type": "diagnosis_top",
+          "equals": "unlogged_withdrawal"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "diagnose-a3",
+      "question": "Why does delivery note DN-S2-0004 appear twice?",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "duplicate_delivery_note:S2:S2-D1:2025-09:DN-S2-0004"
+      },
+      "checks": [
+        {
+          "type": "diagnosis_top",
+          "equals": "same_note_entered_twice"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "diagnose-unknown-id",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "machine_over_dispense:S1:S1-T9:2025-10"
+      },
+      "expect_error": "unknown finding id",
+      "checks": []
+    },
+    {
+      "id": "plain-diagnose-night-fuel",
+      "agent": true,
+      "question": "Why did tractor 4 at the Arable site take so much fuel in October?",
+      "expected_tools": [
+        "reconcile_fuel",
+        "diagnose_anomaly"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "finds",
+          "kind": "machine_over_dispense",
+          "machine_id": "S1-T4",
+          "diagnosable": true
+        }
+      ],
+      "answer_checks": [
+        {"type": "forbidden_regex", "pattern": "(?i)\\b(proven|confirmed|root cause found)\\b"},
+        {"type": "must_mention_any", "phrases": ["supported by the data"]},
+        {"type": "no_new_numbers"}
+      ],
+      "plain_language": true
+    },
+    {
       "id": "upload-matches",
       "question": "Check this delivery note against our fuel log.",
       "expected_tools": [

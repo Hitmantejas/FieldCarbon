@@ -1,0 +1,32 @@
+{
+  "planted": 3,
+  "correct": 3,
+  "accuracy": 1.0,
+  "results": [
+    {
+      "anomaly_id": "A1",
+      "kind": "over_dispense",
+      "finding_id": "machine_over_dispense:S1:S1-T4:2025-10",
+      "true_cause": "night_fuel_outside_shift",
+      "top_supported": "night_fuel_outside_shift",
+      "correct": true
+    },
+    {
+      "anomaly_id": "A2",
+      "kind": "unlogged_withdrawal",
+      "finding_id": "stock_gap:S1:S1-D1:2026-01",
+      "true_cause": "unlogged_withdrawal",
+      "top_supported": "unlogged_withdrawal",
+      "correct": true
+    },
+    {
+      "anomaly_id": "A3",
+      "kind": "duplicate_delivery_note",
+      "finding_id": "duplicate_delivery_note:S2:S2-D1:2025-09:DN-S2-0004",
+      "true_cause": "same_note_entered_twice",
+      "top_supported": "same_note_entered_twice",
+      "correct": true
+    }
+  ],
+  "note": "diagnose_anomaly tests causes from the logs and the machines' fuel data; it never reads the answer file."
+}

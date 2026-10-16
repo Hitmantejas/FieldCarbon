@@ -31,11 +31,13 @@ export type Severity = "high" | "medium" | "low";
 
 // Anomalies and reconciliation findings share the fields the overview needs.
 export interface Finding {
+  id: string;
   kind: string;
   severity: Severity;
   title: string;
   litres: Figure;
   site_id: string;
+  diagnosable: boolean; // true when diagnose_anomaly has causes to test for this kind
 }
 
 export interface Anomalies {
@@ -304,4 +306,38 @@ export async function checkDeliveryNote(photo: Blob, signal?: AbortSignal): Prom
   const r = await fetch("/api/fleet/delivery-notes/check", { method: "POST", headers: { "Content-Type": photo.type }, body: photo, signal });
   if (!r.ok) throw await apiError(r);
   return r.json() as Promise<NoteCheck>;
+}
+
+// F5 anomaly diagnosis (GET /api/fleet/diagnosis): possible causes tested by code; with narrate, Gemini adds one-line
+// reasons, up to two untested ideas and a summary checked by code. Gemini never sets a result or the order.
+export type CauseStatus = "supported" | "not_supported" | "cannot_test";
+
+export interface Cause {
+  id: string;
+  title: string;
+  description: string;
+  status: CauseStatus;
+  status_text: string;
+  evidence: Figure | null;
+  explains_pct: number | null;
+  would_settle: string | null;
+  suggested_by: "code" | "gemini";
+  why?: string | null;
+  tag?: string | null;
+}
+
+export interface Diagnosis {
+  finding_id: string;
+  kind: string;
+  title: string;
+  finding_figure: Figure;
+  hypotheses: Cause[];
+  disclaimer: string;
+  summary?: Narrative; // only with narrate=true
+}
+
+export async function fetchDiagnosis(findingId: string, narrate: boolean, signal?: AbortSignal): Promise<Diagnosis> {
+  const r = await fetch(`/api/fleet/diagnosis?${new URLSearchParams({ finding_id: findingId, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<Diagnosis>;
 }
