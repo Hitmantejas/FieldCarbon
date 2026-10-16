@@ -1,0 +1,32 @@
+{
+  "receipt_id": "MNT-0029",
+  "farm_id": "maintenance",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "maintenance-v1",
+  "extracted": {
+    "sheet_number": "MNT-0029",
+    "date": "2026-03-18",
+    "machine_id": "S1-T3",
+    "machine_as_written": "Tractor 3, 140 kW",
+    "service_type": "Hydraulic hose replaced",
+    "hours_at_service": 35.5,
+    "cost_gbp": 151.5,
+    "confidence": {
+      "machine": "high",
+      "date": "high",
+      "hours": "high",
+      "cost": "high"
+    },
+    "notes": null
+  },
+  "extracted_at": "2026-10-16T19:51:16+00:00",
+  "image": "sheets/MNT-0029.jpg",
+  "usage": {
+    "input_tokens": 2149,
+    "output_tokens": 107,
+    "thinking_tokens": 763,
+    "total_tokens": 3019
+  },
+  "model_version": "gemini-3.5-flash"
+}

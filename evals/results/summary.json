@@ -786,7 +786,24 @@
       "expected_verdict": 36,
       "sheets": 36
     },
-    "maintenance_accuracy": "not run yet",
+    "maintenance_accuracy": {
+      "sheets": 36,
+      "read": 36,
+      "field_accuracy": {
+        "sheet_number": 1.0,
+        "date": 1.0,
+        "machine_id": 1.0,
+        "service_type": 1.0,
+        "hours_at_service": 1.0,
+        "cost_gbp": 1.0
+      },
+      "expected_verdict": 36,
+      "planted_found": true,
+      "tokens": {
+        "sheets": 36,
+        "per_sheet": 2933
+      }
+    },
     "fleet_diagnosis": {
       "planted": 3,
       "correct": 3,

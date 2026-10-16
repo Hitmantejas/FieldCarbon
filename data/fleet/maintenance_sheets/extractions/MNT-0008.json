@@ -1,0 +1,32 @@
+{
+  "receipt_id": "MNT-0008",
+  "farm_id": "maintenance",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "maintenance-v1",
+  "extracted": {
+    "sheet_number": "MNT-0008",
+    "date": "2025-07-01",
+    "machine_id": "S2-T5",
+    "machine_as_written": "Vineyard tractor 5, 75 kW",
+    "service_type": "Tyre repair",
+    "hours_at_service": 24.5,
+    "cost_gbp": 96.0,
+    "confidence": {
+      "machine": "high",
+      "date": "high",
+      "hours": "high",
+      "cost": "high"
+    },
+    "notes": null
+  },
+  "extracted_at": "2026-10-16T19:46:04+00:00",
+  "image": "sheets/MNT-0008.jpg",
+  "usage": {
+    "input_tokens": 2149,
+    "output_tokens": 106,
+    "thinking_tokens": 403,
+    "total_tokens": 2658
+  },
+  "model_version": "gemini-3.5-flash"
+}

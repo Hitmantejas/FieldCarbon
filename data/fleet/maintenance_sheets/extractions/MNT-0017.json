@@ -1,0 +1,32 @@
+{
+  "receipt_id": "MNT-0017",
+  "farm_id": "maintenance",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "maintenance-v1",
+  "extracted": {
+    "sheet_number": "MNT-0017",
+    "date": "2025-09-26",
+    "machine_id": "S3-T1",
+    "machine_as_written": "Tractor, 77 kW (105 hp)",
+    "service_type": "Brake adjustment",
+    "hours_at_service": 3.2,
+    "cost_gbp": 99.0,
+    "confidence": {
+      "machine": "high",
+      "date": "high",
+      "hours": "high",
+      "cost": "high"
+    },
+    "notes": null
+  },
+  "extracted_at": "2026-10-16T19:48:27+00:00",
+  "image": "sheets/MNT-0017.jpg",
+  "usage": {
+    "input_tokens": 2149,
+    "output_tokens": 107,
+    "thinking_tokens": 731,
+    "total_tokens": 2987
+  },
+  "model_version": "gemini-3.5-flash"
+}

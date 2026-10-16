@@ -12,7 +12,7 @@
 | Uploaded-note check: expected verdict, Gemini's reading | 4 of 4 demo notes |
 | Voice notes: fields heard right (machine, issue, severity, follow-up, needs check) | not run yet |
 | Workshop-sheet check: expected verdict, perfect reading | 36 of 36 sheets |
-| Workshop sheets: fields read right (Gemini) | not run yet |
+| Workshop sheets: fields read right (Gemini) | sheet number 100%, date 100%, machine 100%, service type 100%, hours at service 100%, cost 100% over 36 of 36 sheets; expected verdict 36 of 36; planted keying error found: yes |
 | Agent runs scored | 43 |
 | Agent tool selection | 100% |
 | Agent numerical faithfulness | 100% |
