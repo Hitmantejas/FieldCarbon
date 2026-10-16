@@ -28,6 +28,7 @@ from backend.tools.generate_report import generate_report
 from backend.tools.reconcile_fuel import reconcile_fuel
 from backend.tools.set_goal import set_goal
 from backend.tools.upload_note import check_demo_note
+from backend.tools.voice_note import check_demo_voice_note
 from backend.tools.weekly_briefing import weekly_briefing
 from backend.tools.what_would_improve import what_would_improve
 
@@ -38,7 +39,8 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
          "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
-         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly, "weekly_briefing": weekly_briefing}
+         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly, "weekly_briefing": weekly_briefing,
+         "read_voice_note": check_demo_voice_note}
 
 
 def figures(node):
@@ -103,6 +105,10 @@ def check(case: dict, output, spec: dict) -> None:
     elif kind == "note_verdict":
         assert output["verdict"] == spec["equals"], output["verdict"]
         assert all(f["figure"] is None or (f["figure"]["source_ids"] and f["figure"]["label"]) for f in output["findings"])
+    elif kind == "voice_status":
+        assert output["status"] == spec["equals"], (output["status"], output["reasons"])
+        assert output["label"] == "estimated" and output["saved"] is False
+        assert output["note"]["machine_id"] == spec["machine_id"] and output["note"]["severity"] == spec["severity"]
     elif kind == "diagnosis_top":
         top = output["hypotheses"][0]
         assert top["status"] == "supported" and top["id"] == spec["equals"], (top["id"], top["status"])

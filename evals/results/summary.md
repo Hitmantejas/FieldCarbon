@@ -1,6 +1,6 @@
 | Evaluation | Result |
 |---|---|
-| Tool eval cases | 64 of 64 pass |
+| Tool eval cases | 67 of 67 pass |
 | Figures with a confidence label and sources | 100% of 873 |
 | Planted fuel problems found | 3 of 3 |
 | Planted problems whose top supported cause is the planted one | 3 of 3 |
@@ -10,6 +10,7 @@
 | Gemini reading accuracy, upload demo notes (litres) | 100% |
 | Uploaded-note check: expected verdict, perfect reading | 4 of 4 demo notes |
 | Uploaded-note check: expected verdict, Gemini's reading | 4 of 4 demo notes |
+| Voice notes: fields heard right (machine, issue, severity, follow-up, needs check) | not run yet |
 | Agent runs scored | 43 |
 | Agent tool selection | 100% |
 | Agent numerical faithfulness | 100% |

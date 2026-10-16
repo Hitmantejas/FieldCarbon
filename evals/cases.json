@@ -1149,6 +1149,9 @@
       "arguments": {},
       "checks": [{"type": "every_figure_sourced"}],
       "answer_checks": [{"type": "forbidden_regex", "pattern": "(?i)\\bthis week\\b"}, {"type": "no_new_numbers"}]
-    }
+    },
+    {"id": "voice-clear-note", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V01"}, "checks": [{"type": "voice_status", "equals": "ready", "machine_id": "S1-T3", "severity": "medium"}]},
+    {"id": "voice-no-machine-named", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V06"}, "checks": [{"type": "voice_status", "equals": "needs_check", "machine_id": "unknown", "severity": "medium"}]},
+    {"id": "voice-spoken-instruction", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V08"}, "checks": [{"type": "voice_status", "equals": "ready", "machine_id": "S1-T4", "severity": "high"}]}
   ]
 }

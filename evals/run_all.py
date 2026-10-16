@@ -99,9 +99,12 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import fleet_detection, fleet_diagnosis, range_coverage, receipt_accuracy, upload_check
+    from evals import fleet_detection, fleet_diagnosis, range_coverage, receipt_accuracy, upload_check, voice_accuracy
 
     out = {"fleet_detection": fleet_detection.score()}
+    voices = voice_accuracy.load_readings()
+    out["voice_accuracy"] = ({**{k: v for k, v in voice_accuracy.score(voices).items() if k != "per_clip"},
+                              "tokens": voice_accuracy.token_usage()} if voices else "not run yet")
     fdx = fleet_diagnosis.score()
     out["fleet_diagnosis"] = {k: v for k, v in fdx.items() if k != "results"}
     uc = upload_check.score()
@@ -118,11 +121,18 @@ def other_evals() -> dict:
     return out
 
 
+def _voice_row(v: dict, pct) -> str:
+    fields = ", ".join(f"{k.replace('_id', '').replace('_', ' ')} {pct(x)}" for k, x in v["field_accuracy"].items())
+    ignored = {True: "yes", False: "no", None: "clip not read"}[v["spoken_instruction_ignored"]]
+    return f"{fields} over {v['read']} of {v['clips']} clips; spoken instruction ignored: {ignored}"
+
+
 def markdown(s: dict) -> str:
     t, a, st, o = s["tool_cases"], s["agent_runs"]["agent"], s["agent_runs"]["self_test"], s["other"]
     fd, rc, uc = o["fleet_detection"], o["range_coverage"], o["upload_check"]
     pct = lambda v: "n/a" if v is None else f"{100 * v:.0f}%"  # noqa: E731
     reading = lambda r: r if isinstance(r, str) else pct(r["field_accuracy"].get("litres"))  # noqa: E731
+    voice = lambda v: v if isinstance(v, str) else _voice_row(v, pct)  # noqa: E731
     rows = [
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
@@ -137,6 +147,7 @@ def markdown(s: dict) -> str:
         ("Uploaded-note check: expected verdict, perfect reading", f"{uc['expected_met']} of {uc['notes']} demo notes"),
         ("Uploaded-note check: expected verdict, Gemini's reading",
          f"{uc['expected_met_on_gemini_reading']} of {uc['gemini_read']} demo notes" if uc["gemini_read"] else "not run yet"),
+        ("Voice notes: fields heard right (machine, issue, severity, follow-up, needs check)", voice(o["voice_accuracy"])),
         ("Agent runs scored", str(a["runs"])),
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),

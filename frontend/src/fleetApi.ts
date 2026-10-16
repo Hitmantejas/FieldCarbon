@@ -373,3 +373,35 @@ export async function fetchBriefing(language: StatementLanguage, narrate: boolea
   if (!r.ok) throw await apiError(r);
   return r.json() as Promise<Briefing>;
 }
+
+// P2a voice notes (POST /api/fleet/voice-notes/read): Gemini hears which machine and what problem; code checks the note
+// against the fleet list. The note is estimated (read from speech) and nothing is saved.
+export const VOICE_TYPES = ["audio/webm", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/m4a", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/wave"];
+export const VOICE_MAX_BYTES = 2 * 1024 * 1024;
+
+export interface VoiceNoteCheck {
+  status: "ready" | "needs_check";
+  reasons: string[];
+  note: {
+    machine_id: string;
+    machine: string;
+    site: string | null;
+    issue: "hydraulic" | "tyres" | "engine" | "electrical" | "other" | null;
+    severity: "low" | "medium" | "high" | null;
+    follow_up: string;
+    confidence: "high" | "medium" | "low";
+    transcript: string;
+  };
+  label: "estimated";
+  label_note: string;
+  saved: false;
+  usage: { input_tokens: number; output_tokens: number; thinking_tokens: number; total_tokens: number } | null;
+  model_version: string | null;
+  data_source: string;
+}
+
+export async function readVoiceNote(audio: Blob, signal?: AbortSignal): Promise<VoiceNoteCheck> {
+  const r = await fetch("/api/fleet/voice-notes/read", { method: "POST", headers: { "Content-Type": audio.type }, body: audio, signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<VoiceNoteCheck>;
+}

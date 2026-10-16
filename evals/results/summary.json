@@ -1,7 +1,7 @@
 {
   "tool_cases": {
-    "cases": 64,
-    "passed": 64,
+    "cases": 67,
+    "passed": 67,
     "label_and_source_coverage": 1.0,
     "figures_checked": 873,
     "failures": []
@@ -781,6 +781,7 @@
       ],
       "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
     },
+    "voice_accuracy": "not run yet",
     "fleet_diagnosis": {
       "planted": 3,
       "correct": 3,
