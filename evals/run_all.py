@@ -50,7 +50,7 @@ def score_run(run: dict) -> dict:
     lab, figs = label_coverage(run["answer"])
     cit, named = citation_coverage(run["answer"], outputs)
     specs = (case or {}).get("answer_checks") or []
-    failures = [f for f in (answer_check(s, run["answer"], called, outputs, run.get("question", "")) for s in specs) if f]
+    failures = [f for f in (answer_check(s, run["answer"], called, outputs, run.get("question", ""), run["tool_calls"]) for s in specs) if f]
     return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")), "group": (case or {}).get("group"),
             "tool_selection": None if case is None else set(case["expected_tools"]) <= called,
             "faithful": a.faithful, "numbers": a.checked, "unmatched": [n.text for n in a.unmatched],

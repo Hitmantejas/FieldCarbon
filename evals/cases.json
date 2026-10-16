@@ -1,5 +1,5 @@
 {
-  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output. Cases with `\"agent\": true` are also asked to the live analyst (evals/run_agent.py). `answer_checks` are scored on the recorded answer (evals/checks.py answer_check); a case with no expected tool is a question the analyst should refuse or say it cannot answer. `group` sorts agent cases: refusal, missing_data, language, new_tool.",
+  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output. Cases with `\"agent\": true` are also asked to the live analyst (evals/run_agent.py). `answer_checks` are scored on the recorded answer (evals/checks.py answer_check); a case with no expected tool is a question the analyst should refuse or say it cannot answer. `group` sorts agent cases: refusal, missing_data, language, new_tool, multi_turn. A multi_turn case asks its `earlier_turns` first in one conversation; only `question` is recorded and scored.",
   "cases": [
     {
       "id": "rank-basic",
@@ -1101,6 +1101,54 @@
         {"type": "must_mention_any", "phrases": ["not available", "do not have", "don't have", "does not have", "not recorded", "no data", "does not include", "not in the data", "no electric"]},
         {"type": "no_new_numbers"}
       ]
+    },
+    {
+      "id": "mt-quote-earlier",
+      "agent": true,
+      "group": "multi_turn",
+      "earlier_turns": ["How much fuel did the fleet use, by site?"],
+      "question": "Which of those sites used the most, and how much was it?",
+      "expected_tools": ["fleet_summary"],
+      "arguments": {"group_by": "site"},
+      "checks": [{"type": "every_figure_sourced"}],
+      "answer_checks": [{"type": "must_mention_any", "phrases": ["Arable"]}, {"type": "no_new_numbers"}]
+    },
+    {
+      "id": "mt-change-filter",
+      "agent": true,
+      "group": "multi_turn",
+      "earlier_turns": ["Which were the biggest jobs at the arable site in July 2025?"],
+      "question": "And in August?",
+      "expected_tools": ["fleet_jobs"],
+      "arguments": {"site_id": "S1", "month": "2025-08", "sort": "litres", "limit": 5},
+      "checks": [{"type": "every_figure_sourced"}],
+      "answer_checks": [{"type": "called_with", "tool": "fleet_jobs", "args": {"month": "2025-08"}}, {"type": "no_new_numbers"}]
+    },
+    {
+      "id": "mt-why-after-list",
+      "agent": true,
+      "group": "multi_turn",
+      "earlier_turns": ["Does our fuel add up this year, or is some missing?"],
+      "question": "Why could the first of those have happened?",
+      "expected_tools": ["reconcile_fuel", "diagnose_anomaly"],
+      "arguments": {},
+      "checks": [{"type": "finds", "kind": "machine_over_dispense", "machine_id": "S1-T4", "diagnosable": true}],
+      "answer_checks": [
+        {"type": "forbidden_regex", "pattern": "(?i)\\b(proven|confirmed|root cause found)\\b"},
+        {"type": "must_mention_any", "phrases": ["supported by the data"]},
+        {"type": "no_new_numbers"}
+      ]
+    },
+    {
+      "id": "mt-briefing-item",
+      "agent": true,
+      "group": "multi_turn",
+      "earlier_turns": ["What should I look at first?"],
+      "question": "Tell me more about the first one. What should I do next?",
+      "expected_tools": ["weekly_briefing"],
+      "arguments": {},
+      "checks": [{"type": "every_figure_sourced"}],
+      "answer_checks": [{"type": "forbidden_regex", "pattern": "(?i)\\bthis week\\b"}, {"type": "no_new_numbers"}]
     }
   ]
 }

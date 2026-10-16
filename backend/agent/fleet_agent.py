@@ -5,12 +5,20 @@ Gemini plans which tools to call and explains their results in plain English. Ev
 and coverage checks that each figure has its label and each idea its source; an answer that fails is rewritten once with
 the problems named, and if a number still does not trace it carries a visible note. `ask()` can also record the run for
 the eval harness (evals/run_all.py).
+
+Follow-up questions share a session id: the model sees the last MAX_TURNS questions and their answers, and the auditor
+checks a follow-up against every tool output of the conversation, so an earlier figure may be repeated without a new
+call. Conversations live in memory, end after SESSION_TTL_S without a question, and at most MAX_SESSIONS are kept.
 """
 from __future__ import annotations
 
 import asyncio
 import os
+import threading
+import time
 import uuid
+from collections import OrderedDict
+from dataclasses import dataclass, field
 
 from google.adk.agents import Agent
 from google.adk.runners import Runner
@@ -68,9 +76,63 @@ How to answer
 - Finish with one practical next step when there is one. Mention the Reports screen when someone asks for a report."""
 
 
-def build_agent(model=None) -> Agent:
+USER = "analyst-user"
+SESSION_TTL_S = 30 * 60
+MAX_SESSIONS = 200
+MAX_TURNS = 10
+ENDED = "That conversation had ended (after 30 minutes without a question, or a restart), so this is a new conversation."
+
+
+@dataclass
+class Conversation:
+    """One session: its questions, every tool call with its output so far (the audit's evidence), and when it was last used."""
+
+    questions: list[str] = field(default_factory=list)
+    calls: list[dict] = field(default_factory=list)
+    last_used: float = 0.0
+    lock: threading.Lock = field(default_factory=threading.Lock)
+
+
+_sessions = InMemorySessionService()
+_conversations: OrderedDict[str, Conversation] = OrderedDict()  # least recently used first
+_registry_lock = threading.Lock()
+_clock = time.monotonic
+
+
+def _open(session_id: str | None) -> tuple[str, Conversation, bool, list[str]]:
+    """The conversation for this id, or a new one; plus the ids dropped for age or for the cap, to delete from ADK."""
+    now = _clock()
+    with _registry_lock:
+        dropped = [sid for sid, c in _conversations.items() if now - c.last_used > SESSION_TTL_S]
+        for sid in dropped:
+            del _conversations[sid]
+        conv = _conversations.get(session_id) if session_id else None
+        new = conv is None
+        if new:
+            session_id, conv = uuid.uuid4().hex, Conversation()
+            _conversations[session_id] = conv
+        conv.last_used = now
+        _conversations.move_to_end(session_id)
+        while len(_conversations) > MAX_SESSIONS:
+            dropped.append(_conversations.popitem(last=False)[0])
+    return session_id, conv, new, dropped
+
+
+def _keep_last_turns(questions: list[str]):
+    """A before-model callback that sends only the history from the MAX_TURNS-th last question onwards."""
+    def trim(callback_context, llm_request):
+        starts = [i for i, c in enumerate(llm_request.contents)
+                  if c.role == "user" and any((p.text or "") in questions for p in c.parts or [] if p.text)]
+        if len(starts) > MAX_TURNS:
+            llm_request.contents = llm_request.contents[starts[-MAX_TURNS]:]
+        return None
+    return trim
+
+
+def build_agent(model=None, questions: list[str] | None = None) -> Agent:
     return Agent(name="fleet_analyst", model=model or _vertex_model(), instruction=INSTRUCTION, tools=AGENT_TOOLS,
-                 generate_content_config=types.GenerateContentConfig(temperature=0))
+                 generate_content_config=types.GenerateContentConfig(temperature=0),
+                 before_model_callback=_keep_last_turns(questions) if questions is not None else None)
 
 
 def _vertex_model() -> str:
@@ -117,30 +179,34 @@ async def _turn(runner: Runner, user_id: str, session_id: str, message: str) -> 
     return turn
 
 
-async def _ask(agent: Agent, question: str, retry: bool) -> dict:
-    sessions = InMemorySessionService()
-    runner = Runner(app_name=APP, agent=agent, session_service=sessions)
-    user, sid = "analyst-user", uuid.uuid4().hex
-    await sessions.create_session(app_name=APP, user_id=user, session_id=sid)
+async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, new: bool, dropped: list[str]) -> dict:
+    for old in dropped:
+        await _sessions.delete_session(app_name=APP, user_id=USER, session_id=old)
+    if new:
+        await _sessions.create_session(app_name=APP, user_id=USER, session_id=sid)
+    conv.questions.append(question)
+    runner = Runner(app_name=APP, agent=build_agent(model, conv.questions), session_service=_sessions)
+    earlier = list(conv.calls)  # a follow-up may repeat any figure the conversation's tools returned
 
-    turn = await _turn(runner, user, sid, question)
+    turn = await _turn(runner, USER, sid, question)
     calls, answer, tokens, attempts = list(turn.calls), turn.text, dict(turn.tokens), 1
-    verdict = _verdict(answer, calls, question)
-    gaps = _gaps(answer, calls)
+    verdict = _verdict(answer, earlier + calls, question)
+    gaps = _gaps(answer, earlier + calls)
     if (not verdict.faithful or any(gaps.values())) and retry:
-        again = await _turn(runner, user, sid, rewrite_request(verdict.unmatched, **gaps))
+        again = await _turn(runner, USER, sid, rewrite_request(verdict.unmatched, **gaps))
         all_calls = calls + again.calls
         tokens = {k: tokens[k] + again.tokens[k] for k in tokens}
         attempts = 2
-        second = _verdict(again.text, all_calls, question) if again.text else None
+        second = _verdict(again.text, earlier + all_calls, question) if again.text else None
         if second is not None and (second.faithful or not verdict.faithful):  # never trade a traced answer for an untraced one
             answer, verdict = again.text, second
         calls = all_calls
-        gaps = _gaps(answer, calls)
+        gaps = _gaps(answer, earlier + calls)
     if not verdict.faithful:
-        _, note = guard(answer, [c["output"] for c in calls], question)
+        _, note = guard(answer, [c["output"] for c in earlier + calls], question)
         answer = f"{answer}\n\n{note}"
-    return {"question": question, "answer": answer, "tool_calls": calls, "attempts": attempts,
+    conv.calls.extend(calls)
+    return {"question": question, "answer": answer, "tool_calls": calls, "session_calls": earlier + calls, "attempts": attempts,
             "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched],
                       "uncited_ideas": [g["name"] for g in gaps["uncited"]], "unlabelled_sentences": len(gaps["unlabelled"]),
                       "unrounded": gaps["unrounded"]},
@@ -157,12 +223,17 @@ def _verdict(answer: str, calls: list[dict], question: str):
 
 
 def ask(question: str, model=None, retry: bool = True, record: bool = False, case_id: str | None = None,
-        record_file: str = "agent.jsonl") -> dict:
-    """Answer one question. `model` is a model name or an ADK model object (tests pass a scripted one)."""
-    agent = build_agent(model)
-    result = asyncio.run(_ask(agent, question, retry))
+        record_file: str = "agent.jsonl", session_id: str | None = None) -> dict:
+    """Answer one question, as a follow-up when `session_id` names a live conversation; an unknown or ended id starts a
+    new one and says so. `model` is a model name or an ADK model object (tests pass a scripted one). `tool_calls` are
+    this question's; a recorded run keeps every call of the conversation, since the audit may use any of them."""
+    sid, conv, new, dropped = _open(session_id)
+    with conv.lock:  # one question at a time per conversation
+        result = asyncio.run(_ask(model, question, retry, sid, conv, new, dropped))
+    result.update(session_id=sid, new_session=new, session_note=ENDED if new and session_id else None)
     result["model"] = model if isinstance(model, str) or model is None else type(model).__name__
+    session_calls = result.pop("session_calls")
     if record:
-        record_run(case_id, question, [{"name": c["name"], "args": c["args"], "output": c["output"]} for c in result["tool_calls"]],
+        record_run(case_id, question, [{"name": c["name"], "args": c["args"], "output": c["output"]} for c in session_calls],
                    result["answer"], result["model"] or MODEL, AGENT_VERSION, record_file, tokens=result["tokens"])
     return result

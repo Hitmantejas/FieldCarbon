@@ -39,6 +39,21 @@ def test_an_unknown_check_is_an_error_not_a_pass():
         answer_check({"type": "sounds_nice"}, "x", set(), [])
 
 
+def test_called_with_needs_one_call_with_those_arguments():
+    # A follow-up that changes a filter: the earlier turn's call does not count, only one with the new month.
+    spec = {"type": "called_with", "tool": "fleet_jobs", "args": {"month": "2025-08"}}
+    july = {"name": "fleet_jobs", "args": {"site_id": "S1", "month": "2025-07"}}
+    august = {"name": "fleet_jobs", "args": {"site_id": "S1", "month": "2025-08", "limit": 5}}
+    assert answer_check(spec, "x", {"fleet_jobs"}, [], calls=[july, august]) is None
+    assert "2025-08" in answer_check(spec, "x", {"fleet_jobs"}, [], calls=[july])
+
+
+def test_multi_turn_cases_ask_earlier_turns_first():
+    multi = [c for c in CASES if c.get("group") == "multi_turn"]
+    assert len(multi) >= 4 and all(c.get("agent") and c.get("earlier_turns") and c.get("answer_checks") for c in multi)
+    assert all("earlier_turns" not in c for c in CASES if c.get("group") != "multi_turn")
+
+
 def test_every_case_uses_known_answer_checks_and_refusals_have_them():
     for c in CASES:
         assert all(s["type"] in ANSWER_CHECKS for s in c.get("answer_checks", [])), c["id"]

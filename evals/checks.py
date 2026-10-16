@@ -118,10 +118,10 @@ def check(case: dict, output, spec: dict) -> None:
         raise AssertionError(f"unknown check {kind}")
 
 
-ANSWER_CHECKS = ("forbidden_regex", "tool_not_called", "must_mention_any", "no_new_numbers")
+ANSWER_CHECKS = ("forbidden_regex", "tool_not_called", "must_mention_any", "no_new_numbers", "called_with")
 
 
-def answer_check(spec: dict, answer: str, called: set[str], outputs: list, question: str = "") -> str | None:
+def answer_check(spec: dict, answer: str, called: set[str], outputs: list, question: str = "", calls: list = ()) -> str | None:
     """One answer check on a recorded agent run: None when the answer passes, otherwise what failed."""
     kind = spec["type"]
     if kind == "forbidden_regex":
@@ -135,6 +135,9 @@ def answer_check(spec: dict, answer: str, called: set[str], outputs: list, quest
     if kind == "no_new_numbers":
         a = audit(answer, outputs, question)
         return None if a.faithful else f"untraced numbers: {', '.join(n.text for n in a.unmatched)}"
+    if kind == "called_with":  # a follow-up that changes a filter must call the tool again with the new one
+        hit = any(c["name"] == spec["tool"] and all(c.get("args", {}).get(k) == v for k, v in spec["args"].items()) for c in calls)
+        return None if hit else f"{spec['tool']} not called with {spec['args']}"
     raise AssertionError(f"unknown answer check {kind}")
 
 

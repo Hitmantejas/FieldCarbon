@@ -8,6 +8,9 @@ interface Answer {
   attempts: number;
   audit: { faithful: boolean; numbers_checked: number; untraced: string[] };
   tools_called: { name: string; args: Record<string, unknown> }[];
+  session_id: string;
+  new_session: boolean;
+  session_note: string | null;
 }
 
 const SUGGESTED = [
@@ -73,6 +76,7 @@ function Exchange({ a }: { a: Answer }) {
   const { audit } = a;
   return (
     <li className="space-y-4 border-t border-rule py-6">
+      {a.session_note && <p className="max-w-[70ch] border-l-4 border-ink pl-3 text-sm font-bold">{a.session_note}</p>}
       <p className="font-display text-2xl font-semibold leading-tight">{a.question}</p>
       <AnswerText text={a.answer} />
       <p className={`border-l-4 pl-3 font-mono text-xs uppercase tracking-widest ${audit.faithful ? "border-mark" : "border-ink font-bold"}`}>
@@ -103,23 +107,34 @@ export function Ask() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]); // the conversation, oldest first
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
+
+  const startOver = () => {
+    setAnswers([]);
+    setSessionId(null);
+    setError(null);
+    box.current?.focus();
+  };
 
   const send = async (question: string) => {
     if (busy || question.trim().length < 3) return;
     setBusy(true);
     setError(null);
     try {
-      const r = await fetch("/api/agent/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
+      const r = await fetch("/api/agent/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sessionId ? { question, session_id: sessionId } : { question }) });
       if (!r.ok) throw new Error(r.status === 502 || r.status === 429 ? ((await r.json()).detail as string) : `The analyst answered ${r.status}`);
       const answer = (await r.json()) as Answer;
-      setAnswers((a) => [answer, ...a]);
+      setSessionId(answer.session_id);
+      setAnswers((a) => (answer.new_session ? [answer] : [...a, answer]));
       setText("");
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      // After the button re-enables, so the next question can be typed straight away.
+      setTimeout(() => box.current?.focus(), 0);
     }
   };
 
@@ -136,8 +151,25 @@ export function Ask() {
         </p>
       </section>
 
+      {/* Always mounted, so screen readers announce the first answer too. */}
+      <section className="px-6" aria-labelledby={answers.length > 0 ? "h-answers" : undefined} aria-label={answers.length > 0 ? undefined : "Answers"} aria-live="polite">
+        {answers.length > 0 && (
+          <>
+            <SectionHead id="h-answers" title="Conversation" tone="solid" />
+            <p className="max-w-[70ch] text-sm text-ink-soft">
+              Follow-up questions can refer to earlier answers. The conversation ends after 30 minutes without a question.
+            </p>
+            <ol>
+              {answers.map((a, i) => (
+                <Exchange key={`${a.question}-${i}`} a={a} />
+              ))}
+            </ol>
+          </>
+        )}
+      </section>
+
       <section className="px-6" aria-labelledby="h-q">
-        <SectionHead id="h-q" title="Your question" tone="mark" />
+        <SectionHead id="h-q" title={answers.length > 0 ? "Your next question" : "Your question"} tone="mark" />
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -159,7 +191,7 @@ export function Ask() {
               }}
               rows={2}
               maxLength={1000}
-              placeholder="For example: which client farm used the most fuel?"
+              placeholder={answers.length > 0 ? "Ask a follow-up, for example: and in August?" : "For example: which client farm used the most fuel?"}
               className="w-full max-w-[70ch] border-2 border-ink bg-paper p-3 text-ink"
             />
           </label>
@@ -167,6 +199,11 @@ export function Ask() {
             <button type="submit" disabled={busy || text.trim().length < 3} className="btn-solid min-h-11 border-2 border-ink bg-ink px-5 text-sm font-bold text-paper disabled:opacity-40">
               {busy ? "Looking at the data..." : "Ask"}
             </button>
+            {answers.length > 0 && (
+              <button type="button" onClick={startOver} disabled={busy} className="btn-outline min-h-11 border-2 border-ink px-5 text-sm font-bold disabled:opacity-40">
+                New conversation
+              </button>
+            )}
             {busy && <span className="font-mono text-xs uppercase tracking-widest text-ink-soft" role="status">This can take up to a minute: every number is checked before you see it.</span>}
           </div>
         </form>
@@ -194,20 +231,6 @@ export function Ask() {
             ))}
           </ul>
         </div>
-      </section>
-
-      {/* Always mounted, so screen readers announce the first answer too. */}
-      <section className="px-6" aria-labelledby={answers.length > 0 ? "h-answers" : undefined} aria-label={answers.length > 0 ? undefined : "Answers"} aria-live="polite">
-        {answers.length > 0 && (
-          <>
-            <SectionHead id="h-answers" title="Answers" tone="solid" />
-            <ul>
-              {answers.map((a, i) => (
-                <Exchange key={`${a.question}-${i}`} a={a} />
-              ))}
-            </ul>
-          </>
-        )}
       </section>
     </div>
   );
