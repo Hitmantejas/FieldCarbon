@@ -1,7 +1,8 @@
 from typing import Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
+from backend.tools.action_impact import action_impact
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.carbon_ledger import carbon_ledger
 from backend.tools.check_delivery_notes import check_delivery_notes
@@ -69,6 +70,14 @@ def get_ledger(goal_pct: float = Query(20, ge=1, le=90), tyre_pressure_checked: 
                has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
     given = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
     return carbon_ledger(goal_pct, {k: v for k, v in given.items() if v is not None})
+
+
+@router.get("/actions")
+def get_actions(action_id: str | None = None):
+    try:
+        return action_impact(action_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e)) from e
 
 
 @router.get("/what-if")

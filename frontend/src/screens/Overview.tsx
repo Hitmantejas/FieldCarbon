@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Figure, Label } from "../api";
 import { query, useApi } from "../api";
-import { CarbonLedger, t1 } from "../components/CarbonLedger";
+import { CarbonLedger, span, t1 } from "../components/CarbonLedger";
 import { FindingList } from "../components/FindingList";
 import { RangeBar } from "../components/RangeBar";
 import { SectionHead } from "../components/SectionHead";
@@ -56,7 +56,7 @@ export function Overview() {
         <h1 id="h-fleet" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
           {ledger ? `${t1(ledger.emitted.value ?? 0)} tonnes of CO2e emitted.` : "Fleet overview"}
           <br />
-          {ledger && <span className="text-moss">{t1(ledger.proven.value ?? 0)} tonnes proven avoided.</span>}
+          {ledger && <span className="text-moss">{span(ledger.proven)} tonnes proven avoided.</span>}
         </h1>
         {t && (
           <p className="mt-3 max-w-[70ch] text-ink-soft">

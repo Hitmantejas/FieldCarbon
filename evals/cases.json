@@ -407,6 +407,50 @@
       ]
     },
     {
+      "id": "proof-planted-change",
+      "question": "Did the shift up and throttle down change on the first three vineyard tractors work?",
+      "expected_tools": [
+        "action_impact"
+      ],
+      "arguments": {
+        "action_id": "ACT-01"
+      },
+      "checks": [
+        {
+          "type": "action_status",
+          "equals": "reduction_shown"
+        },
+        {
+          "type": "planted_effect_inside_range"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "proof-null-change",
+      "question": "Did the tyre pressure check on vineyard tractors 4 to 6 save fuel?",
+      "expected_tools": [
+        "action_impact"
+      ],
+      "arguments": {
+        "action_id": "ACT-02"
+      },
+      "checks": [
+        {
+          "type": "action_status",
+          "equals": "cant_tell_yet"
+        },
+        {
+          "type": "no_saving_claimed"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
       "id": "fleet-what-if",
       "question": "What if we cut the fuel burned with the tool not working by 20%?",
       "expected_tools": [

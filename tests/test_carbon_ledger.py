@@ -86,9 +86,12 @@ def test_the_vineyard_is_outside_what_the_evidence_covers():
     assert "vineyard" in ledger["avoidable"]["not_covered"].lower()
 
 
-def test_nothing_is_proven_until_a_change_is_measured():
-    proven = carbon_ledger()["proven"]
-    assert proven["value"] == 0 and proven["unit"] == "t CO2e" and proven["source_ids"]
+def test_proven_tonnes_come_only_from_changes_whose_range_clears_zero():
+    ledger = carbon_ledger()
+    proven = ledger["proven"]
+    assert proven["unit"] == "t CO2e" and proven["source_ids"] and proven["label"] == "estimated"
+    assert 0 < proven["low"] <= proven["value"] <= proven["high"]
+    assert [c["action_id"] for c in ledger["proven_changes"]] == ["ACT-01"]
 
 
 def test_goal_verdicts():

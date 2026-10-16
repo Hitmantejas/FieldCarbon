@@ -14,7 +14,7 @@ const VERDICT: Record<Verdict, string> = {
 const one = new Intl.NumberFormat("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 export const t1 = (n: number) => one.format(n);
-const span = (f: Figure) => (f.low != null && f.high != null ? `${t1(f.low)} to ${t1(f.high)}` : t1(f.value ?? 0));
+export const span = (f: Figure) => (f.low != null && f.high != null ? `${t1(f.low)} to ${t1(f.high)}` : t1(f.value ?? 0));
 
 interface Props {
   ledger: Ledger;
@@ -59,9 +59,11 @@ function GoalRow({ title, sub, pct, verdict, goal, onOpen }: RowProps) {
 
 // The ledger: tonnes emitted, tonnes avoidable (a range, never added up) and tonnes proven, then the goal check.
 export function CarbonLedger({ ledger, goal, onGoal, onOpen }: Props) {
-  const { emitted, proven, avoidable, goal: g } = ledger;
+  const { emitted, proven, proven_changes, avoidable, goal: g } = ledger;
   const top = avoidable.top_action;
   const topShown = span(top.co2e_avoided_t);
+  const provenShown = span(proven);
+  const provenNote = proven_changes.length ? `${proven_changes.length} logged change clearly worked (illustrative)` : "No logged change has clearly worked yet";
   return (
     <>
       <section aria-label="Carbon ledger" className="mx-6 grid gap-3 md:grid-cols-3">
@@ -76,13 +78,18 @@ export function CarbonLedger({ ledger, goal, onGoal, onOpen }: Props) {
         />
         <Tile
           title="Proven"
-          shown={t1(proven.value ?? 0)}
+          shown={provenShown}
           unit="t CO2e"
-          note="No change measured before and after yet"
+          note={provenNote}
           figure={proven}
-          onOpen={() => onOpen("Proven", `${t1(proven.value ?? 0)} t CO2e`, proven)}
+          onOpen={() => onOpen("Proven", `${provenShown} t CO2e`, proven)}
         />
       </section>
+      <p className="mx-6 -mt-6">
+        <a href="#/proof" className="btn-link inline-flex min-h-11 items-center text-sm underline underline-offset-4">
+          See the before-and-after proof
+        </a>
+      </p>
 
       <section className="px-6" aria-labelledby="h-goal">
         <SectionHead id="h-goal" title="Goal" tone="mark" note="share of fleet emissions" />

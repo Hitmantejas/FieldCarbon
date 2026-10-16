@@ -4,8 +4,8 @@ from dataclasses import asdict
 
 from backend.emissions.text import bullets
 from backend.fleet.context import ARABLE_SITES
-from backend.fleet.figures import SYNTHETIC_SOURCE
 from backend.ranking.goal import MAX_GOAL_PCT, MIN_GOAL_PCT, verdict
+from backend.tools.action_impact import action_impact
 from backend.tools.contracts import Figure, weakest
 from backend.tools.fleet_opportunities import fleet_opportunities
 from backend.tools.fleet_summary import fleet_summary
@@ -82,9 +82,8 @@ def carbon_ledger(goal_pct: float = 20, known: dict | None = None) -> dict:
         f"**{goal_pct:g}%** of the **{emitted_t:,.1f} tonnes** the fleet emitted."), source_ids=tuple(emitted["source_ids"]))
     top_pct = _pct_of(emitted_t, top_t["low"], top_t["high"], top_t["source_ids"])
     combined_pct = _pct_of(emitted_t, combined_low, combined_high, sources)
-    proven = Figure(0.0, "t CO2e", "measured", bullets(
-        "A saving counts as proven only when a change is recorded and fuel is measured **before and after**.",
-        "No change has been recorded yet, so **nothing is proven**."), source_ids=(SYNTHETIC_SOURCE,))
+    proof = action_impact()
+    proven_changes = [{"action_id": a["action"]["action_id"], "name": a["action"]["name"]} for a in proof["actions"] if a["co2e_avoided_t"]]
 
     return {
         "emitted": emitted,
@@ -95,7 +94,8 @@ def carbon_ledger(goal_pct: float = 20, known: dict | None = None) -> dict:
                 f"Fuel burned at the arable sites: **{covered_t:,.1f} tonnes** of CO2e. Only these sites have research behind an idea.")},
             "covered_share_pct": 100 * covered_t / emitted_t, "not_covered": NOT_COVERED,
         },
-        "proven": asdict(proven),
+        "proven": proof["proven_co2e_t"],
+        "proven_changes": proven_changes,
         "goal": {"target_pct": goal_pct, "target_co2e": asdict(target), "top_action_pct": top_pct, "combined_pct": combined_pct,
                  "top_action_verdict": verdict(top_pct["low"], top_pct["high"], goal_pct),
                  "combined_verdict": verdict(combined_pct["low"], combined_pct["high"], goal_pct)},

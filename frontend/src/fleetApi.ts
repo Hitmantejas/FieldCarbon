@@ -101,6 +101,7 @@ export interface Ledger {
     not_covered: string;
   };
   proven: Figure;
+  proven_changes: { action_id: string; name: string }[];
   goal: {
     target_pct: number;
     target_co2e: Figure;
@@ -109,6 +110,37 @@ export interface Ledger {
     top_action_verdict: Verdict;
     combined_verdict: Verdict;
   };
+}
+
+export type ActionStatus = "reduction_shown" | "increase_shown" | "cant_tell_yet" | "not_enough_jobs";
+
+export interface ActionImpact {
+  action: {
+    action_id: string;
+    name: string;
+    site_name: string;
+    machines: string[];
+    start_date: string;
+    what_changed: string;
+    is_illustrative: boolean;
+  };
+  status: ActionStatus;
+  headline: string;
+  jobs: { changed_before: number; changed_after: number; others_before: number; others_after: number };
+  change_pct: Figure | null;
+  changed_change_pct: Figure | null;
+  others_change_pct: Figure | null;
+  litres_avoided: Figure | null;
+  co2e_avoided_t: Figure | null;
+  operations: string[];
+  caveats: string[];
+  what_would_improve: string;
+}
+
+export interface ActionImpactResult {
+  actions: ActionImpact[];
+  proven_co2e_t: Figure;
+  method: string;
 }
 
 export interface FleetOpportunities {

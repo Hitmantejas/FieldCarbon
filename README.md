@@ -36,6 +36,7 @@ each change are less certain, and FieldCarbon says so.
 | Sites, Jobs, Clients | The same job compared across machines (L/ha, L/h, idle share); emissions per client farm |
 | Fuel control | Depot deliveries vs dispenses vs fuel burned; **delivery notes read by Gemini, checked against the fuel log** |
 | Opportunities, What if | Ranked interventions with cost, litres saved, payback range and evidence |
+| Proof | **Before-and-after proof**: each logged change is judged against the machines that did not change; a saving is proven only when its range clears zero, otherwise "can't tell yet". The two logged changes are made up (illustrative) to show the method |
 | Reports | A traceable report a contractor can share with clients and buyers |
 
 ## Gemini on Vertex AI
@@ -56,7 +57,7 @@ TODO: dollar cost at current Vertex AI pricing.
 
 | Evaluation | Result |
 |---|---|
-| Tool eval cases | 31 of 31 pass |
+| Tool eval cases | 33 of 33 pass |
 | Figures with a confidence label and sources | 100% of 687 |
 | Planted fuel problems found (A1–A3) | 3 of 3 |
 | Gemini reading accuracy, 24 farm receipts (every field) | 100% |

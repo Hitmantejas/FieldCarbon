@@ -24,6 +24,7 @@ const SUGGESTED = [
 // What each tool looked at, in words a manager uses.
 const LOOKED_AT: Record<string, string> = {
   carbon_ledger: "Tonnes emitted, avoidable and proven",
+  action_impact: "Before and after a logged change",
   fleet_summary: "Fuel, emissions and cost totals",
   emissions_per_client: "Emissions for each client farm",
   data_quality: "How far to trust the data",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ScreenId = "overview" | "ask" | "sites" | "jobs" | "opportunities" | "control" | "whatif" | "clients" | "reports";
+export type ScreenId = "overview" | "ask" | "sites" | "jobs" | "opportunities" | "proof" | "control" | "whatif" | "clients" | "reports";
 
 // Hash routing: each screen has its own link and the browser back button works, with no router library.
 export function useRoute(): [ScreenId, (id: ScreenId) => void] {

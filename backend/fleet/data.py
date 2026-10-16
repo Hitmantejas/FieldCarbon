@@ -52,6 +52,16 @@ def clients() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
+def actions() -> pd.DataFrame:
+    return _read("actions", parse_dates=["start_date"]).set_index("action_id")
+
+
+@lru_cache(maxsize=1)
+def action_overlay() -> pd.DataFrame:
+    return _read("action_overlay")
+
+
+@lru_cache(maxsize=1)
 def deliveries() -> pd.DataFrame:
     return _read("fuel_deliveries", parse_dates=["ts"])
 

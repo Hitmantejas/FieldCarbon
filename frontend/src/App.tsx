@@ -6,6 +6,7 @@ import { FuelControl } from "./screens/FuelControl";
 import { Jobs } from "./screens/Jobs";
 import { Opportunities } from "./screens/Opportunities";
 import { Overview } from "./screens/Overview";
+import { Proof } from "./screens/Proof";
 import { Reports } from "./screens/Reports";
 import { Sites } from "./screens/Sites";
 import { WhatIf } from "./screens/WhatIf";
@@ -27,6 +28,7 @@ export default function App() {
         {screen === "reports" && <Reports />}
         {screen === "sites" && <Sites />}
         {screen === "opportunities" && <Opportunities />}
+        {screen === "proof" && <Proof />}
         {screen === "control" && <FuelControl />}
       </Shell>
     </SourcesProvider>
