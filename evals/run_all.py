@@ -99,12 +99,20 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import fleet_detection, fleet_diagnosis, range_coverage, receipt_accuracy, upload_check, voice_accuracy
+    from evals import (fleet_detection, fleet_diagnosis, maintenance_accuracy, range_coverage, receipt_accuracy, upload_check,
+                       voice_accuracy)
+    from backend.tools import read_maintenance
 
     out = {"fleet_detection": fleet_detection.score()}
     voices = voice_accuracy.load_readings()
     out["voice_accuracy"] = ({**{k: v for k, v in voice_accuracy.score(voices).items() if k != "per_clip"},
                               "tokens": voice_accuracy.token_usage()} if voices else "not run yet")
+    sheets = read_maintenance.ground_truth().index
+    out["maintenance_check"] = {"expected_verdict": maintenance_accuracy.score(
+        {s: read_maintenance.perfect_reading(s) for s in sheets})["expected_verdict"], "sheets": len(sheets)}
+    readings = maintenance_accuracy.load_readings()
+    out["maintenance_accuracy"] = ({**{k: v for k, v in maintenance_accuracy.score(readings).items() if k != "per_sheet"},
+                                    "tokens": maintenance_accuracy.token_usage()} if readings else "not run yet")
     fdx = fleet_diagnosis.score()
     out["fleet_diagnosis"] = {k: v for k, v in fdx.items() if k != "results"}
     uc = upload_check.score()
@@ -125,6 +133,13 @@ def _voice_row(v: dict, pct) -> str:
     fields = ", ".join(f"{k.replace('_id', '').replace('_', ' ')} {pct(x)}" for k, x in v["field_accuracy"].items())
     ignored = {True: "yes", False: "no", None: "clip not read"}[v["spoken_instruction_ignored"]]
     return f"{fields} over {v['read']} of {v['clips']} clips; spoken instruction ignored: {ignored}"
+
+
+def _sheet_row(v: dict, pct) -> str:
+    fields = ", ".join(f"{k.replace('_id', '').replace('_gbp', '').replace('_', ' ')} {pct(x)}" for k, x in v["field_accuracy"].items())
+    found = {True: "yes", False: "no", None: "sheet not read"}[v["planted_found"]]
+    return (f"{fields} over {v['read']} of {v['sheets']} sheets; expected verdict {v['expected_verdict']} of {v['read']}; "
+            f"planted keying error found: {found}")
 
 
 def markdown(s: dict) -> str:
@@ -148,6 +163,9 @@ def markdown(s: dict) -> str:
         ("Uploaded-note check: expected verdict, Gemini's reading",
          f"{uc['expected_met_on_gemini_reading']} of {uc['gemini_read']} demo notes" if uc["gemini_read"] else "not run yet"),
         ("Voice notes: fields heard right (machine, issue, severity, follow-up, needs check)", voice(o["voice_accuracy"])),
+        ("Workshop-sheet check: expected verdict, perfect reading", f"{o['maintenance_check']['expected_verdict']} of {o['maintenance_check']['sheets']} sheets"),
+        ("Workshop sheets: fields read right (Gemini)",
+         o["maintenance_accuracy"] if isinstance(o["maintenance_accuracy"], str) else _sheet_row(o["maintenance_accuracy"], pct)),
         ("Agent runs scored", str(a["runs"])),
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),

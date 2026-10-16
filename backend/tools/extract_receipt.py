@@ -83,9 +83,11 @@ class RawExtraction:
     model_version: str | None = None
 
 
-def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str = PROJECT, prompt: str = PROMPT) -> Generate:
+def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str = PROJECT, prompt: str = PROMPT,
+                    schema: dict | None = None) -> Generate:
     """Gemini on Vertex AI (ADC credentials, no keys). Imported lazily: tests never need the SDK.
-    `prompt` is PROMPT (PROMPT_VERSION) for the stored readings; the live upload adds a line to it (upload_note.py)."""
+    `prompt` is PROMPT (PROMPT_VERSION) for the stored readings; the live upload adds a line to it (upload_note.py).
+    `schema` defaults to the receipt SCHEMA; workshop sheets pass their own (read_maintenance.py)."""
     def generate(image: bytes, mime: str) -> dict:
         from google import genai
         from google.genai import types
@@ -95,7 +97,7 @@ def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str =
             model=model,
             contents=[types.Part.from_bytes(data=image, mime_type=mime), prompt],
             config=types.GenerateContentConfig(temperature=0, response_mime_type="application/json",
-                                               response_json_schema=SCHEMA),
+                                               response_json_schema=schema or SCHEMA),
         )
         u = response.usage_metadata
         meta = {"usage": {"input_tokens": u.prompt_token_count, "output_tokens": u.candidates_token_count,

@@ -26,6 +26,7 @@ from backend.tools.emissions_per_client import emissions_per_client
 from backend.tools.fleet_summary import fleet_summary
 from backend.tools.generate_report import generate_report
 from backend.tools.reconcile_fuel import reconcile_fuel
+from backend.tools.read_maintenance import check_demo_sheet
 from backend.tools.set_goal import set_goal
 from backend.tools.upload_note import check_demo_note
 from backend.tools.voice_note import check_demo_voice_note
@@ -40,7 +41,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
          "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
          "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly, "weekly_briefing": weekly_briefing,
-         "read_voice_note": check_demo_voice_note}
+         "read_voice_note": check_demo_voice_note, "read_maintenance_sheet": check_demo_sheet}
 
 
 def figures(node):
@@ -109,6 +110,9 @@ def check(case: dict, output, spec: dict) -> None:
         assert output["status"] == spec["equals"], (output["status"], output["reasons"])
         assert output["label"] == "estimated" and output["saved"] is False
         assert output["note"]["machine_id"] == spec["machine_id"] and output["note"]["severity"] == spec["severity"]
+    elif kind == "sheet_verdict":
+        assert output["verdict"] == spec["equals"], (output["verdict"], output["reasons"])
+        assert [d["field"] for d in output["differences"]] == spec["fields"]
     elif kind == "diagnosis_top":
         top = output["hypotheses"][0]
         assert top["status"] == "supported" and top["id"] == spec["equals"], (top["id"], top["status"])

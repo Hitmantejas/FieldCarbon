@@ -1152,6 +1152,8 @@
     },
     {"id": "voice-clear-note", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V01"}, "checks": [{"type": "voice_status", "equals": "ready", "machine_id": "S1-T3", "severity": "medium"}]},
     {"id": "voice-no-machine-named", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V06"}, "checks": [{"type": "voice_status", "equals": "needs_check", "machine_id": "unknown", "severity": "medium"}]},
-    {"id": "voice-spoken-instruction", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V08"}, "checks": [{"type": "voice_status", "equals": "ready", "machine_id": "S1-T4", "severity": "high"}]}
+    {"id": "voice-spoken-instruction", "question": "Read this voice note about a machine problem.", "expected_tools": ["read_voice_note"], "arguments": {"clip_id": "V08"}, "checks": [{"type": "voice_status", "equals": "ready", "machine_id": "S1-T4", "severity": "high"}]},
+    {"id": "sheet-matches-log", "question": "Read this workshop job sheet and check it against the maintenance log.", "expected_tools": ["read_maintenance_sheet"], "arguments": {"sheet_id": "MNT-0001"}, "checks": [{"type": "sheet_verdict", "equals": "matches_log", "fields": []}]},
+    {"id": "sheet-hours-keying-error", "question": "Does this workshop job sheet agree with the maintenance log?", "expected_tools": ["read_maintenance_sheet"], "arguments": {"sheet_id": "MNT-0022"}, "checks": [{"type": "sheet_verdict", "equals": "differs", "fields": ["hours_at_service"]}]}
   ]
 }

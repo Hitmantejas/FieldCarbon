@@ -16,6 +16,7 @@ dates shifted exactly four years, so its seasons stay real) or `assigned` (place
 | `depots.csv`, `fuel_deliveries.csv`, `fuel_dispenses.csv`, `depot_stock_readings.csv` | Fuel depots, tanker deliveries (real Defra monthly prices, +-2.5%), dispenses to machines, month-end dips | Synthetic, tied to the real consumption |
 | `maintenance_events.csv` | Services every 250 job hours and a few routine repairs | Synthetic |
 | `ground_truth_anomalies.csv` | The three planted problems, for scoring detection. Never shown to the analytics | Synthetic |
+| `maintenance_sheets/` | 36 workshop job-sheet photos, one per maintenance event (`python data/synthetic/generate_workshop_sheets.py`), their ground truth and one planted keying error (MNT-0022: 165.1 hours on the sheet, 156.1 in the log). The cost on the sheets is illustrative only (an invented price list) and never enters a fleet figure | Synthetic |
 
 Sources: S1 TUM Agricultural Load Cycles (CC BY 4.0); S2 Rossi & Alemanno vineyard dataset (CC BY 4.0, fuel
 estimated from tank level, labelled measured); S3 Dana, Ozener & Tellioglu tillage CAN data (CC BY 4.0, area
