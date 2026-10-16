@@ -32,7 +32,7 @@ each change are less certain, and FieldCarbon says so.
 
 | Screen | What the fleet manager sees |
 |---|---|
-| Overview | Fleet fuel, CO2e (well-to-wheel, UK GHG Conversion Factors 2025) and cost, by site and month |
+| Overview | **Carbon ledger**: tonnes of CO2e emitted, a bounded range of tonnes that could be avoided, tonnes proven avoided, whether a chosen goal is reachable, and £ per tonne avoided; then fuel, cost and CO2e by site and month |
 | Sites, Jobs, Clients | The same job compared across machines (L/ha, L/h, idle share); emissions per client farm |
 | Fuel control | Depot deliveries vs dispenses vs fuel burned; **delivery notes read by Gemini, checked against the fuel log** |
 | Opportunities, What if | Ranked interventions with cost, litres saved, payback range and evidence |
@@ -56,8 +56,8 @@ TODO: dollar cost at current Vertex AI pricing.
 
 | Evaluation | Result |
 |---|---|
-| Tool eval cases | 30 of 30 pass |
-| Figures with a confidence label and sources | 100% of 657 |
+| Tool eval cases | 31 of 31 pass |
+| Figures with a confidence label and sources | 100% of 687 |
 | Planted fuel problems found (A1–A3) | 3 of 3 |
 | Gemini reading accuracy, 24 farm receipts (every field) | 100% |
 | Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |

@@ -77,6 +77,40 @@ export interface Reconciliation {
 
 export type FleetIdea = Intervention;
 
+export type Verdict = "reaches" | "might_reach" | "falls_short";
+
+export interface LedgerAction {
+  intervention_id: string;
+  name: string;
+  state: "feasible" | "needs_info";
+  robustness: "strong" | "moderate" | "limited";
+  co2e_avoided_t: Figure;
+  gbp_per_tco2e: Figure | null;
+  gbp_per_tco2e_note: string;
+}
+
+export interface Ledger {
+  emitted: Figure;
+  sites: { site_id: string; name: string; co2e_t: Figure; kg_per_ha: Figure; covered_by_evidence: boolean }[];
+  avoidable: {
+    top_action: LedgerAction;
+    combined: Figure;
+    actions: LedgerAction[];
+    covered_emitted_t: Figure;
+    covered_share_pct: number;
+    not_covered: string;
+  };
+  proven: Figure;
+  goal: {
+    target_pct: number;
+    target_co2e: Figure;
+    top_action_pct: Figure;
+    combined_pct: Figure;
+    top_action_verdict: Verdict;
+    combined_verdict: Verdict;
+  };
+}
+
 export interface FleetOpportunities {
   scope: { site_ids: string[]; litres?: number };
   ideas: FleetIdea[];

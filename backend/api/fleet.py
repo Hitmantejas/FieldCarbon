@@ -3,6 +3,7 @@ from typing import Literal
 from fastapi import APIRouter, Query
 
 from backend.tools.benchmark_peers import benchmark_peers
+from backend.tools.carbon_ledger import carbon_ledger
 from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
@@ -61,6 +62,13 @@ def get_opportunities(site_id: str | None = None, tyre_pressure_checked: bool | 
                       ballast_type: Literal["liquid", "none"] | None = None):
     given = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
     return fleet_opportunities(site_id, {k: v for k, v in given.items() if v is not None})
+
+
+@router.get("/ledger")
+def get_ledger(goal_pct: float = Query(20, ge=1, le=90), tyre_pressure_checked: bool | None = None,
+               has_ctis: bool | None = None, ballast_type: Literal["liquid", "none"] | None = None):
+    given = {"tyre_pressure_checked": tyre_pressure_checked, "has_ctis": has_ctis, "ballast_type": ballast_type}
+    return carbon_ledger(goal_pct, {k: v for k, v in given.items() if v is not None})
 
 
 @router.get("/what-if")

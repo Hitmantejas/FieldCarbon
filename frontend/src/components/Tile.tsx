@@ -8,10 +8,11 @@ interface Props {
   figure?: Figure; // a plain count has no confidence label
   onOpen?: () => void;
   highlight?: boolean;
+  note?: string;
 }
 
 // One headline figure: opens its working sheet, carries its confidence label as text.
-export function Tile({ title, shown, unit, figure, onOpen, highlight }: Props) {
+export function Tile({ title, shown, unit, figure, onOpen, highlight, note }: Props) {
   const body = (
     <>
       <span className={`font-mono text-xs uppercase tracking-widest ${highlight ? "" : "text-ink-soft"}`}>{title}</span>
@@ -19,6 +20,7 @@ export function Tile({ title, shown, unit, figure, onOpen, highlight }: Props) {
         {shown}
         <span className="ml-2 font-mono text-sm font-normal">{unit}</span>
       </span>
+      {note && <span className="text-sm">{note}</span>}
       {figure ? <Stamp label={figure.label} /> : <span className="h-5" />}
     </>
   );
@@ -27,7 +29,7 @@ export function Tile({ title, shown, unit, figure, onOpen, highlight }: Props) {
   return (
     <button
       onClick={onOpen}
-      aria-label={`${title}: ${shown} ${unit}, ${figure.label}. Show how it was worked out.`}
+      aria-label={`${title}: ${shown} ${unit}${note ? `, ${note}` : ""}, ${figure.label}. Show how it was worked out.`}
       className={`${box} transition-colors ${highlight ? "" : "hover:bg-mark/40"}`}
     >
       {body}

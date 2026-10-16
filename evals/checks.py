@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from backend.tools.calculate_roi import calculate_roi
+from backend.tools.carbon_ledger import carbon_ledger
 from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.benchmark_peers import benchmark_peers
@@ -29,7 +30,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
-         "check_delivery_notes": check_delivery_notes}
+         "check_delivery_notes": check_delivery_notes, "carbon_ledger": carbon_ledger}
 
 
 def figures(node):
@@ -86,6 +87,11 @@ def check(case: dict, output, spec: dict) -> None:
         assert output["is_scenario"] and output["litres_saved"]["value"] == pytest.approx(spec["approx"], abs=spec["abs"])
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
+    elif kind == "ledger_honest":
+        avoidable = output["avoidable"]
+        assert output["emitted"]["value"] > 0 and output["proven"]["value"] == 0
+        assert avoidable["combined"]["value"] is None and avoidable["combined"]["low"] <= avoidable["combined"]["high"]
+        assert "not added" in avoidable["combined"]["how"] and avoidable["top_action"]["co2e_avoided_t"]["label"] == "estimated"
     else:
         raise AssertionError(f"unknown check {kind}")
 

@@ -49,6 +49,7 @@ export interface PlanFigures {
   cost: Figure | null;
   payback_years: Figure | null;
   running_cost_change_gbp: Figure | null;
+  gbp_per_tco2e?: Figure | null; // fleet ideas only
 }
 
 export interface Intervention {
@@ -66,6 +67,7 @@ export interface Intervention {
   figures: PlanFigures;
   cost_kind: "capex_one_off" | "running_cost_extra_per_litre" | "operating_cost_per_area_change" | null;
   cost_note: string;
+  gbp_per_tco2e_note?: string;
   notes: string;
 }
 

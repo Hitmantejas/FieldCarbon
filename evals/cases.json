@@ -389,6 +389,24 @@
       ]
     },
     {
+      "id": "ledger-headline",
+      "question": "How many tonnes of CO2e did we emit, how many could we avoid, and how many have we proven?",
+      "expected_tools": [
+        "carbon_ledger"
+      ],
+      "arguments": {
+        "goal_pct": 20
+      },
+      "checks": [
+        {
+          "type": "ledger_honest"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
       "id": "fleet-what-if",
       "question": "What if we cut the fuel burned with the tool not working by 20%?",
       "expected_tools": [

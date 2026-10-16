@@ -10,13 +10,13 @@ from __future__ import annotations
 import json
 from functools import wraps
 
-from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, data_quality as _quality,
+from backend.tools import (benchmark_peers as _peers, carbon_ledger as _ledger, check_delivery_notes as _notes, data_quality as _quality,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
                            fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
 
 MAX_JOBS = 10
 MAX_ROWS = 15
-FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg"}  # their `how` is the same fixed formula on every row
+FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg", "co2e_t", "co2e_avoided_t"}  # their `how` is the same fixed formula on every row
 
 
 def _plain(value):
@@ -53,6 +53,17 @@ def _safe(fn):
         except (ValueError, KeyError) as e:
             return {"error": f"{type(e).__name__}: {e}"}
     return run
+
+
+@_safe
+def carbon_ledger(goal_pct: float = 20) -> dict:
+    """The fleet's carbon ledger in tonnes of CO2e: emitted, avoidable and proven, with a check against a reduction goal.
+
+    Avoidable is the strongest idea's range plus a bounded combined range (ideas overlap, so they are never added). Only
+    the arable sites have research behind an idea. Proven is 0 until a change is measured before and after. goal_pct is
+    1 to 90 (percent of fleet emissions). Also gives tonnes per site, kg CO2e per hectare, and cost per tonne avoided.
+    """
+    return _ledger.carbon_ledger(goal_pct)
 
 
 @_safe
@@ -172,6 +183,6 @@ def fleet_report(client_id: str | None = None) -> dict:
             "open_in_app": "Reports screen: choose the company or the client farm, then print or save as PDF."}
 
 
-AGENT_TOOLS = [fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
+AGENT_TOOLS = [carbon_ledger, fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
                benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report]
 BY_NAME = {t.__name__: t for t in AGENT_TOOLS}
