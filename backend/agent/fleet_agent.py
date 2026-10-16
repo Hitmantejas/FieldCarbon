@@ -17,7 +17,7 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
-from backend.agent.coverage import uncited_ideas, unlabelled_sentences, unrounded_numbers
+from backend.agent.coverage import rewrite_request, uncited_ideas, unlabelled_sentences, unrounded_numbers  # noqa: F401 - rewrite_request kept importable from here
 from backend.agent.faithfulness import audit, guard
 from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
@@ -141,34 +141,6 @@ async def _ask(agent: Agent, question: str, retry: bool) -> dict:
 def _gaps(answer: str, calls: list[dict]) -> dict:
     outputs = [c["output"] for c in calls]
     return {"uncited": uncited_ideas(answer, outputs), "unlabelled": unlabelled_sentences(answer), "unrounded": unrounded_numbers(answer)}
-
-
-def rewrite_request(unmatched, uncited=(), unlabelled=(), unrounded=()) -> str:
-    """The one retry message. A number whose size is in the tools but whose saving/increase is turned round is named
-    as such, so the model fixes the words instead of hunting for a number it already has. Ideas named without their
-    source, sentences with a figure but no confidence label, and figures with needless decimals are named too."""
-    invented = ", ".join(dict.fromkeys(n.text for n in unmatched if not n.wrong_direction))
-    flipped = ", ".join(dict.fromkeys(n.text for n in unmatched if n.wrong_direction))
-    parts = []
-    if invented:
-        parts.append(f"These numbers in your answer did not come from the tools: {invented}. Rewrite them using only numbers "
-                     "the tool results contain, written as they appear. If a number is not available, say so instead of working it out.")
-    if flipped:
-        parts.append(f"These numbers are in the tool results, but your answer gives them the opposite direction (a saving where "
-                     f"the tools show an increase, or the other way round): {flipped}. Keep the numbers and describe the direction "
-                     "the tools give.")
-    if uncited:
-        named = "; ".join(f'{g["name"]} (source: {" / ".join(g["titles"][:2])})' for g in uncited)
-        parts.append(f"These ideas are named without their research source: {named}. Name the source title next to each idea, "
-                     "every time it appears, including for a second site.")
-    if unlabelled:
-        quoted = " | ".join(s[:120] for s in unlabelled[:4])
-        parts.append(f"These sentences give a figure without its confidence label: {quoted}. Add measured, allocated or "
-                     "estimated in the same sentence, as the tool results give it.")
-    if unrounded:
-        parts.append(f"These figures have more decimals than a person would write: {', '.join(unrounded)}. Round them as a person "
-                     "would (whole litres, whole pounds, tonnes with one decimal), with a comma for thousands in every language (16,492).")
-    return " ".join(parts) + " Rewrite the whole answer."
 
 
 def _verdict(answer: str, calls: list[dict], question: str):
