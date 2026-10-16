@@ -23,6 +23,7 @@ from backend.tools.fleet_summary import fleet_summary
 from backend.tools.generate_report import generate_report
 from backend.tools.reconcile_fuel import reconcile_fuel
 from backend.tools.set_goal import set_goal
+from backend.tools.upload_note import check_demo_note
 from backend.tools.what_would_improve import what_would_improve
 
 CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text(encoding="utf-8"))["cases"]
@@ -31,7 +32,8 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
-         "check_delivery_notes": check_delivery_notes, "client_statement": client_statement}
+         "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
+         "check_uploaded_note": check_demo_note}
 
 
 def figures(node):
@@ -93,6 +95,9 @@ def check(case: dict, output, spec: dict) -> None:
         assert LABELS.index(output["co2e_per_ha"]["label"]) >= LABELS.index("allocated")
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
+    elif kind == "note_verdict":
+        assert output["verdict"] == spec["equals"], output["verdict"]
+        assert all(f["figure"] is None or (f["figure"]["source_ids"] and f["figure"]["label"]) for f in output["findings"])
     else:
         raise AssertionError(f"unknown check {kind}")
 

@@ -17,8 +17,11 @@ from backend.receipts.validate import ValidatedLine, counted_litres, default_set
 
 ROOT = Path(__file__).resolve().parents[2]
 # Each source of fuel documents: a folder with receipts/*.jpg, ground truth and stored readings.
-FARM_RECEIPTS = {"b": ROOT / "data" / "synthetic" / "farm_b", "fleet": ROOT / "data" / "fleet" / "delivery_notes"}
-SETTINGS = {"b": default_settings, "fleet": fleet_settings}
+FARM_RECEIPTS = {"b": ROOT / "data" / "synthetic" / "farm_b", "fleet": ROOT / "data" / "fleet" / "delivery_notes",
+                 "fleet_demo": ROOT / "data" / "fleet" / "delivery_notes" / "demo"}
+SETTINGS = {"b": default_settings, "fleet": fleet_settings, "fleet_demo": fleet_settings}
+# The four demo notes for the live upload (F7) are served by the app, so their images sit in the frontend.
+IMAGE_FOLDERS = {"fleet_demo": ROOT / "frontend" / "public" / "demo-notes"}
 
 PROJECT = os.environ.get("FIELDCARBON_PROJECT", "ai-hackathon-india")
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
@@ -106,18 +109,25 @@ def cache_path(farm_id: str, receipt_id: str) -> Path:
     return FARM_RECEIPTS[farm_id] / "extractions" / f"{receipt_id}.json"
 
 
+def image_folder(farm_id: str) -> Path:
+    return IMAGE_FOLDERS.get(farm_id, FARM_RECEIPTS[farm_id] / "receipts")
+
+
 def read_receipt(receipt_id: str, farm_id: str = "b", generate: Generate | None = None,
-                 model: str = MODEL, location: str = LOCATION, refresh: bool = False) -> RawExtraction:
-    """The stored raw extraction, or a new Gemini reading (stored) when there is none or `refresh`."""
+                 model: str = MODEL, location: str = LOCATION, refresh: bool = False,
+                 prompt_version: str = PROMPT_VERSION) -> RawExtraction:
+    """The stored raw extraction, or a new Gemini reading (stored) when there is none or `refresh`.
+    `prompt_version` records which prompt an injected `generate` used (the demo notes use the upload prompt)."""
     cached = cache_path(farm_id, receipt_id)
     if cached.exists() and not refresh:
         return RawExtraction(**json.loads(cached.read_text(encoding="utf-8")))
-    image = FARM_RECEIPTS[farm_id] / "receipts" / f"{receipt_id}.jpg"
+    image = image_folder(farm_id) / f"{receipt_id}.jpg"
     extracted = dict((generate or gemini_generate(model, location))(image.read_bytes(), "image/jpeg"))
     meta = extracted.pop(META, {})
-    raw = RawExtraction(receipt_id, farm_id, model, location, PROMPT_VERSION, extracted,
+    shown = image.relative_to(FARM_RECEIPTS[farm_id]) if image.is_relative_to(FARM_RECEIPTS[farm_id]) else image.relative_to(ROOT)
+    raw = RawExtraction(receipt_id, farm_id, model, location, prompt_version, extracted,
                         datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                        image.relative_to(FARM_RECEIPTS[farm_id]).as_posix(), meta.get("usage"), meta.get("model_version"))
+                        shown.as_posix(), meta.get("usage"), meta.get("model_version"))
     cached.parent.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps(asdict(raw), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return raw

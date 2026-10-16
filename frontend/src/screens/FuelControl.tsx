@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Figure } from "../api";
 import { useApi } from "../api";
 import { FindingList, SeverityTag } from "../components/FindingList";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
-import type { Anomalies, DeliveryNotes, DepotMonth, NoteFinding, Reconciliation, Severity } from "../fleetApi";
+import { checkDeliveryNote, NOTE_MAX_BYTES, NOTE_TYPES } from "../fleetApi";
+import type { Anomalies, DeliveryNotes, DepotMonth, NoteCheck, NoteFinding, NoteVerdict, ReadLine, Reconciliation, Severity } from "../fleetApi";
 import { litres } from "../format";
 
 const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
@@ -65,6 +66,160 @@ function HowButton({ onClick, label }: { onClick: () => void; label: string }) {
     <button onClick={onClick} className="btn-outline min-h-11 border-2 border-ink px-4 text-sm font-bold" aria-label={`How ${label} was worked out`}>
       How this was worked out
     </button>
+  );
+}
+
+const SAMPLES = [
+  { name: "matches", title: "A note that matches" },
+  { name: "litres-differ", title: "Litres differ" },
+  { name: "price-differs", title: "Price differs" },
+  { name: "not-in-log", title: "Not in the log" },
+];
+const VERDICTS: Record<NoteVerdict, string> = {
+  matches_log: "Matches the fuel log",
+  needs_attention: "Differs from the fuel log: look into this",
+  needs_review: "Could not be read with confidence: check it by hand",
+  not_a_delivery_note: "This does not look like a fuel delivery note",
+};
+const price = (l: ReadLine) =>
+  l.unit_price == null ? "unreadable" : l.unit_price_unit === "pence_per_litre" ? `${l.unit_price}p` : `£${l.unit_price}`;
+const shownNumber = (v: number | null) => (v == null ? "unreadable" : String(v));
+
+// F7: a person hands over one photo of a delivery note; Gemini reads it, code checks it. Nothing is saved.
+function NoteUpload({ onOpen }: { onOpen: (title: string, shown: string, f: Figure) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<NoteCheck | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<{ url: string; what: string } | null>(null);
+  const running = useRef<AbortController | null>(null);
+
+  useEffect(() => () => running.current?.abort(), []);
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
+
+  const send = async (blob: Blob, what: string) => {
+    setResult(null);
+    setError(null);
+    if (!NOTE_TYPES.includes(blob.type)) return setError("Only JPEG, PNG or WebP photos can be read. Take a photo of the note and send that.");
+    if (blob.size > NOTE_MAX_BYTES) return setError("The photo is over 5 MB. Please send a smaller photo of the note.");
+    running.current?.abort();
+    const ac = new AbortController();
+    running.current = ac;
+    setPhoto({ url: URL.createObjectURL(blob), what });
+    setBusy(true);
+    try {
+      setResult(await checkDeliveryNote(blob, ac.signal));
+    } catch (e) {
+      if (!ac.signal.aborted) setError(e instanceof Error ? e.message : "The note could not be checked.");
+    } finally {
+      if (!ac.signal.aborted) setBusy(false);
+    }
+  };
+
+  const sample = async (name: string, title: string) => {
+    try {
+      const r = await fetch(`/demo-notes/${name}.jpg`);
+      if (!r.ok) throw new Error();
+      await send(new Blob([await r.blob()], { type: "image/jpeg" }), `Sample note: ${title}`);
+    } catch {
+      setError("The sample note could not be loaded. Reload the page and try again.");
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-3xl border-2 border-ink p-4 sm:p-6">
+      <h3 className="font-display text-2xl font-semibold">Check a delivery note</h3>
+      <p className="mt-2 max-w-[70ch] text-ink-soft">
+        Send a photo of one delivery note. Gemini reads what is printed; the same fixed rules and code check it against the fuel log. Nothing is
+        saved: the note is not added to the log.
+      </p>
+      <div className="mt-4 flex flex-wrap items-end gap-4">
+        <label className="flex flex-col gap-2 text-sm font-bold">
+          Photo of a note (JPEG, PNG or WebP, up to 5 MB)
+          <input
+            type="file"
+            accept={NOTE_TYPES.join(",")}
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = ""; // the same photo can be sent again
+              if (f) void send(f, "Your photo");
+            }}
+            className="min-h-11 max-w-full border-2 border-ink bg-paper p-2 font-normal file:mr-3 file:min-h-9 file:border-0 file:bg-ink file:px-3 file:font-bold file:text-paper disabled:opacity-60"
+          />
+        </label>
+      </div>
+      <div role="group" aria-label="Try a sample note" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+        <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Or try a sample note:</span>
+        {SAMPLES.map((s) => (
+          <button key={s.name} onClick={() => void sample(s.name, s.title)} disabled={busy} className="btn-outline min-h-11 border-2 border-ink px-4 font-bold disabled:opacity-60">
+            {s.title}
+          </button>
+        ))}
+      </div>
+      <p className="mt-2 text-sm text-ink-soft">The sample notes are synthetic demo documents, made for this check.</p>
+
+      <div role="status" aria-live="polite" className="mt-4 font-mono text-xs uppercase tracking-widest text-ink-soft">
+        {busy && "Reading the note... this can take up to a minute."}
+      </div>
+      {error && (
+        <p role="alert" className="mt-3 max-w-[70ch] rounded-2xl border-2 border-clay p-3 font-bold">
+          {error}
+        </p>
+      )}
+
+      {(result || busy) && photo && (
+        <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,16rem)_1fr]">
+          <figure>
+            <img src={photo.url} alt={`${photo.what}, as sent`} className="w-full rounded-2xl border border-rule" />
+            <figcaption className="mt-1 text-sm text-ink-soft">{photo.what}</figcaption>
+          </figure>
+          {result && (
+            <div>
+              <p className="text-lg font-bold">
+                <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Verdict: </span>
+                {VERDICTS[result.verdict]}
+              </p>
+              {result.read.lines.length > 0 && (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <caption className="mb-1 text-left text-ink-soft">
+                      As read by Gemini: note {result.read.doc_number ?? "number unreadable"}, {result.read.supplier ?? "supplier unreadable"},{" "}
+                      {result.read.date ?? "date unreadable"}
+                    </caption>
+                    <thead>
+                      <tr className="border-b-2 border-rule font-mono text-xs uppercase tracking-widest text-ink-soft">
+                        <th scope="col" className="py-2 font-normal">Product</th>
+                        <th scope="col" className="py-2 text-right font-normal">Litres</th>
+                        <th scope="col" className="py-2 text-right font-normal">Price per litre</th>
+                        <th scope="col" className="py-2 pl-4 font-normal">Counts as fuel</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.read.lines.map((l, i) => (
+                        <tr key={i} className="border-b border-rule">
+                          <th scope="row" className="py-2 pr-2 font-normal">{l.product ?? "unreadable"}</th>
+                          <td className="num py-2 text-right">{shownNumber(l.litres)}</td>
+                          <td className="num py-2 text-right">{price(l)}</td>
+                          <td className="py-2 pl-4">{result.validated_lines[i]?.counts ? "Yes" : "No"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {result.findings.length > 0 && (
+                <div className="mt-3">
+                  <NoteFindings findings={result.findings} onOpen={onOpen} />
+                </div>
+              )}
+              <p className="mt-3 text-sm text-ink-soft">
+                {result.usage && `Gemini used ${result.usage.total_tokens.toLocaleString("en-GB")} tokens to read it. `}Source: {result.data_source}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -139,6 +294,7 @@ export function FuelControl() {
             </p>
           </>
         )}
+        <NoteUpload onOpen={open} />
       </section>
 
       <section className="px-6" aria-labelledby="h-odd">

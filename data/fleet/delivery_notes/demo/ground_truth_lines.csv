@@ -1,0 +1,5 @@
+doc_id,line_no,product,litres,unit_price_gbp,net_gbp,counts_toward_fuel
+matches,1,Red diesel (gas oil),1800.0,0.7499,1349.82,True
+litres-differ,1,Red diesel (gas oil),2000.0,0.7485,1497.0,True
+price-differs,1,Red diesel (gas oil),1800.0,0.7427,1336.86,True
+not-in-log,1,Red diesel (gas oil),1800.0,0.7661,1378.98,True

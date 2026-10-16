@@ -101,7 +101,9 @@ def main() -> None:
     for farm in FARM_RECEIPTS:
         extractions = load_extractions(farm)
         if not extractions:
-            print(f"{farm}: no stored readings yet (run infra/run_receipts.py --farm {farm} --steps extract)")
+            how = ("python -m backend.tools.upload_note" if farm == "fleet_demo"
+                   else f"infra/run_receipts.py --farm {farm} --steps extract")
+            print(f"{farm}: no stored readings yet (run {how})")
             continue
         result = score(extractions, farm)
         path = RESULTS if farm == "b" else RESULTS.with_name(f"receipt_accuracy_{farm}.json")

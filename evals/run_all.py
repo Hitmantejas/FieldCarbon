@@ -87,13 +87,15 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import fleet_detection, range_coverage, receipt_accuracy
+    from evals import fleet_detection, range_coverage, receipt_accuracy, upload_check
 
     out = {"fleet_detection": fleet_detection.score()}
+    uc = upload_check.score()
+    out["upload_check"] = {k: v for k, v in uc.items() if k != "results"}
     rc = range_coverage.coverage()
     out["range_coverage"] = {k: v for k, v in rc.items() if k != "rows"}
     out["receipt_accuracy"] = {}
-    for farm in ("b", "fleet"):
+    for farm in ("b", "fleet", "fleet_demo"):
         readings = receipt_accuracy.load_extractions(farm)
         out["receipt_accuracy"][farm] = ({k: v for k, v in receipt_accuracy.score(readings, farm).items()
                                           if k != "per_document"} if readings else "not run yet")
@@ -104,7 +106,7 @@ def other_evals() -> dict:
 
 def markdown(s: dict) -> str:
     t, a, st, o = s["tool_cases"], s["agent_runs"]["agent"], s["agent_runs"]["self_test"], s["other"]
-    fd, rc = o["fleet_detection"], o["range_coverage"]
+    fd, rc, uc = o["fleet_detection"], o["range_coverage"], o["upload_check"]
     pct = lambda v: "n/a" if v is None else f"{100 * v:.0f}%"  # noqa: E731
     reading = lambda r: r if isinstance(r, str) else pct(r["field_accuracy"].get("litres"))  # noqa: E731
     rows = [
@@ -115,6 +117,10 @@ def markdown(s: dict) -> str:
          f"{rc['operations_inside']} of {rc['operations']} jobs ({pct(rc['coverage_by_litres'])} of litres)"),
         ("Gemini reading accuracy, Farm B receipts (litres)", reading(o["receipt_accuracy"]["b"])),
         ("Gemini reading accuracy, fleet delivery notes (litres)", reading(o["receipt_accuracy"]["fleet"])),
+        ("Gemini reading accuracy, upload demo notes (litres)", reading(o["receipt_accuracy"]["fleet_demo"])),
+        ("Uploaded-note check: expected verdict, perfect reading", f"{uc['expected_met']} of {uc['notes']} demo notes"),
+        ("Uploaded-note check: expected verdict, Gemini's reading",
+         f"{uc['expected_met_on_gemini_reading']} of {uc['gemini_read']} demo notes" if uc["gemini_read"] else "not run yet"),
         ("Agent runs scored", str(a["runs"])),
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),

@@ -1,0 +1,67 @@
+{
+  "notes": 4,
+  "expected_met": 4,
+  "gemini_read": 0,
+  "expected_met_on_gemini_reading": 0,
+  "results": [
+    {
+      "note": "matches",
+      "change": "none: a second copy of a logged note",
+      "expected_verdict": "matches_log",
+      "expected_finding": null,
+      "ground_truth": {
+        "verdict": "matches_log",
+        "findings": []
+      },
+      "met_on_ground_truth": true,
+      "gemini_reading": null,
+      "met_on_gemini_reading": null
+    },
+    {
+      "note": "litres-differ",
+      "change": "300 litres more than the log, net, VAT and total printed to match",
+      "expected_verdict": "needs_attention",
+      "expected_finding": "litres_differ",
+      "ground_truth": {
+        "verdict": "needs_attention",
+        "findings": [
+          "litres_differ"
+        ]
+      },
+      "met_on_ground_truth": true,
+      "gemini_reading": null,
+      "met_on_gemini_reading": null
+    },
+    {
+      "note": "price-differs",
+      "change": "none: the planted note whose price was keyed into the log with two digits swapped",
+      "expected_verdict": "needs_attention",
+      "expected_finding": "price_differs",
+      "ground_truth": {
+        "verdict": "needs_attention",
+        "findings": [
+          "price_differs"
+        ]
+      },
+      "met_on_ground_truth": true,
+      "gemini_reading": null,
+      "met_on_gemini_reading": null
+    },
+    {
+      "note": "not-in-log",
+      "change": "a note number that is not in the fuel log",
+      "expected_verdict": "needs_attention",
+      "expected_finding": "note_not_in_log",
+      "ground_truth": {
+        "verdict": "needs_attention",
+        "findings": [
+          "note_not_in_log"
+        ]
+      },
+      "met_on_ground_truth": true,
+      "gemini_reading": null,
+      "met_on_gemini_reading": null
+    }
+  ],
+  "note": "check_uploaded_note works from the note and the fuel log; it never reads the expected verdicts. Synthetic demo documents."
+}

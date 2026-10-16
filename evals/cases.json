@@ -644,6 +644,101 @@
       },
       "expect_error": "unknown client",
       "checks": []
+    },
+    {
+      "id": "upload-matches",
+      "question": "Check this delivery note against our fuel log.",
+      "expected_tools": [
+        "check_uploaded_note"
+      ],
+      "arguments": {
+        "note": "matches"
+      },
+      "checks": [
+        {
+          "type": "note_verdict",
+          "equals": "matches_log"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 0
+        }
+      ]
+    },
+    {
+      "id": "upload-litres-differ",
+      "question": "Check this delivery note against our fuel log.",
+      "expected_tools": [
+        "check_uploaded_note"
+      ],
+      "arguments": {
+        "note": "litres-differ"
+      },
+      "checks": [
+        {
+          "type": "note_verdict",
+          "equals": "needs_attention"
+        },
+        {
+          "type": "finds",
+          "kind": "litres_differ",
+          "doc_no": "DN-S1-0002"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "id": "upload-price-differs",
+      "question": "Check this delivery note against our fuel log.",
+      "expected_tools": [
+        "check_uploaded_note"
+      ],
+      "arguments": {
+        "note": "price-differs"
+      },
+      "checks": [
+        {
+          "type": "note_verdict",
+          "equals": "needs_attention"
+        },
+        {
+          "type": "finds",
+          "kind": "price_differs",
+          "doc_no": "DN-S1-0004"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 1
+        }
+      ]
+    },
+    {
+      "id": "upload-not-in-log",
+      "question": "Check this delivery note against our fuel log.",
+      "expected_tools": [
+        "check_uploaded_note"
+      ],
+      "arguments": {
+        "note": "not-in-log"
+      },
+      "checks": [
+        {
+          "type": "note_verdict",
+          "equals": "needs_attention"
+        },
+        {
+          "type": "finds",
+          "kind": "note_not_in_log",
+          "doc_no": "DN-S1-0042"
+        },
+        {
+          "type": "finding_count_at_most",
+          "n": 1
+        }
+      ]
     }
   ]
 }

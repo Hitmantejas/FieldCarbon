@@ -258,17 +258,50 @@ export interface ClientStatement {
 }
 
 // The API's own message (a limit reached, a model failure) instead of a bare status code.
+async function apiError(r: Response): Promise<Error> {
+  let detail = `The API answered ${r.status}`;
+  try {
+    const body = await r.json();
+    if (typeof body.detail === "string") detail = body.detail;
+  } catch {
+    // not JSON: keep the status
+  }
+  return new Error(detail);
+}
+
 export async function fetchClientStatement(clientId: string, language: StatementLanguage, narrate: boolean, signal?: AbortSignal): Promise<ClientStatement> {
   const r = await fetch(`/api/fleet/client-statement?${new URLSearchParams({ client_id: clientId, language, narrate: String(narrate) })}`, { signal });
-  if (!r.ok) {
-    let detail = `The API answered ${r.status}`;
-    try {
-      const body = await r.json();
-      if (typeof body.detail === "string") detail = body.detail;
-    } catch {
-      // not JSON: keep the status
-    }
-    throw new Error(detail);
-  }
+  if (!r.ok) throw await apiError(r);
   return r.json() as Promise<ClientStatement>;
+}
+
+// F7 live delivery-note upload (POST /api/fleet/delivery-notes/check): Gemini reads one photo, rules R1-R8 and the
+// fuel-log comparison check it. Nothing is saved.
+export const NOTE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const NOTE_MAX_BYTES = 5 * 1024 * 1024;
+
+export type NoteVerdict = "matches_log" | "needs_attention" | "needs_review" | "not_a_delivery_note";
+
+export interface ReadLine {
+  product: string | null;
+  litres: number | null;
+  unit_price: number | null;
+  unit_price_unit: "GBP_per_litre" | "pence_per_litre" | null;
+  line_net: number | null;
+}
+
+export interface NoteCheck {
+  verdict: NoteVerdict;
+  read: { doc_type: string; supplier: string | null; doc_number: string | null; date: string | null; lines: ReadLine[]; total: number | null };
+  validated_lines: { product: string | null; litres: number | null; unit_price_gbp: number | null; counts: boolean; outcome: string; reasons: string[] }[];
+  findings: NoteFinding[];
+  usage: { input_tokens: number; output_tokens: number; thinking_tokens: number; total_tokens: number } | null;
+  model_version: string | null;
+  data_source: string;
+}
+
+export async function checkDeliveryNote(photo: Blob, signal?: AbortSignal): Promise<NoteCheck> {
+  const r = await fetch("/api/fleet/delivery-notes/check", { method: "POST", headers: { "Content-Type": photo.type }, body: photo, signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<NoteCheck>;
 }

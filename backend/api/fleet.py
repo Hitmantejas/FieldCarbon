@@ -2,10 +2,12 @@ import threading
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from starlette.concurrency import run_in_threadpool
 
 from backend.agent import statement_text
 from backend.api.limits import AskLimiter, Refused, caller_of
 
+from backend.tools import upload_note
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.check_delivery_notes import check_delivery_notes
 from backend.tools.client_statement import client_statement
@@ -85,8 +87,8 @@ def get_delivery_notes():
 
 
 # Gemini-written texts (F4 statement; later the diagnosis, briefing and upload): one limiter for all of them.
-GEN_MESSAGES = ("Today's limit of texts written by Gemini has been reached. Try again tomorrow.",
-                "You can ask for {n} texts written by Gemini a minute. Please wait a moment and try again.")
+GEN_MESSAGES = ("Today's limit of Gemini requests has been reached. Try again tomorrow.",
+                "You can make {n} Gemini requests a minute. Please wait a moment and try again.")
 gen_limiter = AskLimiter.from_env(minute_var="FIELDCARBON_GEN_PER_MINUTE", day_var="FIELDCARBON_GEN_PER_DAY", defaults=(6, 300),
                                   messages=GEN_MESSAGES)
 
@@ -131,3 +133,42 @@ def get_client_statement(request: Request, client_id: str, language: Literal["en
         with _statement_lock:
             _statement_cache[key] = narrative
     return {**s, "language": language, "narrative": narrative}
+
+
+# F7 live delivery-note upload
+note_reader = upload_note.read_uploaded_note
+TOO_BIG = "The photo is over 5 MB. Please send a smaller photo of the note."
+
+
+@router.post("/delivery-notes/check")
+async def post_delivery_note_check(request: Request):
+    """One delivery-note photo as the raw request body (Content-Type image/jpeg, image/png or image/webp, up to 5 MB):
+    Gemini reads it, rules R1-R8 and the fuel-log comparison check it. Nothing is saved; no filename is used; the image
+    is never logged. Every refusal happens before the model is called and does not count against the limit."""
+    mime = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if mime not in upload_note.MAGIC:
+        raise HTTPException(415, "Only JPEG, PNG or WebP photos can be read. Take a photo of the note and send that.")
+    length = request.headers.get("content-length", "")
+    if length.isdigit() and int(length) > upload_note.MAX_BYTES:
+        raise HTTPException(413, TOO_BIG)
+    body = bytearray()
+    async for chunk in request.stream():
+        body += chunk
+        if len(body) > upload_note.MAX_BYTES:
+            raise HTTPException(413, TOO_BIG)
+    if not body:
+        raise HTTPException(400, "The upload was empty. Choose a photo of a delivery note.")
+    image = bytes(body)
+    if not upload_note.image_type_matches(image, mime):
+        raise HTTPException(422, f"The file does not look like a {mime.split('/')[1].upper()} image. Choose a photo of the note.")
+    _admit(request)
+    try:
+        reading = await run_in_threadpool(note_reader, image, mime)
+    except Exception as e:  # noqa: BLE001 - any model or network failure; no detail reaches the client
+        raise HTTPException(502, "Gemini could not read the note just now. Nothing was saved. Please try again in a minute.") from e
+    try:
+        result = upload_note.check_uploaded_note(reading["read"])
+    except Exception as e:  # noqa: BLE001 - a reading the rules cannot process
+        raise HTTPException(502, "The note was read but could not be checked. Nothing was saved. Try a clearer photo.") from e
+    return {**result, "read": reading["read"], "usage": reading["usage"], "model_version": reading["model_version"],
+            "data_source": upload_note.DATA_SOURCE}

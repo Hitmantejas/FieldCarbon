@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from backend.tools.extract_receipt import FARM_RECEIPTS, cache_path, read_receipt, validate_farm  # noqa: E402
+from backend.tools.extract_receipt import FARM_RECEIPTS, IMAGE_FOLDERS, cache_path, read_receipt, validate_farm  # noqa: E402
 from evals.receipt_accuracy import main as score_main  # noqa: E402
 from infra.load_gcp import BUCKET, DATASET, DDL, PROJECT, REGION, Runner, preflight, render  # noqa: E402
 
@@ -117,8 +117,9 @@ def main() -> None:
     ap.add_argument("--model", help="pinned Gemini model id, e.g. gemini-3.5-flash")
     ap.add_argument("--location", help="Vertex AI endpoint for Gemini, e.g. global or us-central1")
     ap.add_argument("--refresh", action="store_true", help="re-read receipts that already have a stored reading")
-    ap.add_argument("--farm", choices=sorted(FARM_RECEIPTS), default="b",
-                    help="which documents: b = Farm B receipts, fleet = the fleet's delivery notes")
+    ap.add_argument("--farm", choices=sorted(set(FARM_RECEIPTS) - set(IMAGE_FOLDERS)), default="b",
+                    help="which documents: b = Farm B receipts, fleet = the fleet's delivery notes "
+                         "(the upload demo notes are read by python -m backend.tools.upload_note)")
     args = ap.parse_args()
     steps = args.steps.split(",")
     if set(steps) - set(STEPS):

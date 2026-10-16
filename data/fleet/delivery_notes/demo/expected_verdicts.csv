@@ -1,0 +1,5 @@
+note,based_on,doc_number,change,expected_verdict,expected_finding
+matches,DN-S1-0001,DN-S1-0001,none: a second copy of a logged note,matches_log,
+litres-differ,DN-S1-0002,DN-S1-0002,"300 litres more than the log, net, VAT and total printed to match",needs_attention,litres_differ
+price-differs,DN-S1-0004,DN-S1-0004,none: the planted note whose price was keyed into the log with two digits swapped,needs_attention,price_differs
+not-in-log,DN-S1-0003,DN-S1-0042,a note number that is not in the fuel log,needs_attention,note_not_in_log

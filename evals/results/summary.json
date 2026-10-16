@@ -1,9 +1,9 @@
 {
   "tool_cases": {
-    "cases": 32,
-    "passed": 32,
+    "cases": 36,
+    "passed": 36,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 673,
+    "figures_checked": 676,
     "failures": []
   },
   "agent_runs": {
@@ -368,6 +368,13 @@
       ],
       "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
     },
+    "upload_check": {
+      "notes": 4,
+      "expected_met": 4,
+      "gemini_read": 0,
+      "expected_met_on_gemini_reading": 0,
+      "note": "check_uploaded_note works from the note and the fuel log; it never reads the expected verdicts. Synthetic demo documents."
+    },
     "range_coverage": {
       "operations": 12,
       "operations_inside": 8,
@@ -483,7 +490,8 @@
           "total_tokens": 41925,
           "per_document": 2995
         }
-      }
+      },
+      "fleet_demo": "not run yet"
     }
   }
 }
