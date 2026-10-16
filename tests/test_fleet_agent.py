@@ -144,3 +144,16 @@ def test_a_figure_with_needless_decimals_is_rewritten_rounded():
     sent = "".join(p.text or "" for p in m.seen[-1].contents[-1].parts)
     assert "more decimals than a person would write: 16492.14 Liter" in sent
     assert r["attempts"] == 2 and r["audit"]["unrounded"] == [] and "16492.14" not in r["answer"]
+
+
+def test_thinking_is_low_by_default_and_can_be_set(monkeypatch):
+    """F8 6c: thinking was about a fifth of the tokens; low is the default, and a setting can raise it or leave it to the model."""
+    cfg = fleet_agent.build_agent(model=Scripted()).generate_content_config
+    assert cfg.temperature == 0 and cfg.thinking_config.thinking_level == types.ThinkingLevel.LOW
+    monkeypatch.setenv("FIELDCARBON_AGENT_THINKING", "high")
+    assert fleet_agent.build_agent(model=Scripted()).generate_content_config.thinking_config.thinking_level == types.ThinkingLevel.HIGH
+    monkeypatch.setenv("FIELDCARBON_AGENT_THINKING", "model")
+    assert fleet_agent.build_agent(model=Scripted()).generate_content_config.thinking_config is None
+    monkeypatch.setenv("FIELDCARBON_AGENT_THINKING", "lots")
+    with pytest.raises(ValueError, match="FIELDCARBON_AGENT_THINKING"):
+        fleet_agent.build_agent(model=Scripted())

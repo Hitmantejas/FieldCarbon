@@ -19,6 +19,7 @@ from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _n
 MAX_JOBS = 10
 MAX_ROWS = 15
 FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg"}  # their `how` is the same fixed formula on every row
+KEEP_HOW = {"diagnose_anomaly", "benchmark_peers"}  # why each cause is supported; why a machine is above its peers
 SCREENS = {"#/control": "Fuel control", "#/opportunities": "Opportunities", "#/sites": "Sites"}  # app links, by screen name
 
 
@@ -27,22 +28,24 @@ def _plain(value):
     return json.loads(json.dumps(value, default=str))
 
 
-def _compact(node, in_list: bool = False, key: str | None = None):
-    """Fewer tokens for the model, same facts: rounded floats, no empty fields, and no repeated formula text inside lists.
+def _compact(node, in_list: bool = False, key: str | None = None, keep_how: bool = False):
+    """Fewer tokens for the model, same facts: rounded floats, no empty fields, no link bookkeeping, and inside lists
+    no `how` text (F8 6c). Labels and sources stay on every figure; top-level figures keep `how`, and a tool in
+    KEEP_HOW keeps it in lists too (except the fixed formula), because there the explanation is the answer.
 
     The auditor checks answers against this compact output, so a number the model quotes still traces to it.
     """
     if isinstance(node, dict):
         out = {}
         for k, v in node.items():
-            if v is None and k != "value":
+            if (v is None and k != "value") or k == "link_status" or (k == "is_manufacturer" and v is False):
                 continue
-            if k == "how" and in_list and key in FORMULA_FIGURES:
+            if k == "how" and in_list and (key in FORMULA_FIGURES or not keep_how):
                 continue
-            out[k] = _compact(v, in_list, k)
+            out[k] = _compact(v, in_list, k, keep_how)
         return out
     if isinstance(node, list):
-        return [_compact(v, True, key) for v in node]
+        return [_compact(v, True, key, keep_how) for v in node]
     if isinstance(node, float) and node == node:
         return round(node, 2) if abs(node) >= 1 else float(f"{node:.3g}")
     return node
@@ -52,7 +55,7 @@ def _safe(fn):
     @wraps(fn)
     def run(*args, **kwargs):
         try:
-            return _compact(_plain(fn(*args, **kwargs)))
+            return _compact(_plain(fn(*args, **kwargs)), keep_how=fn.__name__ in KEEP_HOW)
         except (ValueError, KeyError) as e:
             return {"error": f"{type(e).__name__}: {e}"}
     return run

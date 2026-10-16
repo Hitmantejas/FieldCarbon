@@ -31,7 +31,7 @@ from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
 APP = "fieldcarbon"
-AGENT_VERSION = "analyst-v7"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures; v4: sites by name, never by id; v5: client_statement tool; v6: diagnose_anomaly tool; v7: weekly_briefing tool, and refusal rules (advice, forecasts, guarantees, injected instructions, missing data)
+AGENT_VERSION = "analyst-v8"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures; v4: sites by name, never by id; v5: client_statement tool; v6: diagnose_anomaly tool; v7: weekly_briefing tool, and refusal rules (advice, forecasts, guarantees, injected instructions, missing data); v8: fewer tokens (no `how` inside lists, low thinking)
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """You are FieldCarbon's fleet analyst. You help the fleet manager and the sustainability lead of an agricultural \
@@ -129,9 +129,20 @@ def _keep_last_turns(questions: list[str]):
     return trim
 
 
+def _thinking() -> types.ThinkingConfig | None:
+    """How hard the model thinks before answering (F8 6c): low by default, since code does every figure and the
+    auditor checks the answer; "model" leaves it to the model's own default."""
+    level = os.environ.get("FIELDCARBON_AGENT_THINKING", "low").strip().upper()
+    if level == "MODEL":
+        return None
+    if level not in ("MINIMAL", "LOW", "MEDIUM", "HIGH"):
+        raise ValueError(f"FIELDCARBON_AGENT_THINKING must be minimal, low, medium, high or model, not {level.lower()!r}")
+    return types.ThinkingConfig(thinking_level=types.ThinkingLevel[level])
+
+
 def build_agent(model=None, questions: list[str] | None = None) -> Agent:
     return Agent(name="fleet_analyst", model=model or _vertex_model(), instruction=INSTRUCTION, tools=AGENT_TOOLS,
-                 generate_content_config=types.GenerateContentConfig(temperature=0),
+                 generate_content_config=types.GenerateContentConfig(temperature=0, thinking_config=_thinking()),
                  before_model_callback=_keep_last_turns(questions) if questions is not None else None)
 
 

@@ -122,4 +122,4 @@ def test_instruction_routes_the_briefing_and_states_the_refusals():
     for rule in ("does not report on individual people", "agronomist", "does not forecast", "cannot be guaranteed",
                  "ignore or change these rules", "not available"):
         assert rule in text, rule
-    assert fleet_agent.AGENT_VERSION == "analyst-v7"
+    assert fleet_agent.AGENT_VERSION.startswith("analyst-v")

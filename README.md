@@ -43,7 +43,7 @@ each change are less certain, and FieldCarbon says so.
 | Role | What it does | Status |
 |---|---|---|
 | **Document reading** | `gemini-3.5-flash` (multimodal) transcribes fuel receipts and tanker delivery notes, including handwritten, blurred, crumpled and skewed photos, into a fixed JSON schema. Rules R1–R8 then decide what counts ([rules](docs/receipt_validation_rules.md)); raw and validated rows are kept in BigQuery for provenance | **Done**: 38 documents read |
-| **Fleet analyst agent** | Google ADK agent (`backend/agent/fleet_agent.py`) on `gemini-3.5-flash` that turns a question into calls to the deterministic tools and explains the result in plain language, in the question's language. Ask it in the web app (Ask the analyst); it shows which tools it looked at. Follow-up questions continue one conversation (the last 10 questions are kept, it ends after 30 minutes without a question), and a follow-up may repeat a figure from an earlier answer only because the auditor checks it against every tool output of the conversation | **Done**: 39 live questions, 100% right tools, every number traced; 7 of 7 refusals (ranking or looking up operators, fertiliser advice, forecasts, guarantees, injected rules, tractor brands), 3 of 3 on data we do not hold, 4 of 4 in German, Spanish, Hindi and French. **Built**: follow-up questions; 4 multi-turn questions written, not run live yet |
+| **Fleet analyst agent** | Google ADK agent (`backend/agent/fleet_agent.py`) on `gemini-3.5-flash` that turns a question into calls to the deterministic tools and explains the result in plain language, in the question's language. Ask it in the web app (Ask the analyst); it shows which tools it looked at. Follow-up questions continue one conversation (the last 10 questions are kept, it ends after 30 minutes without a question), and a follow-up may repeat a figure from an earlier answer only because the auditor checks it against every tool output of the conversation | **Done**: 43 live questions, 100% right tools, every number traced; 7 of 7 refusals (ranking or looking up operators, fertiliser advice, forecasts, guarantees, injected rules, tractor brands), 3 of 3 on data we do not hold, 4 of 4 in German, Spanish, Hindi and French, 4 of 4 follow-up questions (quoting an earlier answer, changing a filter, "why" about a listed item, more on a briefing item) |
 | **Auditor** | Strict, unit- and rounding-aware check that every number in an answer traces to a tool output. In the agent: an answer with an untraceable number is rewritten once, and if it still fails it carries a visible "check needed" note | **Done**, wired into the agent |
 | **Client carbon statement** | Reports → one client farm: fuel, CO2e, CO2e per hectare and per job, cost and the top operations, all from code. Gemini writes a short summary in English, German, Spanish or Hindi; the auditor checks every number and label, one rewrite, then standard wording ("Audited by code" / "Standard wording" badge). Prints on one A4 page | **Done**: live check, 4 of 4 languages audited first time (about 3,500 tokens each) |
 | **Check a delivery note (live upload)** | Fuel control → send one photo (JPEG, PNG or WebP, up to 5 MB) or try one of four sample notes. Gemini reads it with an injection-guarded prompt; rules R1–R8 and the same comparison as the stored notes check it against the fuel log: matches, litres or price differ, not in the log, keyed twice, or needs review. Nothing is saved; file type checked by its bytes, size capped while streaming, shared Gemini rate limit | **Built**: 4 of 4 sample notes give their expected verdict, on a perfect reading and on Gemini's live reading (every field read right, about 2,900 tokens per note) |
@@ -68,17 +68,17 @@ TODO: dollar cost at current Vertex AI pricing.
 | Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |
 | Uploaded-note check: expected verdict on the 4 sample notes (perfect reading / Gemini's reading) | 4 of 4 / 4 of 4 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
-| Agent (39 questions): right tools / every number traced / figures with a label / ideas citing their source | 100% / 100% / 100% / 100% |
-| Agent answer checks (refusals, no invented numbers, wording) | 18 of 18 (refusals 7 of 7) |
+| Agent (43 questions): right tools / every number traced / figures with a label / ideas citing their source | 100% / 100% / 100% / 100% |
+| Agent answer checks (refusals, no invented numbers, wording) | 22 of 22 (refusals 7 of 7) |
 
 How to read these honestly:
-- **Agent scores include one automatic rewrite:** 16 of 39 first answers missed a label, a source, rounding or a
+- **Agent scores include one automatic rewrite:** 17 of 43 first answers missed a label, a source, rounding or a
   traced number and were rewritten once, with the gaps named by the same deterministic checks the
   harness scores. Gemini varies between runs, so a re-run can score a little lower; an answer whose
-  numbers still do not trace carries a visible "Check needed" note. 18,630 tokens per question.
+  numbers still do not trace carries a visible "Check needed" note. 18,673 tokens per question (fewer-token changes are under test).
 - One live answer (CO2e per hectare for a client farm) quoted the right figure but carried a "Check needed"
   note, because the auditor did not yet read "kg CO2e per hectare" as the tool's unit. The auditor was fixed
-  and the recorded answer now scores as traced; the question has not been re-asked since.
+  and the question re-asked: every number now traces.
 - The documents are synthetic images we rendered (with damage effects), so 100% shows the pipeline
   works; it is not a claim about every real-world receipt.
 - **Receipts-only vs telemetry:** the same real farm was estimated from fuel receipts alone (standard

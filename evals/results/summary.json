@@ -8,10 +8,10 @@
   },
   "agent_runs": {
     "agent": {
-      "runs": 39,
+      "runs": 43,
       "tool_selection": 1.0,
       "faithfulness": 1.0,
-      "label_coverage": 0.997,
+      "label_coverage": 1.0,
       "citation_coverage": 1.0,
       "details": [
         {
@@ -360,21 +360,6 @@
           "answer_check_failures": []
         },
         {
-          "case_id": "agent-statement-per-ha",
-          "sample": false,
-          "group": "new_tool",
-          "tool_selection": true,
-          "faithful": true,
-          "numbers": 8,
-          "unmatched": [],
-          "labelled_figures": 5,
-          "figures": 6,
-          "cited": 0,
-          "recommendations_named": 0,
-          "answer_checks_passed": true,
-          "answer_check_failures": []
-        },
-        {
           "case_id": "agent-diagnose-depot-gap",
           "sample": false,
           "group": "new_tool",
@@ -598,18 +583,93 @@
           "recommendations_named": 0,
           "answer_checks_passed": true,
           "answer_check_failures": []
+        },
+        {
+          "case_id": "agent-statement-per-ha",
+          "sample": false,
+          "group": "new_tool",
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 8,
+          "unmatched": [],
+          "labelled_figures": 6,
+          "figures": 6,
+          "cited": 0,
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
+        },
+        {
+          "case_id": "mt-quote-earlier",
+          "sample": false,
+          "group": "multi_turn",
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 3,
+          "unmatched": [],
+          "labelled_figures": 3,
+          "figures": 3,
+          "cited": 0,
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
+        },
+        {
+          "case_id": "mt-change-filter",
+          "sample": false,
+          "group": "multi_turn",
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 29,
+          "unmatched": [],
+          "labelled_figures": 20,
+          "figures": 20,
+          "cited": 0,
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
+        },
+        {
+          "case_id": "mt-why-after-list",
+          "sample": false,
+          "group": "multi_turn",
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 5,
+          "unmatched": [],
+          "labelled_figures": 3,
+          "figures": 3,
+          "cited": 0,
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
+        },
+        {
+          "case_id": "mt-briefing-item",
+          "sample": false,
+          "group": "multi_turn",
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 1,
+          "unmatched": [],
+          "labelled_figures": 1,
+          "figures": 1,
+          "cited": 0,
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
         }
       ],
       "tokens": {
-        "runs": 39,
-        "input": 587492,
-        "output": 16389,
-        "thinking": 122707,
-        "per_question": 18630
+        "runs": 43,
+        "input": 658550,
+        "output": 17742,
+        "thinking": 126651,
+        "per_question": 18673
       },
       "answer_checks": {
-        "runs": 18,
-        "passed": 18
+        "runs": 22,
+        "passed": 22
       },
       "refusals": {
         "runs": 7,
