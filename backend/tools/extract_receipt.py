@@ -80,8 +80,9 @@ class RawExtraction:
     model_version: str | None = None
 
 
-def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str = PROJECT) -> Generate:
-    """Gemini on Vertex AI (ADC credentials, no keys). Imported lazily: tests never need the SDK."""
+def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str = PROJECT, prompt: str = PROMPT) -> Generate:
+    """Gemini on Vertex AI (ADC credentials, no keys). Imported lazily: tests never need the SDK.
+    `prompt` is PROMPT (PROMPT_VERSION) for the stored readings; the live upload adds a line to it (upload_note.py)."""
     def generate(image: bytes, mime: str) -> dict:
         from google import genai
         from google.genai import types
@@ -89,7 +90,7 @@ def gemini_generate(model: str = MODEL, location: str = LOCATION, project: str =
         client = genai.Client(vertexai=True, project=project, location=location)
         response = client.models.generate_content(
             model=model,
-            contents=[types.Part.from_bytes(data=image, mime_type=mime), PROMPT],
+            contents=[types.Part.from_bytes(data=image, mime_type=mime), prompt],
             config=types.GenerateContentConfig(temperature=0, response_mime_type="application/json",
                                                response_json_schema=SCHEMA),
         )
