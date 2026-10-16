@@ -13,11 +13,13 @@ from functools import wraps
 from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, client_statement as _statement,
                            data_quality as _quality, diagnose_anomaly as _diagnose,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
-                           fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
+                           fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if,
+                           weekly_briefing as _briefing)
 
 MAX_JOBS = 10
 MAX_ROWS = 15
 FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg"}  # their `how` is the same fixed formula on every row
+SCREENS = {"#/control": "Fuel control", "#/opportunities": "Opportunities", "#/sites": "Sites"}  # app links, by screen name
 
 
 def _plain(value):
@@ -194,6 +196,17 @@ def client_statement(client_id: str) -> dict:
     return r
 
 
+@_safe
+def weekly_briefing() -> dict:
+    """The three things to look at first, chosen by fixed rules in code from fuel control, delivery notes, recorder data,
+    peer comparisons and ideas: most severe first, then the largest, at most one per topic. Each item has its figure, why
+    it matters, the next step, the screen to open and what would improve it. Covers the company year to date, not one week."""
+    b = _briefing.weekly_briefing()
+    items = [{**{k: v for k, v in i.items() if k != "link"}, "screen": SCREENS.get(i["link"], "Overview")} for i in b["items"]]
+    return {"period": b["period"], "rules": b["rules"], "items": items, "chosen_from": b["candidates"]}
+
+
 AGENT_TOOLS = [fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
-               diagnose_anomaly, benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement]
+               diagnose_anomaly, benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement,
+               weekly_briefing]
 BY_NAME = {t.__name__: t for t in AGENT_TOOLS}

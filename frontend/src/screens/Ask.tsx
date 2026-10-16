@@ -36,6 +36,7 @@ const LOOKED_AT: Record<string, string> = {
   fleet_jobs: "The job list",
   fleet_report: "The report",
   client_statement: "A client farm's carbon statement",
+  weekly_briefing: "The three things to look at first",
 };
 
 // The model writes short paragraphs, "* " bullets and **bold**; show them as such, never as raw markdown.

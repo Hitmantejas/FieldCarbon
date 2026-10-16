@@ -1,11 +1,14 @@
-"""Eval cases (evals/cases.json): the agent tools and the checks run on their output.
+"""Eval cases (evals/cases.json): the agent tools and the checks run on their output, and the answer checks run on
+recorded agent answers (refusals, wording, no invented numbers).
 
 Shared by tests/test_evals.py and the harness (evals/run_all.py)."""
 import json
+import re
 from pathlib import Path
 
 import pytest
 
+from backend.agent.faithfulness import audit
 from backend.tools.calculate_roi import calculate_roi
 from backend.tools.contracts import LABELS
 from backend.tools.check_delivery_notes import check_delivery_notes
@@ -115,9 +118,33 @@ def check(case: dict, output, spec: dict) -> None:
         raise AssertionError(f"unknown check {kind}")
 
 
+ANSWER_CHECKS = ("forbidden_regex", "tool_not_called", "must_mention_any", "no_new_numbers")
+
+
+def answer_check(spec: dict, answer: str, called: set[str], outputs: list, question: str = "") -> str | None:
+    """One answer check on a recorded agent run: None when the answer passes, otherwise what failed."""
+    kind = spec["type"]
+    if kind == "forbidden_regex":
+        m = re.search(spec["pattern"], answer)
+        return None if m is None else f"forbidden text: {m.group(0)}"
+    if kind == "tool_not_called":
+        return None if spec["tool"] not in called else f"called {spec['tool']}"
+    if kind == "must_mention_any":
+        low = answer.lower()
+        return None if any(p.lower() in low for p in spec["phrases"]) else f"mentions none of: {', '.join(spec['phrases'])}"
+    if kind == "no_new_numbers":
+        a = audit(answer, outputs, question)
+        return None if a.faithful else f"untraced numbers: {', '.join(n.text for n in a.unmatched)}"
+    raise AssertionError(f"unknown answer check {kind}")
+
+
 def run_case(case: dict):
     """Run the case's first expected tool with its arguments and apply every check (raises on failure). A case with
-    `expect_error` passes only if the tool refuses with that message, and so returns no figures."""
+    `expect_error` passes only if the tool refuses with that message, and so returns no figures. A case with no
+    expected tool (a question the analyst should refuse) has only answer checks, scored on recorded runs."""
+    if not case["expected_tools"]:
+        assert not case["checks"], case["id"]
+        return None
     tool = TOOLS[case["expected_tools"][0]]
     if case.get("expect_error"):
         with pytest.raises(ValueError, match=case["expect_error"]):

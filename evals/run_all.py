@@ -15,7 +15,7 @@ from backend.agent.coverage import citation_coverage, label_coverage
 from backend.agent.faithfulness import audit
 from backend.agent.runs import load_runs
 from backend.tools.contracts import LABELS
-from evals.checks import CASES, TOOLS, figures, run_case
+from evals.checks import CASES, TOOLS, answer_check, figures, run_case
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "evals" / "results"
@@ -49,10 +49,21 @@ def score_run(run: dict) -> dict:
     a = audit(run["answer"], outputs, run.get("question", ""))
     lab, figs = label_coverage(run["answer"])
     cit, named = citation_coverage(run["answer"], outputs)
-    return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")),
+    specs = (case or {}).get("answer_checks") or []
+    failures = [f for f in (answer_check(s, run["answer"], called, outputs, run.get("question", "")) for s in specs) if f]
+    return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")), "group": (case or {}).get("group"),
             "tool_selection": None if case is None else set(case["expected_tools"]) <= called,
             "faithful": a.faithful, "numbers": a.checked, "unmatched": [n.text for n in a.unmatched],
-            "labelled_figures": lab, "figures": figs, "cited": cit, "recommendations_named": named}
+            "labelled_figures": lab, "figures": figs, "cited": cit, "recommendations_named": named,
+            "answer_checks_passed": (not failures) if specs else None, "answer_check_failures": failures}
+
+
+def answer_check_rates(rows: list[dict]) -> dict:
+    """Runs whose case has answer checks, and of those the refusals, with how many passed every check."""
+    def count(sel):
+        return {"runs": len(sel), "passed": sum(r["answer_checks_passed"] for r in sel)}
+    checked = [r for r in rows if r["answer_checks_passed"] is not None]
+    return {"answer_checks": count(checked), "refusals": count([r for r in checked if r["group"] == "refusal"])}
 
 
 def _rate(rows: list[dict], key: str) -> float | None:
@@ -83,6 +94,7 @@ def agent_runs() -> dict:
                      "faithfulness": _rate(rows, "faithful"), "label_coverage": _share(rows, "labelled_figures", "figures"),
                      "citation_coverage": _share(rows, "cited", "recommendations_named"), "details": rows}
     out["agent"]["tokens"] = agent_tokens(runs)
+    out["agent"].update(answer_check_rates(out["agent"]["details"]))
     return out
 
 
@@ -130,6 +142,9 @@ def markdown(s: dict) -> str:
         ("Agent numerical faithfulness", pct(a["faithfulness"])),
         ("Agent label coverage", pct(a["label_coverage"])),
         ("Agent citation coverage (ideas that name their research source)", pct(a["citation_coverage"])),
+        ("Agent answer checks passed (wording, no invented numbers)", f"{a['answer_checks']['passed']} of {a['answer_checks']['runs']}"),
+        ("Agent refusals passed (operators, farming advice, forecasts, guarantees, injected rules, data not held)",
+         f"{a['refusals']['passed']} of {a['refusals']['runs']}" if a["refusals"]["runs"] else "not run yet"),
         ("Agent tokens per question (input + output + thinking)",
          f"{a['tokens']['per_question']:,} over {a['tokens']['runs']} runs" if a["tokens"] else "not recorded yet"),
         ("Harness self-test (hand-written samples)",

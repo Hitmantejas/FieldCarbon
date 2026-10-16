@@ -1,9 +1,9 @@
 {
   "tool_cases": {
-    "cases": 44,
-    "passed": 44,
+    "cases": 60,
+    "passed": 60,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 702,
+    "figures_checked": 830,
     "failures": []
   },
   "agent_runs": {
@@ -17,6 +17,7 @@
         {
           "case_id": "fleet-summary",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 4,
@@ -24,11 +25,14 @@
           "labelled_figures": 4,
           "figures": 4,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-clients",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 26,
@@ -36,11 +40,14 @@
           "labelled_figures": 19,
           "figures": 19,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-jobs",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 14,
@@ -48,11 +55,14 @@
           "labelled_figures": 13,
           "figures": 13,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-report",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 7,
@@ -60,11 +70,14 @@
           "labelled_figures": 6,
           "figures": 6,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-reconcile",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 12,
@@ -72,11 +85,14 @@
           "labelled_figures": 9,
           "figures": 9,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-quality",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 10,
@@ -84,11 +100,14 @@
           "labelled_figures": 6,
           "figures": 6,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-benchmark",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 28,
@@ -96,11 +115,14 @@
           "labelled_figures": 20,
           "figures": 20,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-anomalies",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 26,
@@ -108,11 +130,14 @@
           "labelled_figures": 14,
           "figures": 14,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-opportunities",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 18,
@@ -120,11 +145,14 @@
           "labelled_figures": 16,
           "figures": 16,
           "cited": 8,
-          "recommendations_named": 8
+          "recommendations_named": 8,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-what-if",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 6,
@@ -132,11 +160,14 @@
           "labelled_figures": 6,
           "figures": 6,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-peer-waste",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 26,
@@ -144,11 +175,14 @@
           "labelled_figures": 20,
           "figures": 20,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-client-co2",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 26,
@@ -156,11 +190,14 @@
           "labelled_figures": 19,
           "figures": 19,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-fuel-adds-up",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 11,
@@ -168,11 +205,14 @@
           "labelled_figures": 7,
           "figures": 7,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-double-note",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 2,
@@ -180,11 +220,14 @@
           "labelled_figures": 2,
           "figures": 2,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-overfill",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 9,
@@ -192,11 +235,14 @@
           "labelled_figures": 5,
           "figures": 5,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-change-first",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 26,
@@ -204,11 +250,14 @@
           "labelled_figures": 24,
           "figures": 24,
           "cited": 8,
-          "recommendations_named": 8
+          "recommendations_named": 8,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-how-sure",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 10,
@@ -216,11 +265,14 @@
           "labelled_figures": 7,
           "figures": 7,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-october-jobs",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 20,
@@ -228,11 +280,14 @@
           "labelled_figures": 16,
           "figures": 16,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-delivery-notes",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 11,
@@ -240,11 +295,14 @@
           "labelled_figures": 6,
           "figures": 6,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-whatif-hvo",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 8,
@@ -252,11 +310,14 @@
           "labelled_figures": 7,
           "figures": 7,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-german-total",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 4,
@@ -264,11 +325,14 @@
           "labelled_figures": 4,
           "figures": 4,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "plain-diagnose-night-fuel",
           "sample": false,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 14,
@@ -276,7 +340,9 @@
           "labelled_figures": 8,
           "figures": 8,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": true,
+          "answer_check_failures": []
         }
       ],
       "tokens": {
@@ -285,6 +351,14 @@
         "output": 9624,
         "thinking": 68491,
         "per_question": 17183
+      },
+      "answer_checks": {
+        "runs": 1,
+        "passed": 1
+      },
+      "refusals": {
+        "runs": 0,
+        "passed": 0
       }
     },
     "self_test": {
@@ -297,6 +371,7 @@
         {
           "case_id": "fleet-summary",
           "sample": true,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 5,
@@ -304,11 +379,14 @@
           "labelled_figures": 4,
           "figures": 5,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-summary",
           "sample": true,
+          "group": null,
           "tool_selection": true,
           "faithful": false,
           "numbers": 3,
@@ -320,11 +398,14 @@
           "labelled_figures": 1,
           "figures": 3,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-reconcile",
           "sample": true,
+          "group": null,
           "tool_selection": true,
           "faithful": true,
           "numbers": 6,
@@ -332,11 +413,14 @@
           "labelled_figures": 3,
           "figures": 3,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         },
         {
           "case_id": "fleet-clients",
           "sample": true,
+          "group": null,
           "tool_selection": false,
           "faithful": false,
           "numbers": 2,
@@ -347,7 +431,9 @@
           "labelled_figures": 2,
           "figures": 2,
           "cited": 0,
-          "recommendations_named": 0
+          "recommendations_named": 0,
+          "answer_checks_passed": null,
+          "answer_check_failures": []
         }
       ]
     }
