@@ -48,3 +48,14 @@ def test_a_full_run_replaces_every_answer(recorder):
     path, _, _ = recorder
     run_agent.main()
     assert answers(path) == {"fleet-a": "new", "fleet-b": "new"}
+
+
+def test_the_agent_flag_not_the_id_decides_which_cases_are_asked(monkeypatch):
+    monkeypatch.setattr(run_agent, "CASES", [{"id": "refuse-x", "agent": True, "question": "q", "expected_tools": []},
+                                             {"id": "fleet-tool-only", "question": "q", "expected_tools": ["fleet_summary"]}])
+    assert [c["id"] for c in run_agent.questions()] == ["refuse-x"]
+
+
+def test_every_agent_case_has_a_question_and_a_tool_list():
+    asked = run_agent.questions()
+    assert len(asked) >= 21 and all(c["question"].strip() and isinstance(c["expected_tools"], list) for c in asked)

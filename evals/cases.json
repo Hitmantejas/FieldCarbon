@@ -1,5 +1,5 @@
 {
-  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output.",
+  "note": "Eval cases for agent tools. `expected_tools` is what the agent must call for the question (checked once the agent exists); `checks` run today against the tool output. Cases with `\"agent\": true` are also asked to the live analyst (evals/run_agent.py).",
   "cases": [
     {
       "id": "rank-basic",
@@ -214,6 +214,7 @@
     },
     {
       "id": "fleet-summary",
+      "agent": true,
       "question": "How much fuel did the fleet use, by site?",
       "expected_tools": [
         "fleet_summary"
@@ -234,6 +235,7 @@
     },
     {
       "id": "fleet-clients",
+      "agent": true,
       "question": "What are the emissions per client farm?",
       "expected_tools": [
         "emissions_per_client"
@@ -251,6 +253,7 @@
     },
     {
       "id": "fleet-jobs",
+      "agent": true,
       "question": "Which were the biggest jobs at the arable site in July 2025?",
       "expected_tools": [
         "fleet_jobs"
@@ -273,6 +276,7 @@
     },
     {
       "id": "fleet-report",
+      "agent": true,
       "question": "Prepare a report I can share with a client farm.",
       "expected_tools": [
         "fleet_report"
@@ -288,6 +292,7 @@
     },
     {
       "id": "fleet-reconcile",
+      "agent": true,
       "question": "Is any fuel unaccounted for?",
       "expected_tools": [
         "reconcile_fuel"
@@ -317,6 +322,7 @@
     },
     {
       "id": "fleet-quality",
+      "agent": true,
       "question": "How good is our data?",
       "expected_tools": [
         "data_quality"
@@ -330,6 +336,7 @@
     },
     {
       "id": "fleet-benchmark",
+      "agent": true,
       "question": "Which machines burn more than their peers on the same job?",
       "expected_tools": [
         "benchmark_peers"
@@ -347,6 +354,7 @@
     },
     {
       "id": "fleet-anomalies",
+      "agent": true,
       "question": "Is anything unusual in the machines' data?",
       "expected_tools": [
         "detect_anomalies"
@@ -365,6 +373,7 @@
     },
     {
       "id": "fleet-opportunities",
+      "agent": true,
       "question": "What could the arable site change to cut fuel?",
       "expected_tools": [
         "fleet_opportunities"
@@ -390,6 +399,7 @@
     },
     {
       "id": "fleet-what-if",
+      "agent": true,
       "question": "What if we cut the fuel burned with the tool not working by 20%?",
       "expected_tools": [
         "what_if"
@@ -412,6 +422,7 @@
     },
     {
       "id": "plain-peer-waste",
+      "agent": true,
       "question": "Which tractor burns more fuel than the others on the same job?",
       "expected_tools": [
         "benchmark_peers"
@@ -426,6 +437,7 @@
     },
     {
       "id": "plain-client-co2",
+      "agent": true,
       "question": "How much CO2 did our work for each client farm produce?",
       "expected_tools": [
         "emissions_per_client"
@@ -440,6 +452,7 @@
     },
     {
       "id": "plain-fuel-adds-up",
+      "agent": true,
       "question": "Does our fuel add up this year, or is some missing?",
       "expected_tools": [
         "reconcile_fuel"
@@ -456,6 +469,7 @@
     },
     {
       "id": "plain-double-note",
+      "agent": true,
       "question": "Was any delivery note entered twice?",
       "expected_tools": [
         "reconcile_fuel"
@@ -472,6 +486,7 @@
     },
     {
       "id": "plain-overfill",
+      "agent": true,
       "question": "Is any tractor being given more fuel than it burns?",
       "expected_tools": [
         "reconcile_fuel"
@@ -488,6 +503,7 @@
     },
     {
       "id": "plain-change-first",
+      "agent": true,
       "question": "What should the arable site change first to save fuel?",
       "expected_tools": [
         "fleet_opportunities"
@@ -504,6 +520,7 @@
     },
     {
       "id": "plain-how-sure",
+      "agent": true,
       "question": "How sure are you about these numbers?",
       "expected_tools": [
         "data_quality"
@@ -518,6 +535,7 @@
     },
     {
       "id": "plain-whatif-hvo",
+      "agent": true,
       "question": "What if the arable site switched to HVO?",
       "expected_tools": [
         "what_if"
@@ -536,6 +554,7 @@
     },
     {
       "id": "plain-october-jobs",
+      "agent": true,
       "question": "Which jobs used the most fuel at the arable site last October?",
       "expected_tools": [
         "fleet_jobs"
@@ -556,6 +575,7 @@
     },
     {
       "id": "plain-german-total",
+      "agent": true,
       "question": "Wie viel Diesel hat die Flotte insgesamt verbraucht?",
       "expected_tools": [
         "fleet_summary"
@@ -574,6 +594,7 @@
     },
     {
       "id": "fleet-delivery-notes",
+      "agent": true,
       "question": "Do our delivery notes match the fuel log?",
       "expected_tools": [
         "check_delivery_notes"

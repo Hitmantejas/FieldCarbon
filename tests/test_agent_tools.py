@@ -11,7 +11,7 @@ from evals.checks import CASES, TOOLS
 
 def test_agent_tools_keep_the_names_the_eval_cases_expect():
     names = {t.__name__ for t in tools.AGENT_TOOLS}
-    expected = {name for c in CASES if c["id"].startswith(("plain-", "fleet-")) for name in c["expected_tools"]}
+    expected = {name for c in CASES if c.get("agent") for name in c["expected_tools"]}
     assert expected <= names
     assert names <= set(TOOLS)
 

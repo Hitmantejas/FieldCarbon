@@ -18,7 +18,7 @@ FILE = "agent.jsonl"
 
 
 def questions(only: list[str] | None = None) -> list[dict]:
-    asked = [c for c in CASES if c.get("question") and c.get("expected_tools") and c["id"].startswith(("plain-", "fleet-"))]
+    asked = [c for c in CASES if c.get("agent") and c.get("question")]
     return [c for c in asked if not only or c["id"] in only]
 
 
