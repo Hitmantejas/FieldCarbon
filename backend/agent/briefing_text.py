@@ -20,10 +20,11 @@ MAX_WORDS = 60
 # Appendix B.3, with the facts key named ITEMS.
 PROMPT = """Write a 2 to 3 sentence introduction (at most 60 words) to a weekly briefing for a fleet manager.
 Mention the three items by topic only, using the topics in ITEMS.
-Use only numbers that appear in ITEMS, copied exactly, each followed by its label in English in brackets:
-(measured), (allocated) or (estimated).
+Use only numbers that appear in ITEMS, copied exactly, each followed by its unit and then its
+label in English in brackets: (measured), (allocated) or (estimated). For example: 900 litres (measured), 352 to
+1,645 litres (estimated).
 No advice, no predictions. Do not mention people. Do not say "this week": the figures cover the company year to date.
-Digits 0-9, dot decimals, comma thousands.
+Digits 0-9, dot decimals, comma thousands (1,645, not 1645).
 Write in {language}.
 ITEMS: {items}
 Return JSON: {{"text": "..."}}"""
