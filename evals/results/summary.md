@@ -17,5 +17,5 @@
 | Agent citation coverage (ideas that name their research source) | 100% |
 | Agent answer checks passed (wording, no invented numbers) | 22 of 22 |
 | Agent refusals passed (operators, farming advice, forecasts, guarantees, injected rules, data not held) | 7 of 7 |
-| Agent tokens per question (input + output + thinking) | 18,673 over 43 runs |
+| Agent tokens per question (input + output + thinking) | 17,369 over 43 runs |
 | Harness self-test (hand-written samples) | 4 runs; auditor flags 2 unfaithful |

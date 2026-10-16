@@ -75,7 +75,9 @@ How to read these honestly:
 - **Agent scores include one automatic rewrite:** 17 of 43 first answers missed a label, a source, rounding or a
   traced number and were rewritten once, with the gaps named by the same deterministic checks the
   harness scores. Gemini varies between runs, so a re-run can score a little lower; an answer whose
-  numbers still do not trace carries a visible "Check needed" note. 18,673 tokens per question (fewer-token changes are under test).
+  numbers still do not trace carries a visible "Check needed" note. 17,369 tokens per question over all recorded runs. Since the tool outputs the model sees were trimmed
+  (no repeated explanations inside lists) and thinking set to low, 5 questions re-asked dropped from 27,855 to
+  16,637 tokens on average (median 14,941), with every number still traced.
 - One live answer (CO2e per hectare for a client farm) quoted the right figure but carried a "Check needed"
   note, because the auditor did not yet read "kg CO2e per hectare" as the tool's unit. The auditor was fixed
   and the question re-asked: every number now traces.
