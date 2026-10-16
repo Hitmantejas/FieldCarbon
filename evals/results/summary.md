@@ -1,7 +1,7 @@
 | Evaluation | Result |
 |---|---|
-| Tool eval cases | 43 of 43 pass |
-| Figures with a confidence label and sources | 100% of 699 |
+| Tool eval cases | 44 of 44 pass |
+| Figures with a confidence label and sources | 100% of 702 |
 | Planted fuel problems found | 3 of 3 |
 | Planted problems whose top supported cause is the planted one | 3 of 3 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |

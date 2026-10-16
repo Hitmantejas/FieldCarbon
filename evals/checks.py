@@ -25,6 +25,7 @@ from backend.tools.generate_report import generate_report
 from backend.tools.reconcile_fuel import reconcile_fuel
 from backend.tools.set_goal import set_goal
 from backend.tools.upload_note import check_demo_note
+from backend.tools.weekly_briefing import weekly_briefing
 from backend.tools.what_would_improve import what_would_improve
 
 CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text(encoding="utf-8"))["cases"]
@@ -34,7 +35,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
          "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
-         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly}
+         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly, "weekly_briefing": weekly_briefing}
 
 
 def figures(node):
@@ -106,6 +107,10 @@ def check(case: dict, output, spec: dict) -> None:
     elif kind == "diagnosis_status":
         h = next(h for h in output["hypotheses"] if h["id"] == spec["hypothesis"])
         assert h["status"] == spec["equals"], (h["id"], h["status"])
+    elif kind == "briefing_items":
+        items = output["items"]
+        assert [i["family"] for i in items] == spec["families"] and items[0]["id"] == spec["first"], [i["id"] for i in items]
+        assert all(i["next_step"] and i["would_improve"] and i["figure"]["label"] in LABELS for i in items)
     else:
         raise AssertionError(f"unknown check {kind}")
 

@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Query, Request
 from starlette.concurrency import run_in_threadpool
 
-from backend.agent import diagnosis_text, statement_text
+from backend.agent import briefing_text, diagnosis_text, statement_text
 from backend.agent.gemini_text import vertex_generate
 from backend.api.limits import AskLimiter, Refused, caller_of
 
@@ -21,6 +21,7 @@ from backend.tools.fleet_opportunities import fleet_opportunities
 from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_summary import fleet_summary
 from backend.tools.reconcile_fuel import reconcile_fuel
+from backend.tools.weekly_briefing import weekly_briefing
 from backend.tools.what_if import what_if
 
 router = APIRouter(prefix="/api/fleet")
@@ -166,6 +167,36 @@ def get_diagnosis(request: Request, finding_id: str = Query(min_length=1, max_le
         with _diagnosis_lock:
             _diagnosis_cache[finding_id] = out
     return out
+
+
+# F6 weekly briefing
+briefing_writer = briefing_text.writer
+_briefing_cache: dict[str, dict] = {}
+_briefing_lock = threading.Lock()
+
+
+@router.get("/briefing")
+def get_briefing(request: Request, language: Literal["en", "de", "es", "hi"] = "en", narrate: bool = False):
+    """The three things to look at first, chosen by fixed rules, with a short intro. `narrate=true` has Gemini write the
+    intro (code checks every number); otherwise, and on any failure, the standard wording is shown."""
+    b = weekly_briefing()
+    with _briefing_lock:
+        cached = _briefing_cache.get(language)
+    if narrate and cached is None:
+        _admit(request)
+    try:
+        if not narrate:
+            text, written_in = briefing_text.template(briefing_text.gemini_facts(b), language)
+            intro = {"text": text, "narrative_source": "template", "narrative_language": written_in, "audited": False,
+                     "attempts": 0, "numbers_checked": 0, "usage": None, "error": None}
+        else:
+            intro = cached or briefing_text.narrate_briefing(b, language, briefing_writer(language))
+    except Exception as e:  # noqa: BLE001 - the standard wording itself failed; the items come from code
+        raise HTTPException(502, "The briefing intro could not be written. The items are still on the Overview.") from e
+    if narrate and cached is None and intro["error"] is None:  # a model outage is not cached, so a reload can try again
+        with _briefing_lock:
+            _briefing_cache[language] = intro
+    return {**b, "language": language, "intro": intro}
 
 
 # F7 live delivery-note upload

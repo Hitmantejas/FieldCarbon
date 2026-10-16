@@ -880,6 +880,24 @@
           "n": 1
         }
       ]
+    },
+    {
+      "id": "briefing-default",
+      "question": "What should I look at first?",
+      "expected_tools": [
+        "weekly_briefing"
+      ],
+      "arguments": {},
+      "checks": [
+        {
+          "type": "briefing_items",
+          "families": ["control", "data", "opportunity"],
+          "first": "duplicate_delivery_note:S2:S2-D1:2025-09:DN-S2-0004"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
     }
   ]
 }

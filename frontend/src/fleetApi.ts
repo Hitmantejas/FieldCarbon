@@ -342,3 +342,34 @@ export async function fetchDiagnosis(findingId: string, narrate: boolean, signal
   if (!r.ok) throw await apiError(r);
   return r.json() as Promise<Diagnosis>;
 }
+
+// F6 weekly briefing (GET /api/fleet/briefing): three items chosen by fixed rules in code; the short intro is the
+// standard wording, or written by Gemini and checked by code when asked for.
+export interface BriefingItem {
+  id: string;
+  family: string;
+  kind: string;
+  severity: Severity;
+  title: string;
+  figure: Figure;
+  why_it_matters: string;
+  next_step: string;
+  would_improve: string;
+  link: string;
+}
+
+export interface Briefing {
+  heading: string;
+  period: string;
+  rules: string;
+  items: BriefingItem[];
+  candidates: number;
+  language: StatementLanguage;
+  intro: Narrative;
+}
+
+export async function fetchBriefing(language: StatementLanguage, narrate: boolean, signal?: AbortSignal): Promise<Briefing> {
+  const r = await fetch(`/api/fleet/briefing?${new URLSearchParams({ language, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<Briefing>;
+}
