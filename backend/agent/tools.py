@@ -10,7 +10,8 @@ from __future__ import annotations
 import json
 from functools import wraps
 
-from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, data_quality as _quality,
+from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, client_statement as _statement,
+                           data_quality as _quality,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
                            fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
 
@@ -172,6 +173,16 @@ def fleet_report(client_id: str | None = None) -> dict:
             "open_in_app": "Reports screen: choose the company or the client farm, then print or save as PDF."}
 
 
+@_safe
+def client_statement(client_id: str) -> dict:
+    """One client farm's carbon statement (client_id like C09): fuel, CO2e and cost, CO2e per hectare and per job, the
+    largest operations with their share, the months covered and what the statement does not cover. The written summary
+    in the client's language is on the Reports screen."""
+    r = _statement.client_statement(client_id)
+    r["open_in_app"] = "Reports screen: choose the client farm and a language (English, German, Spanish or Hindi)."
+    return r
+
+
 AGENT_TOOLS = [fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
-               benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report]
+               benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement]
 BY_NAME = {t.__name__: t for t in AGENT_TOOLS}

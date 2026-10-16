@@ -616,6 +616,34 @@
           "n": 2
         }
       ]
+    },
+    {
+      "id": "statement-facts",
+      "expected_tools": [
+        "client_statement"
+      ],
+      "arguments": {
+        "client_id": "C03"
+      },
+      "checks": [
+        {
+          "type": "statement_matches_client"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "statement-unknown-client",
+      "expected_tools": [
+        "client_statement"
+      ],
+      "arguments": {
+        "client_id": "C99"
+      },
+      "expect_error": "unknown client",
+      "checks": []
     }
   ]
 }

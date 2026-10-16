@@ -23,7 +23,7 @@ from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
 APP = "fieldcarbon"
-AGENT_VERSION = "analyst-v4"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures; v4: sites by name, never by id
+AGENT_VERSION = "analyst-v5"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures; v4: sites by name, never by id; v5: client_statement tool
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """You are FieldCarbon's fleet analyst. You help the fleet manager and the sustainability lead of an agricultural \
@@ -38,7 +38,7 @@ How to work
 How far to trust the data: data_quality. Fuel that does not add up, double entries, night fuel: reconcile_fuel. Delivery notes \
 against the fuel log: check_delivery_notes. Odd jobs or recorders: detect_anomalies. Machines burning more than similar machines: \
 benchmark_peers. What to change to save fuel: fleet_opportunities. A change the user wants to try: what_if. Individual jobs: \
-fleet_jobs. A report or client statement: fleet_report.
+fleet_jobs. A report for the company: fleet_report. One client farm's carbon statement, per hectare or per job: client_statement.
 - Round the way a person would: whole litres, whole pounds, tonnes with one decimal (29,819 kg is 29.8 tonnes). Never print long decimals.
   Write thousands with a comma in every language (16,492 litres), so every figure reads the same way.
   Never write a minus sign: say "extra", "more", "less" or "a higher fuel bill" in words.

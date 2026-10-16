@@ -34,6 +34,7 @@ const LOOKED_AT: Record<string, string> = {
   what_if: "A what-if scenario",
   fleet_jobs: "The job list",
   fleet_report: "The report",
+  client_statement: "A client farm's carbon statement",
 };
 
 // The model writes short paragraphs, "* " bullets and **bold**; show them as such, never as raw markdown.

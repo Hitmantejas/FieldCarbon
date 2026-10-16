@@ -1,9 +1,9 @@
 {
   "tool_cases": {
-    "cases": 30,
-    "passed": 30,
+    "cases": 32,
+    "passed": 32,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 657,
+    "figures_checked": 673,
     "failures": []
   },
   "agent_runs": {

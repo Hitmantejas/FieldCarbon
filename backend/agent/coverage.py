@@ -14,7 +14,8 @@ FIGURE_FAMILIES = {"litres", "kg", "gbp", "pct", "l_per_ha", "l_per_h", "ha", "h
 
 
 def sentences(text: str) -> list[str]:
-    return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    """Split after . ! ? and the Hindi danda (।), so a Hindi text is checked sentence by sentence too."""
+    return [s for s in re.split(r"(?<=[.!?।])\s+", text) if s.strip()]
 
 
 def _figure_count(sentence: str) -> int:

@@ -225,3 +225,50 @@ export interface DeliveryNotes {
   findings: NoteFinding[];
   note: string;
 }
+
+// F4 client carbon statement (GET /api/fleet/client-statement): figures from code, a short summary written by Gemini
+// and checked by code, or the standard wording when the check or the model fails.
+export type StatementLanguage = "en" | "de" | "es" | "hi";
+
+export interface Narrative {
+  text: string;
+  narrative_source: "gemini" | "template";
+  narrative_language: StatementLanguage;
+  audited: boolean;
+  attempts: number;
+  numbers_checked: number;
+  error: string | null;
+}
+
+export interface ClientStatement {
+  client_id: string;
+  client_name: string;
+  language: StatementLanguage;
+  period: { from: string; to: string };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure };
+  area_ha: Figure;
+  co2e_per_ha: Figure | null;
+  co2e_per_job: Figure | null;
+  jobs: number;
+  jobs_without_area: number;
+  hours: number;
+  by_operation: { operation: string; litres: Figure; co2e_kg: Figure; share_pct: number }[];
+  limits: string[];
+  narrative: Narrative;
+}
+
+// The API's own message (a limit reached, a model failure) instead of a bare status code.
+export async function fetchClientStatement(clientId: string, language: StatementLanguage, narrate: boolean, signal?: AbortSignal): Promise<ClientStatement> {
+  const r = await fetch(`/api/fleet/client-statement?${new URLSearchParams({ client_id: clientId, language, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) {
+    let detail = `The API answered ${r.status}`;
+    try {
+      const body = await r.json();
+      if (typeof body.detail === "string") detail = body.detail;
+    } catch {
+      // not JSON: keep the status
+    }
+    throw new Error(detail);
+  }
+  return r.json() as Promise<ClientStatement>;
+}

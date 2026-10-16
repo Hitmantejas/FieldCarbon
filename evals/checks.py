@@ -7,7 +7,9 @@ from pathlib import Path
 import pytest
 
 from backend.tools.calculate_roi import calculate_roi
+from backend.tools.contracts import LABELS
 from backend.tools.check_delivery_notes import check_delivery_notes
+from backend.tools.client_statement import client_statement
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.data_quality import data_quality
@@ -29,7 +31,7 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
-         "check_delivery_notes": check_delivery_notes}
+         "check_delivery_notes": check_delivery_notes, "client_statement": client_statement}
 
 
 def figures(node):
@@ -84,6 +86,11 @@ def check(case: dict, output, spec: dict) -> None:
         assert next(i for i in output["ideas"] if i["intervention_id"] == spec["intervention_id"])["state"] == spec["equals"]
     elif kind == "scenario_litres":
         assert output["is_scenario"] and output["litres_saved"]["value"] == pytest.approx(spec["approx"], abs=spec["abs"])
+    elif kind == "statement_matches_client":
+        row = emissions_per_client(output["client_id"])["rows"][0]
+        assert all(output["totals"][k]["value"] == row[k]["value"] for k in ("litres", "co2e_kg", "cost_gbp"))
+        assert all(f["source_ids"] and f["label"] for f in figures(output))
+        assert LABELS.index(output["co2e_per_ha"]["label"]) >= LABELS.index("allocated")
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
     else:
@@ -91,8 +98,14 @@ def check(case: dict, output, spec: dict) -> None:
 
 
 def run_case(case: dict):
-    """Run the case's first expected tool with its arguments and apply every check (raises on failure)."""
-    output = TOOLS[case["expected_tools"][0]](**case["arguments"])
+    """Run the case's first expected tool with its arguments and apply every check (raises on failure). A case with
+    `expect_error` passes only if the tool refuses with that message, and so returns no figures."""
+    tool = TOOLS[case["expected_tools"][0]]
+    if case.get("expect_error"):
+        with pytest.raises(ValueError, match=case["expect_error"]):
+            tool(**case["arguments"])
+        return None
+    output = tool(**case["arguments"])
     for spec in case["checks"]:
         check(case, output, spec)
     return output
