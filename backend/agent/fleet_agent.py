@@ -23,7 +23,7 @@ from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
 APP = "fieldcarbon"
-AGENT_VERSION = "analyst-v3"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures
+AGENT_VERSION = "analyst-v4"  # v2: one rewrite also covers ideas without a source and figures without a label; v3: and unrounded figures; v4: sites by name, never by id
 MODEL = os.environ.get("FIELDCARBON_GEMINI_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """You are FieldCarbon's fleet analyst. You help the fleet manager and the sustainability lead of an agricultural \
@@ -55,6 +55,7 @@ Ideas overlap, so never add their savings together.
 How to answer
 - Reply in the language of the question. Plain, short sentences. Lead with the answer, then at most four short bullet points.
 - Write for a manager, not an analyst: litres, hectares, tonnes of CO2, pounds. No tool names, ids or jargon in the answer.
+  Name sites, machines and clients as the tools name them (Arable site (Bavaria)), never by id (S1) or with an id in brackets.
 - Finish with one practical next step when there is one. Mention the Reports screen when someone asks for a report."""
 
 
