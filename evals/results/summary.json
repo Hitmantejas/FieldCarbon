@@ -371,8 +371,8 @@
     "upload_check": {
       "notes": 4,
       "expected_met": 4,
-      "gemini_read": 0,
-      "expected_met_on_gemini_reading": 0,
+      "gemini_read": 4,
+      "expected_met_on_gemini_reading": 4,
       "note": "check_uploaded_note works from the note and the fuel log; it never reads the expected verdicts. Synthetic demo documents."
     },
     "range_coverage": {
@@ -491,7 +491,38 @@
           "per_document": 2995
         }
       },
-      "fleet_demo": "not run yet"
+      "fleet_demo": {
+        "documents": 4,
+        "read": 4,
+        "field_accuracy": {
+          "date": 1.0,
+          "doc_number": 1.0,
+          "supplier": 1.0,
+          "total": 1.0,
+          "line_count": 1.0,
+          "litres": 1.0,
+          "unit_price": 1.0,
+          "outcome": 1.0
+        },
+        "litres_accuracy_by_damage": {
+          "clean": 1.0
+        },
+        "counted_litres": 7400.0,
+        "target_litres": 7400.0,
+        "litres_error": 0.0,
+        "outcomes": {
+          "accepted": 4
+        },
+        "misread_docs": [],
+        "tokens": {
+          "documents": 4,
+          "input_tokens": 8144,
+          "output_tokens": 762,
+          "thinking_tokens": 2795,
+          "total_tokens": 11701,
+          "per_document": 2925
+        }
+      }
     }
   }
 }

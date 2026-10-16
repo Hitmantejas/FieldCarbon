@@ -46,7 +46,7 @@ each change are less certain, and FieldCarbon says so.
 | **Fleet analyst agent** | Google ADK agent (`backend/agent/fleet_agent.py`) on `gemini-3.5-flash` that turns a question into calls to the deterministic tools and explains the result in plain language, in the question's language. Ask it in the web app (Ask the analyst); it shows which tools it looked at | **Done**: 21 eval questions, 100% right tools |
 | **Auditor** | Strict, unit- and rounding-aware check that every number in an answer traces to a tool output. In the agent: an answer with an untraceable number is rewritten once, and if it still fails it carries a visible "check needed" note | **Done**, wired into the agent |
 | **Client carbon statement** | Reports → one client farm: fuel, CO2e, CO2e per hectare and per job, cost and the top operations, all from code. Gemini writes a short summary in English, German, Spanish or Hindi; the auditor checks every number and label, one rewrite, then standard wording ("Audited by code" / "Standard wording" badge). Prints on one A4 page | **Done**: live check, 4 of 4 languages audited first time (about 3,500 tokens each) |
-| **Check a delivery note (live upload)** | Fuel control → send one photo (JPEG, PNG or WebP, up to 5 MB) or try one of four sample notes. Gemini reads it with an injection-guarded prompt; rules R1–R8 and the same comparison as the stored notes check it against the fuel log: matches, litres or price differ, not in the log, keyed twice, or needs review. Nothing is saved; file type checked by its bytes, size capped while streaming, shared Gemini rate limit | **Built**: 4 of 4 sample notes give their expected verdict on a perfect reading; live Gemini reading of the samples pending |
+| **Check a delivery note (live upload)** | Fuel control → send one photo (JPEG, PNG or WebP, up to 5 MB) or try one of four sample notes. Gemini reads it with an injection-guarded prompt; rules R1–R8 and the same comparison as the stored notes check it against the fuel log: matches, litres or price differ, not in the log, keyed twice, or needs review. Nothing is saved; file type checked by its bytes, size capped while streaming, shared Gemini rate limit | **Built**: 4 of 4 sample notes give their expected verdict, on a perfect reading and on Gemini's live reading (every field read right, about 2,900 tokens per note) |
 
 **Cost of reading documents** (token counts recorded by Vertex AI for each reading): 38 documents used
 114,120 tokens, about 3,000 per document (about 80% of the output side is the model's thinking).
@@ -63,7 +63,7 @@ TODO: dollar cost at current Vertex AI pricing.
 | Planted fuel problems found (A1–A3) | 3 of 3 |
 | Gemini reading accuracy, 24 farm receipts (every field) | 100% |
 | Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |
-| Uploaded-note check: expected verdict on the 4 sample notes (perfect reading / Gemini's reading) | 4 of 4 / not run yet |
+| Uploaded-note check: expected verdict on the 4 sample notes (perfect reading / Gemini's reading) | 4 of 4 / 4 of 4 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
 | Agent (21 questions): right tools / every number traced / figures with a label / ideas citing their source | 100% / 100% / 100% / 100% |
 

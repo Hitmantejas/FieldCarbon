@@ -6,9 +6,9 @@
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
 | Gemini reading accuracy, Farm B receipts (litres) | 100% |
 | Gemini reading accuracy, fleet delivery notes (litres) | 100% |
-| Gemini reading accuracy, upload demo notes (litres) | not run yet |
+| Gemini reading accuracy, upload demo notes (litres) | 100% |
 | Uploaded-note check: expected verdict, perfect reading | 4 of 4 demo notes |
-| Uploaded-note check: expected verdict, Gemini's reading | not run yet |
+| Uploaded-note check: expected verdict, Gemini's reading | 4 of 4 demo notes |
 | Agent runs scored | 21 |
 | Agent tool selection | 100% |
 | Agent numerical faithfulness | 100% |

@@ -1,8 +1,8 @@
 {
   "notes": 4,
   "expected_met": 4,
-  "gemini_read": 0,
-  "expected_met_on_gemini_reading": 0,
+  "gemini_read": 4,
+  "expected_met_on_gemini_reading": 4,
   "results": [
     {
       "note": "matches",
@@ -14,8 +14,11 @@
         "findings": []
       },
       "met_on_ground_truth": true,
-      "gemini_reading": null,
-      "met_on_gemini_reading": null
+      "gemini_reading": {
+        "verdict": "matches_log",
+        "findings": []
+      },
+      "met_on_gemini_reading": true
     },
     {
       "note": "litres-differ",
@@ -29,8 +32,13 @@
         ]
       },
       "met_on_ground_truth": true,
-      "gemini_reading": null,
-      "met_on_gemini_reading": null
+      "gemini_reading": {
+        "verdict": "needs_attention",
+        "findings": [
+          "litres_differ"
+        ]
+      },
+      "met_on_gemini_reading": true
     },
     {
       "note": "price-differs",
@@ -44,8 +52,13 @@
         ]
       },
       "met_on_ground_truth": true,
-      "gemini_reading": null,
-      "met_on_gemini_reading": null
+      "gemini_reading": {
+        "verdict": "needs_attention",
+        "findings": [
+          "price_differs"
+        ]
+      },
+      "met_on_gemini_reading": true
     },
     {
       "note": "not-in-log",
@@ -59,8 +72,13 @@
         ]
       },
       "met_on_ground_truth": true,
-      "gemini_reading": null,
-      "met_on_gemini_reading": null
+      "gemini_reading": {
+        "verdict": "needs_attention",
+        "findings": [
+          "note_not_in_log"
+        ]
+      },
+      "met_on_gemini_reading": true
     }
   ],
   "note": "check_uploaded_note works from the note and the fuel log; it never reads the expected verdicts. Synthetic demo documents."

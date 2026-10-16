@@ -1,0 +1,82 @@
+{
+  "documents": 4,
+  "read": 4,
+  "field_accuracy": {
+    "date": 1.0,
+    "doc_number": 1.0,
+    "supplier": 1.0,
+    "total": 1.0,
+    "line_count": 1.0,
+    "litres": 1.0,
+    "unit_price": 1.0,
+    "outcome": 1.0
+  },
+  "litres_accuracy_by_damage": {
+    "clean": 1.0
+  },
+  "counted_litres": 7400.0,
+  "target_litres": 7400.0,
+  "litres_error": 0.0,
+  "outcomes": {
+    "accepted": 4
+  },
+  "misread_docs": [],
+  "per_document": [
+    {
+      "doc_id": "matches",
+      "doc_type": "delivery_note",
+      "damage": "clean",
+      "read": true,
+      "date": true,
+      "doc_number": true,
+      "supplier": true,
+      "total": true,
+      "line_count": true,
+      "litres": true,
+      "unit_price": true,
+      "outcome": true
+    },
+    {
+      "doc_id": "litres-differ",
+      "doc_type": "delivery_note",
+      "damage": "clean",
+      "read": true,
+      "date": true,
+      "doc_number": true,
+      "supplier": true,
+      "total": true,
+      "line_count": true,
+      "litres": true,
+      "unit_price": true,
+      "outcome": true
+    },
+    {
+      "doc_id": "price-differs",
+      "doc_type": "delivery_note",
+      "damage": "clean",
+      "read": true,
+      "date": true,
+      "doc_number": true,
+      "supplier": true,
+      "total": true,
+      "line_count": true,
+      "litres": true,
+      "unit_price": true,
+      "outcome": true
+    },
+    {
+      "doc_id": "not-in-log",
+      "doc_type": "delivery_note",
+      "damage": "clean",
+      "read": true,
+      "date": true,
+      "doc_number": true,
+      "supplier": true,
+      "total": true,
+      "line_count": true,
+      "litres": true,
+      "unit_price": true,
+      "outcome": true
+    }
+  ]
+}
