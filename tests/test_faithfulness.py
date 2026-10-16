@@ -157,3 +157,17 @@ def test_co2e_per_hectare_traces_as_kg_not_as_hectares():
     for said in ("10.65 kg CO2e per hectare", "10.65 kg CO2e/ha", "10.7 kg per hectare", "10.65 kg/ha"):
         assert fa.audit(f"Our work emitted {said} (allocated).", [per_ha]).faithful, said
     assert not fa.audit("It covered 10.65 hectares.", [per_ha]).faithful   # not an area
+
+
+def test_each_checked_number_says_which_tool_output_and_which_label_it_came_from():
+    """F8 6d: the Ask screen lists every audited number with the calculation it traces to."""
+    outputs = [{"note": "Fuel 900 litres more"},
+               {"totals": {"litres": {"value": 16492.4, "unit": "L", "label": "measured", "how": "sum", "source_ids": ["x"]}}}]
+    a = fa.audit("The fleet used 16,492 litres (measured), against 900 litres in the note, 5 sites and 77 kW.", outputs,
+                 "What about our 5 sites?")
+    assert fa.traced(a, outputs) == [
+        {"text": "16,492 litres", "call": 1, "label": "measured"},
+        {"text": "900 litres", "call": 0, "label": None},          # a number in tool text has no figure label
+        {"text": "5", "call": "question", "label": None},
+        {"text": "77 kW", "call": None, "label": None},             # untraced
+    ]

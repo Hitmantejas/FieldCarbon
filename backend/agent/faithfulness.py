@@ -210,3 +210,26 @@ def guard(answer: str, tool_outputs: Iterable, question: str = "") -> tuple[bool
               "other way round).") if flipped else ""
     return False, (f"Check needed: these numbers could not be traced to FieldCarbon's calculations: {listed}.{turned} "
                    "Please treat them with care.")
+
+
+PATH_PART = re.compile(r"\.?([^.\[\]:]+)|\[(\d+)\]")
+
+
+def traced(a: Audit, tool_outputs: Iterable) -> list[dict]:
+    """Each checked number with where it traced to: the index of the tool output (or "question", or None when it did
+    not trace) and the confidence label of the figure it matched (None for a number written in tool text)."""
+    outputs, out = list(tool_outputs), []
+    for n in a.numbers:
+        call = label = None
+        if n.source == "question":
+            call = "question"
+        elif n.source:
+            steps = [int(i) if i else k for k, i in PATH_PART.findall(n.source.split(":")[0])]  # "tool", 1, "totals", ...
+            call = steps[1]
+            if ":" not in n.source and steps[-1] in ("value", "low", "high"):
+                parent = outputs
+                for step in steps[1:-1]:
+                    parent = parent[step]
+                label = parent.get("label") if isinstance(parent, dict) else None
+        out.append({"text": n.text, "call": call, "label": label})
+    return out

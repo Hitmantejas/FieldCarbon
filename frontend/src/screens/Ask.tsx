@@ -1,17 +1,38 @@
 import { useRef, useState } from "react";
 import { Bold } from "../components/Rich";
+import { SCREENS } from "../components/Shell";
 import { SectionHead } from "../components/SectionHead";
+import { askedFrom, type ScreenId } from "../route";
+
+// One number in the answer, and the calculation (tool) it traced to: "question" if the user gave it, null if untraced.
+interface CheckedNumber {
+  text: string;
+  tool: string | null;
+  label: string | null;
+}
 
 interface Answer {
   question: string;
   answer: string;
   attempts: number;
-  audit: { faithful: boolean; numbers_checked: number; untraced: string[] };
+  audit: { faithful: boolean; numbers_checked: number; untraced: string[]; numbers?: CheckedNumber[] };
   tools_called: { name: string; args: Record<string, unknown> }[];
   session_id: string;
   new_session: boolean;
   session_note: string | null;
 }
+
+// Questions about the screen the analyst was opened from (#/ask?from=control); each one the tools can answer.
+const SUGGESTED_FOR: Partial<Record<ScreenId, string[]>> = {
+  overview: ["What should I look at first?", "How much fuel did the fleet use, by site?", "How sure are you about these numbers?"],
+  sites: ["Which tractor burns more fuel than the others on the same job?", "How much fuel did each machine at the arable site use?", "Which site used the most fuel?"],
+  jobs: ["Which jobs used the most fuel in October?", "Which fields used the most fuel?", "How much fuel went on ploughing?"],
+  opportunities: ["What should the arable site change first to save fuel?", "How strong is the research behind these ideas?", "How much could the vineyard site save?"],
+  control: ["Does our fuel add up this year, or is some missing?", "Do the delivery notes match the fuel log?", "Why could the largest fuel gap have happened?"],
+  whatif: ["What if the arable site switched to HVO?", "What if machines above their peers came halfway back to typical?", "What if half the fuel burned with a tool attached but not working was saved?"],
+  clients: ["How much CO2 did our work for each client farm produce?", "What is the CO2 per hectare of our work for client farm C03?", "Which client farm had the most fuel burned for it?"],
+  reports: ["What is in the company report, and what does it not cover?", "What is the carbon statement for client farm C09?", "How sure are you about these numbers?"],
+};
 
 const SUGGESTED = [
   "How much fuel did the fleet use, by site?",
@@ -72,6 +93,43 @@ function AnswerText({ text }: { text: string }) {
   );
 }
 
+// Whether every number traced to a calculation, in words; opens into the list of numbers and where each came from.
+function NumbersChecked({ audit }: { audit: Answer["audit"] }) {
+  if (audit.numbers_checked === 0)
+    return <p className="border-l-4 border-mark pl-3 font-mono text-xs uppercase tracking-widest">No figures in this answer.</p>;
+  const headline = audit.faithful
+    ? `Numbers checked by code: all ${audit.numbers_checked} trace to a calculation`
+    : `Check needed: ${audit.untraced.join(", ")} could not be traced to a calculation`;
+  const numbers = audit.numbers ?? [];
+  if (numbers.length === 0)
+    return <p className={`border-l-4 pl-3 font-mono text-xs uppercase tracking-widest ${audit.faithful ? "border-mark" : "border-ink font-bold"}`}>{headline}</p>;
+  return (
+    <details className={`border-l-4 pl-3 ${audit.faithful ? "border-mark" : "border-ink"}`}>
+      <summary className={`min-h-11 cursor-pointer py-3 font-mono text-xs uppercase tracking-widest ${audit.faithful ? "" : "font-bold"}`}>
+        {headline}
+      </summary>
+      <ul className="mt-2 space-y-1 text-sm">
+        {numbers.map((n, i) => (
+          <li key={i} className="max-w-[70ch]">
+            <span className="font-bold">{n.text}</span>
+            {": "}
+            {n.tool === null ? (
+              <span className="font-bold">not traced, treat with care</span>
+            ) : n.tool === "question" ? (
+              "from your question"
+            ) : (
+              <>
+                {LOOKED_AT[n.tool] ?? n.tool}
+                {n.label && ` (${n.label})`}
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
 function Exchange({ a }: { a: Answer }) {
   const { audit } = a;
   return (
@@ -79,13 +137,7 @@ function Exchange({ a }: { a: Answer }) {
       {a.session_note && <p className="max-w-[70ch] border-l-4 border-ink pl-3 text-sm font-bold">{a.session_note}</p>}
       <p className="font-display text-2xl font-semibold leading-tight">{a.question}</p>
       <AnswerText text={a.answer} />
-      <p className={`border-l-4 pl-3 font-mono text-xs uppercase tracking-widest ${audit.faithful ? "border-mark" : "border-ink font-bold"}`}>
-        {audit.numbers_checked === 0
-          ? "No figures in this answer."
-          : audit.faithful
-            ? `Checked: all ${audit.numbers_checked} numbers trace to a calculation.`
-            : `Care needed: ${audit.untraced.join(", ")} could not be traced to a calculation.`}
-      </p>
+      <NumbersChecked audit={audit} />
       {a.tools_called.length > 0 && (
         <details>
           <summary className="min-h-11 font-mono text-xs uppercase tracking-widest">What I looked at</summary>
@@ -110,6 +162,9 @@ export function Ask() {
   const [answers, setAnswers] = useState<Answer[]>([]); // the conversation, oldest first
   const [sessionId, setSessionId] = useState<string | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
+  const [from] = useState(askedFrom);
+  const suggested = (from && SUGGESTED_FOR[from]) || SUGGESTED;
+  const fromName = from ? SCREENS.find((s) => s.id === from)?.name : undefined;
 
   const startOver = () => {
     setAnswers([]);
@@ -213,9 +268,11 @@ export function Ask() {
           </p>
         )}
         <div className="mt-5">
-          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-ink-soft">Or try one of these</p>
+          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-ink-soft">
+            {fromName && suggested !== SUGGESTED ? `Or try one of these about ${fromName}` : "Or try one of these"}
+          </p>
           <ul className="flex flex-wrap gap-2">
-            {SUGGESTED.map((q) => (
+            {suggested.map((q) => (
               <li key={q}>
                 <button
                   onClick={() => {

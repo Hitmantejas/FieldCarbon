@@ -26,7 +26,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from backend.agent.coverage import rewrite_request, uncited_ideas, unlabelled_sentences, unrounded_numbers  # noqa: F401 - rewrite_request kept importable from here
-from backend.agent.faithfulness import audit, guard
+from backend.agent.faithfulness import audit, guard, traced
 from backend.agent.runs import record_run
 from backend.agent.tools import AGENT_TOOLS
 
@@ -217,8 +217,12 @@ async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, 
         _, note = guard(answer, [c["output"] for c in earlier + calls], question)
         answer = f"{answer}\n\n{note}"
     conv.calls.extend(calls)
+    used = earlier + calls
+    numbers = [{"text": n["text"], "label": n["label"],
+                "tool": used[n["call"]]["name"] if isinstance(n["call"], int) else n["call"]}
+               for n in traced(verdict, [c["output"] for c in used])]  # for the "Numbers checked by code" list (F8 6d)
     return {"question": question, "answer": answer, "tool_calls": calls, "session_calls": earlier + calls, "attempts": attempts,
-            "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched],
+            "audit": {"faithful": verdict.faithful, "numbers_checked": verdict.checked, "untraced": [n.text for n in verdict.unmatched], "numbers": numbers,
                       "uncited_ideas": [g["name"] for g in gaps["uncited"]], "unlabelled_sentences": len(gaps["unlabelled"]),
                       "unrounded": gaps["unrounded"]},
             "tokens": tokens}

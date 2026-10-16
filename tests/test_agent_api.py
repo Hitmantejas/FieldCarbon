@@ -128,3 +128,9 @@ def test_limits_come_from_env_vars_and_bad_values_are_rejected(monkeypatch):
         monkeypatch.setenv("FIELDCARBON_ASK_PER_DAY", bad)
         with pytest.raises(ValueError, match="FIELDCARBON_ASK_PER_DAY"):
             AskLimiter.from_env()
+
+
+def test_the_reply_lists_each_checked_number_with_its_tool_and_label(monkeypatch):
+    nums = [{"text": "16,492 litres", "tool": "fleet_summary", "label": "allocated"}]
+    monkeypatch.setattr(fleet_agent, "ask", lambda q, session_id=None: {**FAKE, "audit": {**FAKE["audit"], "numbers": nums}})
+    assert client.post("/api/agent/ask", json={"question": "How much fuel?"}).json()["audit"]["numbers"] == nums

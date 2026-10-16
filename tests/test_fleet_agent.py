@@ -157,3 +157,13 @@ def test_thinking_is_low_by_default_and_can_be_set(monkeypatch):
     monkeypatch.setenv("FIELDCARBON_AGENT_THINKING", "lots")
     with pytest.raises(ValueError, match="FIELDCARBON_AGENT_THINKING"):
         fleet_agent.build_agent(model=Scripted())
+
+
+def test_the_audit_lists_each_number_with_the_tool_it_traces_to():
+    out = tools.fleet_summary(group_by="site")
+    total = f"{round(out['totals']['litres']['value']):,}"
+    r = run([f"The fleet used {total} litres ({out['totals']['litres']['label']}), and 123,456 litres went missing."], retry=False)
+    nums = r["audit"]["numbers"]
+    assert {"text": f"{total} litres", "tool": "fleet_summary", "label": out["totals"]["litres"]["label"]} in nums
+    assert {"text": "123,456 litres", "tool": None, "label": None} in nums
+    assert len(nums) == r["audit"]["numbers_checked"]

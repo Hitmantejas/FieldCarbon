@@ -79,6 +79,11 @@ export function Shell({ current, onGo, attribution, children }: Props) {
             style={step(0)}
           >
             <span>Company year · 1 May 2025 to 30 April 2026</span>
+            {current !== "ask" && (
+              <a href={`#/ask?from=${current}`} className="inline-flex min-h-11 items-center font-bold text-ink underline decoration-2 underline-offset-4">
+                Ask the analyst about this screen
+              </a>
+            )}
             <span className="rounded-full bg-mark px-3 py-1 font-bold text-on-mark">Demo data: illustrative</span>
           </div>
           <div ref={screen} key={current} tabIndex={-1} className="outline-none">
