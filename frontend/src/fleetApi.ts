@@ -319,6 +319,7 @@ export interface Cause {
   status: CauseStatus;
   status_text: string;
   evidence: Figure | null;
+  evidence_measures: string | null; // what the evidence figure counts, in words
   explains_pct: number | null;
   would_settle: string | null;
   suggested_by: "code" | "gemini";

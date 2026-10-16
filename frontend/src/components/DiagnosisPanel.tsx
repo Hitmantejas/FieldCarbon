@@ -12,7 +12,14 @@ const STATUS_FORM: Record<CauseStatus, string> = {
   not_supported: "border-2 border-ink text-ink",
 };
 
-const shownValue = (v: number | null, unit: string) => (v === null ? "not available" : `${unit === "L" ? litres(v) : v.toLocaleString("en-GB")} ${unit}`);
+// Litres with thousands separators, percentages whole, and counts in the singular for one ("1 month", not "1 months").
+const COUNTS: Record<string, string> = { notes: "note", months: "month", days: "day" };
+const shownValue = (v: number | null, unit: string) => {
+  if (v === null) return "not available";
+  if (unit === "L") return `${litres(v)} L`;
+  if (unit === "%") return `${Math.round(v)}%`;
+  return `${v.toLocaleString("en-GB")} ${v === 1 && COUNTS[unit] ? COUNTS[unit] : unit}`;
+};
 
 function CauseRow({ c }: { c: Cause }) {
   return (
@@ -27,8 +34,9 @@ function CauseRow({ c }: { c: Cause }) {
         <p className="flex flex-wrap items-center gap-3 text-sm">
           <span className="font-mono text-xs uppercase tracking-widest text-ink-soft">Evidence:</span>
           <span className="num">{shownValue(c.evidence.value, c.evidence.unit)}</span>
+          {c.evidence_measures && <span>{c.evidence_measures}</span>}
           <Stamp label={c.evidence.label} />
-          {c.explains_pct !== null && <span className="num">explains {c.explains_pct}% of the gap</span>}
+          {c.explains_pct !== null && <span className="num">explains {c.explains_pct}% of the finding</span>}
         </p>
       )}
       {c.evidence && <p className="max-w-[70ch] text-sm text-ink-soft">{c.evidence.how}</p>}

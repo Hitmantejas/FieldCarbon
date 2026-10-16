@@ -248,9 +248,8 @@ def test_the_a1_overlap_with_the_frozen_recorder_is_shown_not_hidden():
 def test_an_unknown_or_undiagnosable_id_is_a_clean_error():
     with pytest.raises(ValueError, match="unknown finding"):
         dx.diagnose_anomaly("machine_over_dispense:S1:S1-T9:2025-10")
-    gap = next(f["id"] for f in detect_anomalies()["findings"] if f["kind"] == "data_gap")
-    with pytest.raises(ValueError, match="no causes to test"):
-        dx.diagnose_anomaly(gap)
+    with pytest.raises(ValueError, match="no causes to test"):  # every kind found today is diagnosable; a night dispense is not
+        dx.diagnose({"id": "night_dispense:S1:S1-T4:2025-10", "kind": "night_dispense", "title": "t"}, _ctx())
 
 
 # --- step 3: the Gemini layer (stubbed) -------------------------------------------------------------------------------
@@ -343,6 +342,30 @@ def test_a_summary_that_fails_the_audit_twice_falls_back_to_the_template():
     s = out["summary"]
     assert s["narrative_source"] == "template" and not s["audited"] and s["attempts"] == 2
     assert "Fuel was taken at night" in s["text"] and not FORBIDDEN.search(s["text"])
+
+
+def test_a_summary_with_a_made_up_bracket_label_is_sent_back_once():
+    """A live run wrote "explains 100 [explains_pct]"; only measured, allocated or estimated may go in brackets."""
+    replies = iter(["Same note entered twice: 900 L [measured], explaining 100 [explains_pct].", None])
+    def odd_then_good(facts):
+        text = next(replies)
+        return {**_good(facts), "summary": text or _summary_for(facts)}
+    out = diagnosis_text.explain(dx.diagnose_anomaly(A1), stub(odd_then_good))
+    assert out["summary"]["attempts"] == 2 and out["summary"]["audited"]
+    assert diagnosis_text.forbidden_words("900 L [measured] and 1 note [estimated].") is None
+    assert "explains_pct" in diagnosis_text.forbidden_words("explains 100 [explains_pct]")
+
+
+@pytest.mark.parametrize("fid", ["machine_over_dispense:S1:S1-T4:2025-10", "stock_gap:S1:S1-D1:2026-01",
+                                 "duplicate_delivery_note:S2:S2-D1:2025-09:DN-S2-0004"])
+def test_every_evidence_figure_says_what_it_measures_in_words_without_numbers(fid):
+    """Live A1 called frozen-recorder hours 'hours of operation'; Gemini now reads what each figure counts."""
+    d = dx.diagnose_anomaly(fid)
+    tests = diagnosis_text.gemini_facts(d)["tests"]
+    for h, t in zip(d["hypotheses"], tests):
+        assert (h["evidence"] is None) == (h["evidence_measures"] is None)
+        assert t["measures"] == h["evidence_measures"]
+        assert h["evidence_measures"] is None or not re.search(r"\d", h["evidence_measures"])
 
 
 def test_a_model_failure_keeps_the_tests_with_no_why_lines():

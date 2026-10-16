@@ -17,19 +17,27 @@ from backend.agent.statement_text import _r
 from backend.tools.diagnose_anomaly import STATUS_TEXT, order
 
 FORBIDDEN = re.compile(r"\b(prove|proven|proves|confirmed|confirms|root cause)\b", re.IGNORECASE)
+BRACKET = re.compile(r"\[([^\]]*)\]")
+BRACKET_LABELS = {"measured", "allocated", "estimated"}
 MAX_WORDS = 25
 MAX_EXTRAS = 2
 GEMINI_TAG = "Suggested by Gemini"
 
 PROMPT = """You help a fleet manager understand a fuel finding. FINDING and TESTS are produced by code.
-You do not decide results.
+You do not decide results. In TESTS, "measures" says what each evidence figure counts and
+reads on from its number and unit (e.g. "N L [measured] dispensed to this machine at night"), and "explains_pct" is the
+share of the finding's figure that the evidence accounts for (worked out by code).
 1. For each hypothesis id in MENU, write one short reason (up to 25 words) why it is or is not
-   a plausible explanation, using only facts in TESTS. Do not change any status. Do not mention people.
+   a plausible explanation. Say what the evidence shows, using its "measures" text; do not just repeat the result.
+   A figure you quote needs its label in brackets, as in the summary. Do not use the words "verify" or "verified".
+   Use only facts in TESTS. Do not change any status. Do not mention people.
 2. You may add up to 2 extra ideas that are not in MENU. Each needs a title and a reason.
    They will be shown as untested.
-3. Write a summary of 2 or 3 sentences using only numbers in TESTS. After each figure write its
-   label in English in brackets. Do not say "proven", "confirmed" or "root cause". Digits 0-9, dot decimals,
-   comma thousands. Never calculate, add or compare numbers.
+3. Write a summary of 2 or 3 sentences using only numbers in TESTS. Describe each figure exactly as its "measures"
+   text does, and write its label (measured, allocated or estimated) in brackets after it; these are the only
+   labels. Write an explains_pct value as a percentage in the same sentence as its evidence figure.
+   Do not say "proven", "confirmed" or "root cause". Digits 0-9, dot decimals, comma thousands.
+   Never calculate, add or compare numbers.
 FINDING: {finding}
 MENU: {menu}
 TESTS: {tests}
@@ -56,6 +64,7 @@ def gemini_facts(d: dict) -> dict:
     """What the model may quote: rounded figures with labels and the code's results, in the code's order."""
     return {"finding": {"title": d["title"], "kind": d["kind"], "figure": _fig(d["finding_figure"])},
             "tests": [{"id": h["id"], "title": h["title"], "result": h["status_text"], "evidence": _fig(h["evidence"]),
+                       "measures": h.get("evidence_measures"),
                        "explains_pct": None if h["explains_pct"] is None else _r(h["explains_pct"])}
                       for h in d["hypotheses"]]}
 
@@ -66,8 +75,15 @@ def build_prompt(facts: dict) -> str:
 
 
 def forbidden_words(text: str) -> str | None:
+    """No claim of proof, and nothing in brackets except a label (a live run wrote "100 [explains_pct]")."""
+    problems = []
     found = sorted({w.lower() for w in FORBIDDEN.findall(text)})
-    return f'Do not use these words: {", ".join(found)}. Say "supported by the data" instead.' if found else None
+    if found:
+        problems.append(f'Do not use these words: {", ".join(found)}. Say "supported by the data" instead.')
+    odd = sorted({b for b in BRACKET.findall(text) if b.strip().lower() not in BRACKET_LABELS})
+    if odd:
+        problems.append(f'Only measured, allocated or estimated may go in brackets, not: {", ".join(odd)}.')
+    return " ".join(problems) or None
 
 
 def _line_ok(text: str, clean: dict) -> bool:
@@ -118,6 +134,6 @@ def explain(d: dict, generate: Generate | None = None) -> dict:
         title, reason = str(idea.get("title") or "").strip(), str(idea.get("reason") or "").strip()
         if len(extras) < MAX_EXTRAS and _line_ok(title, clean) and _line_ok(reason, clean):
             extras.append({"id": f"gemini_idea_{len(extras) + 1}", "title": title, "description": reason,
-                           "status": "cannot_test", "status_text": STATUS_TEXT["cannot_test"], "evidence": None,
+                           "status": "cannot_test", "status_text": STATUS_TEXT["cannot_test"], "evidence": None, "evidence_measures": None,
                            "explains_pct": None, "would_settle": None, "suggested_by": "gemini", "why": None, "tag": GEMINI_TAG})
     return {**d, "hypotheses": order(rows + extras), "summary": summary, "rejected": rejected}

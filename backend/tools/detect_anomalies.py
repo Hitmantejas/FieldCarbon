@@ -27,7 +27,7 @@ def detect_anomalies(z_limit: float = 3.5, min_group_jobs: int = 8, min_hours: f
     """Things in the machines' own data that are worth a look: frozen recorders, unusual jobs, heavy non-work fuel.
 
     These are observations from statistics, not proof of a fault. Operators are never named or compared.
-    Each finding has a stable `id` (and `diagnosable`, false for these kinds for now).
+    Each finding has a stable `id` and `diagnosable` (true: diagnose_anomaly can test possible causes for every kind here).
     """
     findings: list[dict] = []
 

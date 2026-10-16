@@ -6,7 +6,8 @@ position in a list, so it is the same on every run over the same data.
 from __future__ import annotations
 
 # The kinds that have a menu of possible causes in backend/tools/diagnose_anomaly.py.
-DIAGNOSABLE_KINDS = frozenset({"machine_over_dispense", "stock_gap", "duplicate_delivery_note"})
+DIAGNOSABLE_KINDS = frozenset({"machine_over_dispense", "stock_gap", "duplicate_delivery_note",
+                               "job_outlier", "high_non_work_share", "data_gap"})
 
 ID_PARTS = {
     "machine_over_dispense": ("site_id", "machine_id", "month"),

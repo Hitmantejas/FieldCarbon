@@ -1,14 +1,14 @@
 {
   "tool_cases": {
-    "cases": 41,
-    "passed": 41,
+    "cases": 43,
+    "passed": 43,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 692,
+    "figures_checked": 699,
     "failures": []
   },
   "agent_runs": {
     "agent": {
-      "runs": 21,
+      "runs": 22,
       "tool_selection": 1.0,
       "faithfulness": 1.0,
       "label_coverage": 1.0,
@@ -265,14 +265,26 @@
           "figures": 4,
           "cited": 0,
           "recommendations_named": 0
+        },
+        {
+          "case_id": "plain-diagnose-night-fuel",
+          "sample": false,
+          "tool_selection": true,
+          "faithful": true,
+          "numbers": 14,
+          "unmatched": [],
+          "labelled_figures": 8,
+          "figures": 8,
+          "cited": 0,
+          "recommendations_named": 0
         }
       ],
       "tokens": {
-        "runs": 21,
-        "input": 280410,
-        "output": 9189,
-        "thinking": 65399,
-        "per_question": 16905
+        "runs": 22,
+        "input": 299917,
+        "output": 9624,
+        "thinking": 68491,
+        "per_question": 17183
       }
     },
     "self_test": {

@@ -103,6 +103,9 @@ def check(case: dict, output, spec: dict) -> None:
         top = output["hypotheses"][0]
         assert top["status"] == "supported" and top["id"] == spec["equals"], (top["id"], top["status"])
         assert all(h["evidence"] is None or (h["evidence"]["source_ids"] and h["evidence"]["label"]) for h in output["hypotheses"])
+    elif kind == "diagnosis_status":
+        h = next(h for h in output["hypotheses"] if h["id"] == spec["hypothesis"])
+        assert h["status"] == spec["equals"], (h["id"], h["status"])
     else:
         raise AssertionError(f"unknown check {kind}")
 

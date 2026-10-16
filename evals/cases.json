@@ -703,6 +703,55 @@
       ]
     },
     {
+      "id": "diagnose-data-gap",
+      "question": "Why did the recorder on tractor 4 keep freezing?",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "data_gap:S1:S1-T4"
+      },
+      "checks": [
+        {
+          "type": "diagnosis_top",
+          "equals": "gap_recurs"
+        },
+        {
+          "type": "diagnosis_status",
+          "hypothesis": "gap_in_one_period",
+          "equals": "not_supported"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
+      "id": "diagnose-job-outlier",
+      "question": "Why did tractor 4 burn so much fuel per hour on the 29 September 2025 seed-drill job?",
+      "expected_tools": [
+        "diagnose_anomaly"
+      ],
+      "arguments": {
+        "finding_id": "job_outlier:S1:S1-T4:2025-09:S1-J0282"
+      },
+      "checks": [
+        {
+          "type": "diagnosis_status",
+          "hypothesis": "long_idling",
+          "equals": "cannot_test"
+        },
+        {
+          "type": "diagnosis_status",
+          "hypothesis": "recorder_froze_during_job",
+          "equals": "cannot_test"
+        },
+        {
+          "type": "every_figure_sourced"
+        }
+      ]
+    },
+    {
       "id": "diagnose-unknown-id",
       "expected_tools": [
         "diagnose_anomaly"
