@@ -159,7 +159,8 @@ def candidates() -> list[dict]:
             module = importlib.import_module(name)
         except ModuleNotFoundError:
             continue
-        out += [_plain(c) for c in module.briefing_candidates()]
+        if hasattr(module, "briefing_candidates"):
+            out += [_plain(c) for c in module.briefing_candidates()]
     return out
 
 

@@ -249,6 +249,34 @@ def _maintenance(jobs: pd.DataFrame, seed: int) -> pd.DataFrame:
     return out
 
 
+# Two logged changes at the vineyard, which has real dates and six identical tractors to compare. The effect of the
+# first is planted so the proof tool can be scored; the second has none. The tool never reads the planted values.
+ACTIONS = (
+    {"action_id": "ACT-01", "site_id": "S2", "machine_ids": "S2-T1;S2-T2;S2-T3", "intervention_id": "shift_up_throttle_down",
+     "name": "Shift up and throttle down, tractors 1 to 3", "start_date": "2025-09-01", "planted_effect_pct": -15.0,
+     "what_changed": "How the tractors are driven, not the tractors themselves. Drivers run a higher gear with the throttle eased back, so the engine turns slower for the same work. No parts were changed."},
+    {"action_id": "ACT-02", "site_id": "S2", "machine_ids": "S2-T4;S2-T5;S2-T6", "intervention_id": "correct_tyre_pressure",
+     "name": "Tyre pressure check, tractors 4 to 6", "start_date": "2025-10-15", "planted_effect_pct": 0.0,
+     "what_changed": "The air pressure in the tyres only. Each tractor's tyres were checked and set to the pressure the maker recommends for the job. Nothing else on the tractors was changed."},
+)
+
+
+def _actions(jobs: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """The action log, the overlay of litres after each planted change, and the answer file. Real litres stay as they are."""
+    log = pd.DataFrame(ACTIONS)
+    overlay = []
+    for a in ACTIONS:
+        hit = jobs[(jobs.site_id == a["site_id"]) & jobs.machine_id.isin(a["machine_ids"].split(";"))
+                   & (jobs.start_ts >= a["start_date"])]
+        if a["planted_effect_pct"]:
+            overlay += [{"job_id": r.job_id, "action_id": a["action_id"], "litres_with_action": r.litres * (1 + a["planted_effect_pct"] / 100)}
+                        for r in hit.itertuples()]
+    truth = log[["action_id", "planted_effect_pct"]].assign(
+        note=["A 15% cut in litres per hectare on the changed tractors from the start date", "No effect planted"])
+    return (log.drop(columns="planted_effect_pct").assign(is_synthetic=True),
+            pd.DataFrame(overlay, columns=["job_id", "action_id", "litres_with_action"]), truth)
+
+
 def _static_tables() -> dict[str, pd.DataFrame]:
     sites = pd.DataFrame([
         {"site_id": "S1", "name": "Arable site (Bavaria)", "country": "DE", "data_kind": "raw telemetry", "source_id": "tum_alc_data"},
@@ -305,6 +333,8 @@ def build_fleet(seed: int = 2026) -> dict[str, pd.DataFrame]:
     cols = ["job_id", "site_id", "machine_id", "operator_id", "client_id", "field_id", "operation_code", "start_ts", "hours",
             "litres", "area_ha", "mean_load_pct", "idle_ratio", "sessions", "litres_label", "area_label", "source_id",
             "date_basis", "date_real", "synthetic_columns"]
+    actions, overlay, action_truth = _actions(jobs)
     return {**tables, "clients": clients, "fields": fields, "operators": operators, "jobs": jobs[cols],
             "other_activity": other_monthly, "depots": depots, "fuel_deliveries": deliveries, "fuel_dispenses": disp,
-            "depot_stock_readings": dips, "maintenance_events": _maintenance(jobs, seed), "ground_truth_anomalies": truth}
+            "depot_stock_readings": dips, "maintenance_events": _maintenance(jobs, seed), "ground_truth_anomalies": truth,
+            "actions": actions, "action_overlay": overlay, "ground_truth_actions": action_truth}

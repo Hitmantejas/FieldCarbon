@@ -12,7 +12,7 @@ def write(out: Path = OUT, seed: int = 2026) -> dict[str, int]:
     out.mkdir(parents=True, exist_ok=True)
     counts = {}
     for name, table in build_fleet(seed).items():
-        table.to_csv(out / f"{name}.csv", index=False, float_format="%.4f", date_format="%Y-%m-%d %H:%M:%S")
+        table.to_csv(out / f"{name}.csv", index=False, float_format="%.4f", date_format="%Y-%m-%d %H:%M:%S", lineterminator="\n")
         counts[name] = len(table)
     return counts
 

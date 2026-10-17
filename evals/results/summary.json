@@ -1,9 +1,9 @@
 {
   "tool_cases": {
-    "cases": 69,
-    "passed": 69,
+    "cases": 72,
+    "passed": 72,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 873,
+    "figures_checked": 916,
     "failures": []
   },
   "agent_runs": {
@@ -780,6 +780,29 @@
         }
       ],
       "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
+    },
+    "proof_recovery": {
+      "changes": 2,
+      "recovered": 2,
+      "rows": [
+        {
+          "action_id": "ACT-01",
+          "planted_effect_pct": -15.0,
+          "status": "reduction_shown",
+          "low": -36.4,
+          "high": -6.5,
+          "recovered": true
+        },
+        {
+          "action_id": "ACT-02",
+          "planted_effect_pct": 0.0,
+          "status": "cant_tell_yet",
+          "low": -8.4,
+          "high": 33.4,
+          "recovered": true
+        }
+      ],
+      "note": "action_impact works from the job records; it never reads the answer file."
     },
     "voice_accuracy": {
       "clips": 8,

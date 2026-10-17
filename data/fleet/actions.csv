@@ -1,0 +1,3 @@
+action_id,site_id,machine_ids,intervention_id,name,start_date,what_changed,is_synthetic
+ACT-01,S2,S2-T1;S2-T2;S2-T3,shift_up_throttle_down,"Shift up and throttle down, tractors 1 to 3",2025-09-01,"How the tractors are driven, not the tractors themselves. Drivers run a higher gear with the throttle eased back, so the engine turns slower for the same work. No parts were changed.",True
+ACT-02,S2,S2-T4;S2-T5;S2-T6,correct_tyre_pressure,"Tyre pressure check, tractors 4 to 6",2025-10-15,The air pressure in the tyres only. Each tractor's tyres were checked and set to the pressure the maker recommends for the job. Nothing else on the tractors was changed.,True

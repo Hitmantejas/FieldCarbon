@@ -9,10 +9,12 @@ export const SCREENS: { id: ScreenId; name: string; built: boolean }[] = [
   { id: "sites", name: "Sites & machines", built: true },
   { id: "jobs", name: "Jobs & fields", built: true },
   { id: "opportunities", name: "Opportunities", built: true },
+  { id: "proof", name: "Proof", built: true },
   { id: "control", name: "Fuel control", built: true },
   { id: "whatif", name: "What if", built: true },
   { id: "clients", name: "Clients", built: true },
   { id: "reports", name: "Reports", built: true },
+  { id: "trust", name: "Trust", built: true },
 ];
 
 const step = (i: number) => ({ "--i": i }) as CSSProperties;

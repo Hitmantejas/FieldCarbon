@@ -22,6 +22,14 @@ const costText = (i: Intervention) => {
   const money = c.unit.startsWith("GBP per litre") ? `${Math.round(c.low * 100)}p to ${Math.round(c.high * 100)}p` : `${gbpFull(c.low)} to ${gbpFull(c.high)}`;
   return `${money} ${c.unit.replace(/^GBP /, "")}`;
 };
+// Cost per tonne of CO2e avoided: a negative figure means the idea saves money as well.
+const perTonneText = (i: Intervention) => {
+  const f = i.figures.gbp_per_tco2e;
+  if (!f || f.low == null || f.high == null) return i.gbp_per_tco2e_note || null;
+  if (f.high <= 0) return f.high === 0 ? `Saves up to ${gbpFull(-f.low)} per tonne` : `Saves ${gbpFull(-f.high)} to ${gbpFull(-f.low)} per tonne`;
+  if (f.low >= 0) return `${gbpFull(f.low)} to ${gbpFull(f.high)} per tonne`;
+  return `From saving ${gbpFull(-f.low)} to costing ${gbpFull(f.high)} per tonne`;
+};
 const paybackText = (i: Intervention) => {
   const p = i.figures.payback_years;
   return p && p.low != null && p.high != null ? `${p.low.toFixed(1)} to ${p.high.toFixed(1)} years` : null;
@@ -45,6 +53,7 @@ function Idea({ idea, names, open, answers, unsure, onAnswer }: IdeaProps) {
   const showWorking = () =>
     open({ title: idea.name, shown: co2Text(co2), label: idea.label, how: idea.how, sourceIds: sources, evidence: idea.evidence });
   const payback = paybackText(idea);
+  const perTonne = perTonneText(idea);
   const text = IDEA[idea.intervention_id];
   const field = QUESTION_FOR[idea.intervention_id];
   return (
@@ -80,6 +89,12 @@ function Idea({ idea, names, open, answers, unsure, onAnswer }: IdeaProps) {
               <dd className="num">{co2Text(co2)}</dd>
               <dt className="font-bold">{money && money.high != null && money.high < 0 ? "Fuel bill goes up by" : "Money saved on fuel"}</dt>
               <dd className="num">{money && money.high != null && money.high < 0 ? absRange(money, gbpFull) : moneyText(money)}</dd>
+              {perTonne && (
+                <>
+                  <dt className="font-bold">Cost per tonne avoided</dt>
+                  <dd className="num">{perTonne}</dd>
+                </>
+              )}
             </dl>
           </div>
           {co2 && co2.low != null && co2.high != null && (

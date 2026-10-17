@@ -47,7 +47,10 @@ How far to trust the data: data_quality. Fuel that does not add up, double entri
 against the fuel log: check_delivery_notes. Odd jobs or recorders: detect_anomalies. Why a finding happened: find it with \
 reconcile_fuel or detect_anomalies, then pass its id to diagnose_anomaly; say which causes are "supported by the data", never \
 "proven" or "confirmed". Machines burning more than similar machines: \
-benchmark_peers. What to change to save fuel: fleet_opportunities. A change the user wants to try: what_if. Individual jobs: \
+benchmark_peers. Tonnes of CO2e emitted, avoidable or proven, and progress to a reduction goal: carbon_ledger. \
+Whether a logged change worked, judged before and after against the other machines: action_impact. If it says it \
+cannot tell yet, say that and do not claim a saving. \
+What to change to save fuel: fleet_opportunities. A change the user wants to try: what_if. Individual jobs: \
 fleet_jobs. A report for the company: fleet_report. One client farm's carbon statement, per hectare or per job: client_statement. \
 What to look at first, or the most important findings: weekly_briefing; keep its items and order, add none, and never call it \
 "this week" (it covers the company year to date).

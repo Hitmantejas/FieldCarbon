@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Figure, Label } from "../api";
-import { useApi } from "../api";
+import { query, useApi } from "../api";
 import { Briefing } from "../components/Briefing";
+import { CarbonLedger, span, t1 } from "../components/CarbonLedger";
 import { FindingList } from "../components/FindingList";
 import { RangeBar } from "../components/RangeBar";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
-import { Tile } from "../components/Tile";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
-import type { Anomalies, FleetOpportunities, FleetSummary, Reconciliation, Severity } from "../fleetApi";
+import type { Anomalies, FleetOpportunities, FleetSummary, Ledger, Reconciliation, Severity } from "../fleetApi";
 import { gbpFull, litres, tonnes } from "../format";
 import { co2Text } from "../ranges";
 
@@ -27,12 +27,20 @@ export function Overview() {
   const anomalies = useApi<Anomalies>("/api/fleet/anomalies");
   const recon = useApi<Reconciliation>("/api/fleet/reconciliation");
   const ideas = useApi<FleetOpportunities>("/api/fleet/opportunities");
+  const [goal, setGoal] = useState(20);
+  const fresh = useApi<Ledger>(`/api/fleet/ledger${query({ goal_pct: goal })}`);
+  // Keep the last ledger on screen while a new goal loads, so the page does not jump.
+  const [ledger, setLedger] = useState<Ledger>();
+  useEffect(() => {
+    if (fresh.data) setLedger(fresh.data);
+  }, [fresh.data]);
   const [opened, setOpened] = useState<Opened | null>(null);
 
   const open = (title: string, shown: string, f: Figure) =>
     setOpened({ title, shown, label: f.label, how: f.how, sourceIds: f.source_ids });
 
   const t = sites.data?.totals;
+  const perHa = Object.fromEntries((ledger?.sites ?? []).map((s) => [s.site_id, litres(s.kg_per_ha.value ?? 0)]));
   const watch = [...(recon.data?.findings ?? []), ...(anomalies.data?.findings ?? [])]
     .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
     .slice(0, 5);
@@ -47,27 +55,24 @@ export function Overview() {
     <div className="space-y-10 pb-10">
       <section className="px-6 pt-6" aria-labelledby="h-fleet">
         <h1 id="h-fleet" className="rise font-display text-5xl font-semibold leading-[1.02] sm:text-6xl tracking-tight" style={{ "--i": 1 } as React.CSSProperties}>
-          {t ? `${litres(t.litres.value ?? 0)} litres burned.` : "Fleet overview"}
+          {ledger ? `${t1(ledger.emitted.value ?? 0)} tonnes of CO2e emitted.` : "Fleet overview"}
           <br />
-          {watch.length > 0 && <span className="text-moss">{watch.length} things to look at.</span>}
+          {ledger && <span className="text-moss">{span(ledger.proven)} tonnes proven avoided.</span>}
         </h1>
         {t && (
           <p className="mt-3 max-w-[70ch] text-ink-soft">
-            {litres(t.jobs)} jobs over {litres(t.hours)} engine hours on {sites.data?.rows.length} sites. Totals come from the machines; splits by
-            site, job and month are shared by rule; savings are always ranges.
+            {litres(t.litres.value ?? 0)} litres of fuel and {gbpFull(t.cost_gbp.value ?? 0)} over {litres(t.jobs)} jobs and {litres(t.hours)} engine hours on{" "}
+            {sites.data?.rows.length} sites. Totals come from the machines; splits by site, job and month are shared by rule; savings are always ranges.
           </p>
         )}
       </section>
 
-      {!t ? (
-        <Loading what="fleet figures" />
+      {fresh.error && !ledger ? (
+        <p className="px-6">The carbon ledger could not be loaded. {fresh.error}</p>
+      ) : !ledger ? (
+        <Loading what="the carbon ledger" />
       ) : (
-        <section aria-label="Fleet totals" className="mx-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile title="Fuel" shown={litres(t.litres.value ?? 0)} unit="L" figure={t.litres} onOpen={() => open("Fuel burned", `${litres(t.litres.value ?? 0)} L`, t.litres)} />
-          <Tile title="Emissions" shown={tonnes(t.co2e_kg.value ?? 0).replace(" t", "")} unit="t CO2e" figure={t.co2e_kg} onOpen={() => open("Emissions", tonnes(t.co2e_kg.value ?? 0) + " CO2e", t.co2e_kg)} />
-          <Tile title="Fuel cost" shown={gbpFull(t.cost_gbp.value ?? 0)} unit="" figure={t.cost_gbp} onOpen={() => open("Fuel cost", gbpFull(t.cost_gbp.value ?? 0), t.cost_gbp)} />
-          <Tile title="To look at" shown={String(watch.length)} unit="findings" highlight />
-        </section>
+        <CarbonLedger ledger={ledger} goal={goal} onGoal={setGoal} onOpen={open} />
       )}
 
       <Briefing onOpen={open} />
@@ -95,6 +100,7 @@ export function Overview() {
                   <th scope="col" className="py-2 font-normal">Site</th>
                   <th scope="col" className="py-2 text-right font-normal">Litres</th>
                   <th scope="col" className="py-2 text-right font-normal">CO2e</th>
+                  <th scope="col" className="py-2 text-right font-normal">kg CO2e per ha</th>
                   <th scope="col" className="py-2 pl-4 font-normal">Label</th>
                 </tr>
               </thead>
@@ -108,6 +114,7 @@ export function Overview() {
                     </th>
                     <td className="num py-3 text-right">{litres(r.litres.value ?? 0)}</td>
                     <td className="num py-3 text-right">{tonnes(r.co2e_kg.value ?? 0)}</td>
+                    <td className="num py-3 text-right">{perHa[r.key] ?? ""}</td>
                     <td className="py-3 pl-4"><Stamp label={r.litres.label} /></td>
                   </tr>
                 ))}
