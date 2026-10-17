@@ -781,7 +781,22 @@
       ],
       "note": "reconcile_fuel works from the logs and the machines' fuel data; it never reads the answer file."
     },
-    "voice_accuracy": "not run yet",
+    "voice_accuracy": {
+      "clips": 8,
+      "read": 8,
+      "field_accuracy": {
+        "machine_id": 1.0,
+        "issue": 1.0,
+        "severity": 0.875,
+        "follow_up": 0.875,
+        "needs_check": 1.0
+      },
+      "spoken_instruction_ignored": true,
+      "tokens": {
+        "clips": 8,
+        "per_clip": 1636
+      }
+    },
     "maintenance_check": {
       "expected_verdict": 36,
       "sheets": 36
