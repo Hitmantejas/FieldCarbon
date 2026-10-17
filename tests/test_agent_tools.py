@@ -11,7 +11,7 @@ from evals.checks import CASES, TOOLS
 
 def test_agent_tools_keep_the_names_the_eval_cases_expect():
     names = {t.__name__ for t in tools.AGENT_TOOLS}
-    expected = {name for c in CASES if c["id"].startswith(("plain-", "fleet-")) for name in c["expected_tools"]}
+    expected = {name for c in CASES if c.get("agent") for name in c["expected_tools"]}
     assert expected <= names
     assert names <= set(TOOLS)
 
@@ -52,7 +52,7 @@ def test_opportunities_keep_names_sources_and_figures_without_the_long_evidence_
     ideas = tools.fleet_opportunities(site_id="S1")["ideas"]
     first = ideas[0]
     assert first["name"] and first["figures"]["litres_saved"]["label"] == "estimated"
-    assert first["evidence"] and all({"title", "region", "source_id", "link_status"} <= e.keys() for e in first["evidence"])  # year is left out when unknown
+    assert first["evidence"] and all({"title", "region", "source_id"} <= e.keys() for e in first["evidence"])  # year is left out when unknown
     assert all("derivation" not in e and "baseline" not in e for e in first["evidence"])
 
 
@@ -98,8 +98,22 @@ def test_compact_totals_match_the_full_tool_and_keep_their_explanations():
     full, small = TOOLS["fleet_summary"]("client"), tools.fleet_summary(group_by="client")
     assert small["totals"]["litres"]["value"] == pytest.approx(full["totals"]["litres"]["value"], abs=0.01)
     assert all("how" in small["totals"][k] for k in ("litres", "co2e_kg", "cost_gbp"))
-    row = small["rows"][0]
-    assert "how" in row["litres"] and "how" not in row["co2e_kg"] and "how" not in row["cost_gbp"]
+    row = small["rows"][0]   # F8 6c: rows keep label and sources, not the explanation (the screens show it)
+    assert "how" not in json.dumps(small["rows"]) and row["litres"]["label"] and row["litres"]["source_ids"]
+
+
+def test_list_explanations_and_link_bookkeeping_are_left_out_for_the_model():
+    opp = tools.fleet_opportunities()
+    assert '"how"' not in json.dumps(opp["ideas"]) and "link_status" not in json.dumps(opp)
+    ev = [e for i in opp["ideas"] for e in i["evidence"]]
+    assert all(e["title"] and e["source_id"] for e in ev)                     # what the citation check needs
+    assert all(e.get("is_manufacturer", True) is True for e in ev)            # kept only when it matters
+    assert all("how" in tools.data_quality()[k] for k in ("measured_share_pct", "unassigned_litres"))   # top-level: kept
+
+
+def test_a_diagnosis_keeps_the_reasoning_behind_each_cause():
+    fid = next(f["id"] for f in tools.reconcile_fuel()["findings"] if f.get("diagnosable"))
+    assert all("how" in h["evidence"] for h in tools.diagnose_anomaly(fid)["hypotheses"] if h.get("evidence"))
 
 
 @pytest.mark.parametrize("group_by", ["field", "operation"])

@@ -180,7 +180,8 @@ def _fuel_flows(daily: pd.DataFrame, operator_of: dict, machines: pd.DataFrame, 
     disp["dispense_id"] = [f"DSP-{i + 1:05d}" for i in range(len(disp))]
     truth.append({"anomaly_id": "A1", "kind": "over_dispense", "site_id": "S1", "machine_id": machine, "when": str(month),
                   "description": "About 20% more fuel dispensed than burned, on six nights outside shift hours",
-                  "expected_signal": "dispensed / burned >= 1.15 for the machine-month; night-time dispenses"})
+                  "expected_signal": "dispensed / burned >= 1.15 for the machine-month; night-time dispenses",
+                  "true_cause": "night_fuel_outside_shift"})
 
     # Depot stock: the tank is refilled when it runs low. A2 is a withdrawal that is never logged.
     dep_rows, deliveries, dips = [], [], []
@@ -214,7 +215,8 @@ def _fuel_flows(daily: pd.DataFrame, operator_of: dict, machines: pd.DataFrame, 
     deliveries = pd.DataFrame(deliveries).sort_values("ts", ignore_index=True)
     truth.append({"anomaly_id": "A2", "kind": "unlogged_withdrawal", "site_id": "S1", "machine_id": "", "when": str(leak_day.date()),
                   "description": f"{leak_litres:.0f} L left the S1 depot without being logged",
-                  "expected_signal": "book stock (deliveries minus dispenses) exceeds the dip reading by about 900 L"})
+                  "expected_signal": "book stock (deliveries minus dispenses) exceeds the dip reading by about 900 L",
+                  "true_cause": "unlogged_withdrawal"})
 
     # A3: the same delivery note entered twice at S2.
     s2 = deliveries[deliveries.depot_id == "S2-D1"]
@@ -223,7 +225,8 @@ def _fuel_flows(daily: pd.DataFrame, operator_of: dict, machines: pd.DataFrame, 
     deliveries = pd.concat([deliveries, dup.to_frame().T], ignore_index=True).sort_values("ts", ignore_index=True)
     truth.append({"anomaly_id": "A3", "kind": "duplicate_delivery_note", "site_id": "S2", "machine_id": "",
                   "when": str(dup.ts.date()), "description": f"Delivery note entered twice: {dup.doc_no}",
-                  "expected_signal": "two delivery rows with the same supplier, document number, date and litres"})
+                  "expected_signal": "two delivery rows with the same supplier, document number, date and litres",
+                  "true_cause": "same_note_entered_twice"})
     return disp, deliveries, pd.DataFrame(dep_rows), pd.DataFrame(dips), pd.DataFrame(truth)
 
 

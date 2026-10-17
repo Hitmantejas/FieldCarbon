@@ -1,0 +1,23 @@
+{
+  "clip_id": "V02",
+  "heard": {
+    "transcript": "Tractor 1, the front left tyre looks a bit soft, not urgent, check the pressure at the next service.",
+    "machine_id": "S1-T1",
+    "issue": "tyres",
+    "severity": "low",
+    "follow_up": "Check the front left tyre pressure at the next service.",
+    "confidence": "high",
+    "is_machine_problem": true
+  },
+  "usage": {
+    "input_tokens": 1037,
+    "output_tokens": 102,
+    "thinking_tokens": 318,
+    "total_tokens": 1457
+  },
+  "model": "gemini-3.5-flash",
+  "location": "global",
+  "model_version": "gemini-3.5-flash",
+  "prompt_version": "voice-v1",
+  "read_at": "2026-10-17T12:15:01+00:00"
+}

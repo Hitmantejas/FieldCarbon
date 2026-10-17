@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Figure, Label } from "../api";
 import { query, useApi } from "../api";
+import { Briefing } from "../components/Briefing";
 import { CarbonLedger, span, t1 } from "../components/CarbonLedger";
 import { FindingList } from "../components/FindingList";
 import { RangeBar } from "../components/RangeBar";
@@ -73,6 +74,8 @@ export function Overview() {
       ) : (
         <CarbonLedger ledger={ledger} goal={goal} onGoal={setGoal} onOpen={open} />
       )}
+
+      <Briefing onOpen={open} />
 
       <section className="px-6" aria-labelledby="h-watch">
         <SectionHead id="h-watch" title="Worth a look" tone="mark" note="to investigate, not proof of a fault" />

@@ -1,0 +1,37 @@
+sheet_id,sheet_number,date,machine_id,machine_name,site_name,service_type,hours_at_service,parts_gbp,labour_hours,labour_gbp,cost_gbp,layout,damage
+MNT-0001,MNT-0001,2025-05-06,S2-T4,"Vineyard tractor 4, 75 kW",Vineyard site (Tuscany),Hydraulic hose replaced,2.8,64.5,1.5,87.0,151.5,handwritten,low_light
+MNT-0002,MNT-0002,2025-05-10,S1-T1,"Tractor 1, 77 kW",Arable site (Bavaria),Hydraulic hose replaced,0.0,64.5,1.5,87.0,151.5,handwritten,clean
+MNT-0003,MNT-0003,2025-05-18,S2-T1,"Vineyard tractor 1, 75 kW",Vineyard site (Tuscany),Tyre repair,8.8,38.0,1.0,58.0,96.0,printed,crumpled
+MNT-0004,MNT-0004,2025-05-22,S2-T2,"Vineyard tractor 2, 75 kW",Vineyard site (Tuscany),Hydraulic hose replaced,12.1,64.5,1.5,87.0,151.5,printed,crumpled
+MNT-0005,MNT-0005,2025-05-27,S2-T2,"Vineyard tractor 2, 75 kW",Vineyard site (Tuscany),Fuel filter replaced,15.1,27.8,0.5,29.0,56.8,printed,crumpled
+MNT-0006,MNT-0006,2025-06-13,S1-T2,"Tractor 2, 104 kW",Arable site (Bavaria),Hydraulic hose replaced,6.8,64.5,1.5,87.0,151.5,printed,crumpled
+MNT-0007,MNT-0007,2025-06-30,S1-T5,"Tractor 5, 174 kW",Arable site (Bavaria),Hydraulic hose replaced,5.8,64.5,1.5,87.0,151.5,handwritten,crumpled
+MNT-0008,MNT-0008,2025-07-01,S2-T5,"Vineyard tractor 5, 75 kW",Vineyard site (Tuscany),Tyre repair,24.5,38.0,1.0,58.0,96.0,printed,crumpled
+MNT-0009,MNT-0009,2025-07-15,S2-T4,"Vineyard tractor 4, 75 kW",Vineyard site (Tuscany),Brake adjustment,30.7,12.0,1.5,87.0,99.0,handwritten,skewed
+MNT-0010,MNT-0010,2025-07-27,S2-T6,"Vineyard tractor 6, 75 kW",Vineyard site (Tuscany),Battery replaced,84.4,148.0,0.5,29.0,177.0,handwritten,blurred
+MNT-0011,MNT-0011,2025-08-03,S2-T2,"Vineyard tractor 2, 75 kW",Vineyard site (Tuscany),Brake adjustment,35.3,12.0,1.5,87.0,99.0,printed,crumpled
+MNT-0012,MNT-0012,2025-08-18,S1-T2,"Tractor 2, 104 kW",Arable site (Bavaria),Brake adjustment,11.6,12.0,1.5,87.0,99.0,handwritten,clean
+MNT-0013,MNT-0013,2025-08-20,S2-T3,"Vineyard tractor 3, 75 kW",Vineyard site (Tuscany),Hydraulic hose replaced,54.5,64.5,1.5,87.0,151.5,handwritten,skewed
+MNT-0014,MNT-0014,2025-08-20,S2-T4,"Vineyard tractor 4, 75 kW",Vineyard site (Tuscany),Fuel filter replaced,43.7,27.8,0.5,29.0,56.8,printed,crumpled
+MNT-0015,MNT-0015,2025-09-01,S1-T3,"Tractor 3, 140 kW",Arable site (Bavaria),Hydraulic hose replaced,14.4,64.5,1.5,87.0,151.5,handwritten,blurred
+MNT-0016,MNT-0016,2025-09-02,S1-T1,"Tractor 1, 77 kW",Arable site (Bavaria),Fuel filter replaced,0.1,27.8,0.5,29.0,56.8,handwritten,crumpled
+MNT-0017,MNT-0017,2025-09-26,S3-T1,"Tractor, 77 kW (105 hp)",Tillage site (Konya Plain),Brake adjustment,3.2,12.0,1.5,87.0,99.0,printed,low_light
+MNT-0018,MNT-0018,2025-10-17,S3-T1,"Tractor, 77 kW (105 hp)",Tillage site (Konya Plain),Fuel filter replaced,12.9,27.8,0.5,29.0,56.8,printed,skewed
+MNT-0019,MNT-0019,2025-10-28,S3-T1,"Tractor, 77 kW (105 hp)",Tillage site (Konya Plain),Tyre repair,17.9,38.0,1.0,58.0,96.0,handwritten,blurred
+MNT-0020,MNT-0020,2025-10-30,S1-T2,"Tractor 2, 104 kW",Arable site (Bavaria),Hydraulic hose replaced,50.3,64.5,1.5,87.0,151.5,printed,blurred
+MNT-0021,MNT-0021,2025-10-31,S1-T3,"Tractor 3, 140 kW",Arable site (Bavaria),Tyre repair,31.0,38.0,1.0,58.0,96.0,printed,blurred
+MNT-0022,MNT-0022,2025-11-18,S1-T4,"Tractor 4, 163 kW",Arable site (Bavaria),Air filter replaced,165.1,46.2,0.5,29.0,75.2,handwritten,crumpled
+MNT-0023,MNT-0023,2025-12-03,S2-T3,"Vineyard tractor 3, 75 kW",Vineyard site (Tuscany),Hydraulic hose replaced,75.2,64.5,1.5,87.0,151.5,handwritten,crumpled
+MNT-0024,MNT-0024,2025-12-10,S2-T5,"Vineyard tractor 5, 75 kW",Vineyard site (Tuscany),Brake adjustment,82.1,12.0,1.5,87.0,99.0,printed,blurred
+MNT-0025,MNT-0025,2026-01-22,S1-T5,"Tractor 5, 174 kW",Arable site (Bavaria),Fuel filter replaced,23.9,27.8,0.5,29.0,56.8,printed,low_light
+MNT-0026,MNT-0026,2026-02-17,S2-T6,"Vineyard tractor 6, 75 kW",Vineyard site (Tuscany),Battery replaced,170.0,148.0,0.5,29.0,177.0,handwritten,blurred
+MNT-0027,MNT-0027,2026-03-03,S2-T1,"Vineyard tractor 1, 75 kW",Vineyard site (Tuscany),Hydraulic hose replaced,97.3,64.5,1.5,87.0,151.5,handwritten,blurred
+MNT-0028,MNT-0028,2026-03-14,S2-T1,"Vineyard tractor 1, 75 kW",Vineyard site (Tuscany),Battery replaced,101.8,148.0,0.5,29.0,177.0,printed,low_light
+MNT-0029,MNT-0029,2026-03-18,S1-T3,"Tractor 3, 140 kW",Arable site (Bavaria),Hydraulic hose replaced,35.5,64.5,1.5,87.0,151.5,printed,low_light
+MNT-0030,MNT-0030,2026-03-18,S2-T3,"Vineyard tractor 3, 75 kW",Vineyard site (Tuscany),Fuel filter replaced,96.1,27.8,0.5,29.0,56.8,handwritten,low_light
+MNT-0031,MNT-0031,2026-03-23,S2-T6,"Vineyard tractor 6, 75 kW",Vineyard site (Tuscany),Battery replaced,184.7,148.0,0.5,29.0,177.0,handwritten,low_light
+MNT-0032,MNT-0032,2026-03-26,S1-T5,"Tractor 5, 174 kW",Arable site (Bavaria),Brake adjustment,26.3,12.0,1.5,87.0,99.0,printed,blurred
+MNT-0033,MNT-0033,2026-04-08,S1-T4,"Tractor 4, 163 kW",Arable site (Bavaria),Hydraulic hose replaced,180.1,64.5,1.5,87.0,151.5,handwritten,clean
+MNT-0034,MNT-0034,2026-04-21,S1-T1,"Tractor 1, 77 kW",Arable site (Bavaria),Hydraulic hose replaced,3.1,64.5,1.5,87.0,151.5,printed,blurred
+MNT-0035,MNT-0035,2026-04-21,S1-T4,"Tractor 4, 163 kW",Arable site (Bavaria),Brake adjustment,191.4,12.0,1.5,87.0,99.0,handwritten,low_light
+MNT-0036,MNT-0036,2026-04-21,S2-T5,"Vineyard tractor 5, 75 kW",Vineyard site (Tuscany),Tyre repair,106.9,38.0,1.0,58.0,96.0,printed,clean

@@ -16,14 +16,22 @@ export function SeverityTag({ severity }: { severity: Severity }) {
   );
 }
 
-// Each finding opens its working sheet.
-export function FindingList({ findings, onOpen }: { findings: Finding[]; onOpen: (title: string, shown: string, f: Figure) => void }) {
+// Each finding opens its working sheet; findings with causes to test also get a separate Diagnose button.
+export function FindingList({
+  findings,
+  onOpen,
+  onDiagnose,
+}: {
+  findings: Finding[];
+  onOpen: (title: string, shown: string, f: Figure) => void;
+  onDiagnose?: (f: Finding) => void;
+}) {
   return (
     <ul className="divide-y divide-rule">
       {findings.map((f) => {
         const shown = `${litres(f.litres.value ?? 0)} ${f.litres.unit}`;
         return (
-          <li key={f.title}>
+          <li key={f.id}>
             <button
               onClick={() => onOpen(f.title, shown, f.litres)}
               className="btn-row grid w-[calc(100%+1rem)] grid-cols-[5.5rem_1fr] items-center gap-x-4 gap-y-2 sm:grid-cols-[5.5rem_1fr_auto] py-3 text-left"
@@ -35,6 +43,15 @@ export function FindingList({ findings, onOpen }: { findings: Finding[]; onOpen:
                 <Stamp label={f.litres.label} />
               </span>
             </button>
+            {onDiagnose && f.diagnosable && (
+              <button
+                onClick={() => onDiagnose(f)}
+                aria-label={`Diagnose: ${f.title}`}
+                className="btn-link mb-3 ml-[6.5rem] min-h-11 border-2 border-ink px-4 text-sm font-bold"
+              >
+                Diagnose: what could explain this?
+              </button>
+            )}
           </li>
         );
       })}

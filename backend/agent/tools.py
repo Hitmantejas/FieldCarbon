@@ -10,13 +10,17 @@ from __future__ import annotations
 import json
 from functools import wraps
 
-from backend.tools import (action_impact as _actions, benchmark_peers as _peers, carbon_ledger as _ledger, check_delivery_notes as _notes, data_quality as _quality,
+from backend.tools import (action_impact as _actions, benchmark_peers as _peers, carbon_ledger as _ledger, check_delivery_notes as _notes, client_statement as _statement,
+                           data_quality as _quality, diagnose_anomaly as _diagnose,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
-                           fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if)
+                           fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if,
+                           weekly_briefing as _briefing)
 
 MAX_JOBS = 10
 MAX_ROWS = 15
 FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg", "co2e_t", "co2e_avoided_t"}  # their `how` is the same fixed formula on every row
+KEEP_HOW = {"diagnose_anomaly", "benchmark_peers"}  # why each cause is supported; why a machine is above its peers
+SCREENS = {"#/control": "Fuel control", "#/opportunities": "Opportunities", "#/sites": "Sites"}  # app links, by screen name
 
 
 def _plain(value):
@@ -24,22 +28,24 @@ def _plain(value):
     return json.loads(json.dumps(value, default=str))
 
 
-def _compact(node, in_list: bool = False, key: str | None = None):
-    """Fewer tokens for the model, same facts: rounded floats, no empty fields, and no repeated formula text inside lists.
+def _compact(node, in_list: bool = False, key: str | None = None, keep_how: bool = False):
+    """Fewer tokens for the model, same facts: rounded floats, no empty fields, no link bookkeeping, and inside lists
+    no `how` text (F8 6c). Labels and sources stay on every figure; top-level figures keep `how`, and a tool in
+    KEEP_HOW keeps it in lists too (except the fixed formula), because there the explanation is the answer.
 
     The auditor checks answers against this compact output, so a number the model quotes still traces to it.
     """
     if isinstance(node, dict):
         out = {}
         for k, v in node.items():
-            if v is None and k != "value":
+            if (v is None and k != "value") or k == "link_status" or (k == "is_manufacturer" and v is False):
                 continue
-            if k == "how" and in_list and key in FORMULA_FIGURES:
+            if k == "how" and in_list and (key in FORMULA_FIGURES or not keep_how):
                 continue
-            out[k] = _compact(v, in_list, k)
+            out[k] = _compact(v, in_list, k, keep_how)
         return out
     if isinstance(node, list):
-        return [_compact(v, True, key) for v in node]
+        return [_compact(v, True, key, keep_how) for v in node]
     if isinstance(node, float) and node == node:
         return round(node, 2) if abs(node) >= 1 else float(f"{node:.3g}")
     return node
@@ -49,7 +55,7 @@ def _safe(fn):
     @wraps(fn)
     def run(*args, **kwargs):
         try:
-            return _compact(_plain(fn(*args, **kwargs)))
+            return _compact(_plain(fn(*args, **kwargs)), keep_how=fn.__name__ in KEEP_HOW)
         except (ValueError, KeyError) as e:
             return {"error": f"{type(e).__name__}: {e}"}
     return run
@@ -113,7 +119,8 @@ def data_quality() -> dict:
 @_safe
 def reconcile_fuel() -> dict:
     """Checks fuel handed out against fuel burned, each depot's book stock against its measured stock, delivery notes
-    entered twice, and night-time dispenses. Returns the findings and only the table rows that need a look."""
+    entered twice, and night-time dispenses. Returns the findings and only the table rows that need a look. Each finding
+    has an id; where diagnosable is true, pass that id to diagnose_anomaly to test its possible causes."""
     r = _recon.reconcile_fuel()
     tol = r["settings"]["stock_tolerance_l"]
     r["machine_months"] = {**r["machine_months"], "rows": [m for m in r["machine_months"]["rows"] if m["flagged"]]}
@@ -131,8 +138,18 @@ def check_delivery_notes() -> dict:
 @_safe
 def detect_anomalies() -> dict:
     """Things in the machines' own data that are worth a look: recorders that froze, jobs that burned far more or less
-    fuel per hour than usual, and tractors with a large share of fuel spent on idling and travel. Not proof of a fault."""
+    fuel per hour than usual, and tractors with a large share of fuel spent on idling and travel. Not proof of a fault.
+    Each finding has an id (diagnose_anomaly takes the ids marked diagnosable)."""
     return _anomalies.detect_anomalies()
+
+
+@_safe
+def diagnose_anomaly(finding_id: str) -> dict:
+    """Possible causes of one finding, each tested against the data by code: supported by the data, not supported by
+    the data, or cannot be tested with our data, in that order, with the evidence and what record would settle it.
+    finding_id is a finding's id from reconcile_fuel or detect_anomalies (like machine_over_dispense:S1:S1-T4:2025-10).
+    Say "supported by the data", never "proven" or "confirmed"; a person decides."""
+    return _diagnose.diagnose_anomaly(finding_id)
 
 
 @_safe
@@ -194,6 +211,27 @@ def fleet_report(client_id: str | None = None) -> dict:
             "open_in_app": "Reports screen: choose the company or the client farm, then print or save as PDF."}
 
 
-AGENT_TOOLS = [carbon_ledger, action_impact, fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
-               benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report]
+@_safe
+def client_statement(client_id: str) -> dict:
+    """One client farm's carbon statement (client_id like C09): fuel, CO2e and cost, CO2e per hectare and per job, the
+    largest operations with their share, the months covered and what the statement does not cover. The written summary
+    in the client's language is on the Reports screen."""
+    r = _statement.client_statement(client_id)
+    r["open_in_app"] = "Reports screen: choose the client farm and a language (English, German, Spanish or Hindi)."
+    return r
+
+
+@_safe
+def weekly_briefing() -> dict:
+    """The three things to look at first, chosen by fixed rules in code from fuel control, delivery notes, recorder data,
+    peer comparisons and ideas: most severe first, then the largest, at most one per topic. Each item has its figure, why
+    it matters, the next step, the screen to open and what would improve it. Covers the company year to date, not one week."""
+    b = _briefing.weekly_briefing()
+    items = [{**{k: v for k, v in i.items() if k != "link"}, "screen": SCREENS.get(i["link"], "Overview")} for i in b["items"]]
+    return {"period": b["period"], "rules": b["rules"], "items": items, "chosen_from": b["candidates"]}
+
+
+AGENT_TOOLS = [fleet_summary, emissions_per_client, data_quality, reconcile_fuel, check_delivery_notes, detect_anomalies,
+               diagnose_anomaly, benchmark_peers, fleet_opportunities, what_if, fleet_jobs, fleet_report, client_statement,
+               weekly_briefing]
 BY_NAME = {t.__name__: t for t in AGENT_TOOLS}

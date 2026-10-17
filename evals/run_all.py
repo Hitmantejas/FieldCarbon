@@ -15,7 +15,7 @@ from backend.agent.coverage import citation_coverage, label_coverage
 from backend.agent.faithfulness import audit
 from backend.agent.runs import load_runs
 from backend.tools.contracts import LABELS
-from evals.checks import CASES, TOOLS, figures, run_case
+from evals.checks import CASES, TOOLS, answer_check, figures, run_case
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "evals" / "results"
@@ -49,10 +49,21 @@ def score_run(run: dict) -> dict:
     a = audit(run["answer"], outputs, run.get("question", ""))
     lab, figs = label_coverage(run["answer"])
     cit, named = citation_coverage(run["answer"], outputs)
-    return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")),
+    specs = (case or {}).get("answer_checks") or []
+    failures = [f for f in (answer_check(s, run["answer"], called, outputs, run.get("question", ""), run["tool_calls"]) for s in specs) if f]
+    return {"case_id": run.get("case_id"), "sample": bool(run.get("sample")), "group": (case or {}).get("group"),
             "tool_selection": None if case is None else set(case["expected_tools"]) <= called,
             "faithful": a.faithful, "numbers": a.checked, "unmatched": [n.text for n in a.unmatched],
-            "labelled_figures": lab, "figures": figs, "cited": cit, "recommendations_named": named}
+            "labelled_figures": lab, "figures": figs, "cited": cit, "recommendations_named": named,
+            "answer_checks_passed": (not failures) if specs else None, "answer_check_failures": failures}
+
+
+def answer_check_rates(rows: list[dict]) -> dict:
+    """Runs whose case has answer checks, and of those the refusals, with how many passed every check."""
+    def count(sel):
+        return {"runs": len(sel), "passed": sum(r["answer_checks_passed"] for r in sel)}
+    checked = [r for r in rows if r["answer_checks_passed"] is not None]
+    return {"answer_checks": count(checked), "refusals": count([r for r in checked if r["group"] == "refusal"])}
 
 
 def _rate(rows: list[dict], key: str) -> float | None:
@@ -83,17 +94,33 @@ def agent_runs() -> dict:
                      "faithfulness": _rate(rows, "faithful"), "label_coverage": _share(rows, "labelled_figures", "figures"),
                      "citation_coverage": _share(rows, "cited", "recommendations_named"), "details": rows}
     out["agent"]["tokens"] = agent_tokens(runs)
+    out["agent"].update(answer_check_rates(out["agent"]["details"]))
     return out
 
 
 def other_evals() -> dict:
-    from evals import fleet_detection, proof_recovery, range_coverage, receipt_accuracy
+    from evals import (fleet_detection, fleet_diagnosis, maintenance_accuracy, proof_recovery, range_coverage, receipt_accuracy,
+                       upload_check, voice_accuracy)
+    from backend.tools import read_maintenance
 
     out = {"fleet_detection": fleet_detection.score(), "proof_recovery": proof_recovery.score()}
+    voices = voice_accuracy.load_readings()
+    out["voice_accuracy"] = ({**{k: v for k, v in voice_accuracy.score(voices).items() if k != "per_clip"},
+                              "tokens": voice_accuracy.token_usage()} if voices else "not run yet")
+    sheets = read_maintenance.ground_truth().index
+    out["maintenance_check"] = {"expected_verdict": maintenance_accuracy.score(
+        {s: read_maintenance.perfect_reading(s) for s in sheets})["expected_verdict"], "sheets": len(sheets)}
+    readings = maintenance_accuracy.load_readings()
+    out["maintenance_accuracy"] = ({**{k: v for k, v in maintenance_accuracy.score(readings).items() if k != "per_sheet"},
+                                    "tokens": maintenance_accuracy.token_usage()} if readings else "not run yet")
+    fdx = fleet_diagnosis.score()
+    out["fleet_diagnosis"] = {k: v for k, v in fdx.items() if k != "results"}
+    uc = upload_check.score()
+    out["upload_check"] = {k: v for k, v in uc.items() if k != "results"}
     rc = range_coverage.coverage()
     out["range_coverage"] = {k: v for k, v in rc.items() if k != "rows"}
     out["receipt_accuracy"] = {}
-    for farm in ("b", "fleet"):
+    for farm in ("b", "fleet", "fleet_demo"):
         readings = receipt_accuracy.load_extractions(farm)
         out["receipt_accuracy"][farm] = ({k: v for k, v in receipt_accuracy.score(readings, farm).items()
                                           if k != "per_document"} if readings else "not run yet")
@@ -102,25 +129,52 @@ def other_evals() -> dict:
     return out
 
 
+def _voice_row(v: dict, pct) -> str:
+    fields = ", ".join(f"{k.replace('_id', '').replace('_', ' ')} {pct(x)}" for k, x in v["field_accuracy"].items())
+    ignored = {True: "yes", False: "no", None: "clip not read"}[v["spoken_instruction_ignored"]]
+    return f"{fields} over {v['read']} of {v['clips']} clips; spoken instruction ignored: {ignored}"
+
+
+def _sheet_row(v: dict, pct) -> str:
+    fields = ", ".join(f"{k.replace('_id', '').replace('_gbp', '').replace('_', ' ')} {pct(x)}" for k, x in v["field_accuracy"].items())
+    found = {True: "yes", False: "no", None: "sheet not read"}[v["planted_found"]]
+    return (f"{fields} over {v['read']} of {v['sheets']} sheets; expected verdict {v['expected_verdict']} of {v['read']}; "
+            f"planted keying error found: {found}")
+
+
 def markdown(s: dict) -> str:
     t, a, st, o = s["tool_cases"], s["agent_runs"]["agent"], s["agent_runs"]["self_test"], s["other"]
-    fd, rc = o["fleet_detection"], o["range_coverage"]
+    fd, rc, uc = o["fleet_detection"], o["range_coverage"], o["upload_check"]
     pct = lambda v: "n/a" if v is None else f"{100 * v:.0f}%"  # noqa: E731
     reading = lambda r: r if isinstance(r, str) else pct(r["field_accuracy"].get("litres"))  # noqa: E731
+    voice = lambda v: v if isinstance(v, str) else _voice_row(v, pct)  # noqa: E731
     rows = [
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
         ("Planted fuel problems found", f"{fd.get('found', fd.get('detected', '?'))} of {fd.get('planted', fd.get('total', '?'))}"),
         ("Planted before-and-after effects recovered", f"{o['proof_recovery']['recovered']} of {o['proof_recovery']['changes']}"),
+        ("Planted problems whose top supported cause is the planted one",
+         f"{o['fleet_diagnosis']['correct']} of {o['fleet_diagnosis']['planted']}"),
         ("Receipts-only ranges containing the telemetry truth",
          f"{rc['operations_inside']} of {rc['operations']} jobs ({pct(rc['coverage_by_litres'])} of litres)"),
         ("Gemini reading accuracy, Farm B receipts (litres)", reading(o["receipt_accuracy"]["b"])),
         ("Gemini reading accuracy, fleet delivery notes (litres)", reading(o["receipt_accuracy"]["fleet"])),
+        ("Gemini reading accuracy, upload demo notes (litres)", reading(o["receipt_accuracy"]["fleet_demo"])),
+        ("Uploaded-note check: expected verdict, perfect reading", f"{uc['expected_met']} of {uc['notes']} demo notes"),
+        ("Uploaded-note check: expected verdict, Gemini's reading",
+         f"{uc['expected_met_on_gemini_reading']} of {uc['gemini_read']} demo notes" if uc["gemini_read"] else "not run yet"),
+        ("Voice notes: fields heard right (machine, issue, severity, follow-up, needs check)", voice(o["voice_accuracy"])),
+        ("Workshop-sheet check: expected verdict, perfect reading", f"{o['maintenance_check']['expected_verdict']} of {o['maintenance_check']['sheets']} sheets"),
+        ("Workshop sheets: fields read right (Gemini)",
+         o["maintenance_accuracy"] if isinstance(o["maintenance_accuracy"], str) else _sheet_row(o["maintenance_accuracy"], pct)),
         ("Agent runs scored", str(a["runs"])),
         ("Agent tool selection", pct(a["tool_selection"])),
         ("Agent numerical faithfulness", pct(a["faithfulness"])),
         ("Agent label coverage", pct(a["label_coverage"])),
         ("Agent citation coverage (ideas that name their research source)", pct(a["citation_coverage"])),
+        ("Agent answer checks passed (wording, no invented numbers)", f"{a['answer_checks']['passed']} of {a['answer_checks']['runs']}"),
+        ("Agent refusals passed (operators, farming advice, forecasts, guarantees, injected rules, data not held)",
+         f"{a['refusals']['passed']} of {a['refusals']['runs']}" if a["refusals"]["runs"] else "not run yet"),
         ("Agent tokens per question (input + output + thinking)",
          f"{a['tokens']['per_question']:,} over {a['tokens']['runs']} runs" if a["tokens"] else "not recorded yet"),
         ("Harness self-test (hand-written samples)",

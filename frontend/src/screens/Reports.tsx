@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { query, useApi } from "../api";
+import { AuditBadge } from "../components/AuditBadge";
 import { Rich } from "../components/Rich";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
 import { StrengthTag } from "../components/StrengthTag";
-import type { ClientEmissions, FleetReport } from "../fleetApi";
-import { gbpFull, litres, tonnes } from "../format";
+import { fetchClientStatement } from "../fleetApi";
+import type { ClientEmissions, ClientStatement, FleetReport, Narrative, StatementLanguage } from "../fleetApi";
+import { gbpFull, litres, pctText, tonnes } from "../format";
 import { co2Text, litresText } from "../ranges";
 import { linkText } from "../sources";
 
@@ -23,8 +25,47 @@ function Line({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
+const LANGUAGES: { code: StatementLanguage; name: string }[] = [
+  { code: "en", name: "English" },
+  { code: "de", name: "Deutsch" },
+  { code: "es", name: "Español" },
+  { code: "hi", name: "हिन्दी (Hindi)" },
+];
+const oneDecimal = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 1 });
+
+// F4: the statement's figures come at once (standard wording, no model); the Gemini summary follows and replaces it.
+// If Gemini cannot write it (a limit, an outage), the plain message shows and the figures stay.
+function useStatement(client: string, language: StatementLanguage) {
+  const [s, setS] = useState<ClientStatement>();
+  const [written, setWritten] = useState<Narrative>();
+  const [writing, setWriting] = useState(false);
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    setS(undefined);
+    setWritten(undefined);
+    setError(undefined);
+    setWriting(Boolean(client));
+    if (!client) return;
+    const ac = new AbortController();
+    const fail = (e: Error) => {
+      if (e.name !== "AbortError") setError(e.message);
+    };
+    fetchClientStatement(client, language, false, ac.signal).then(setS).catch(fail);
+    fetchClientStatement(client, language, true, ac.signal)
+      .then((r) => setWritten(r.narrative))
+      .catch(fail)
+      .finally(() => {
+        if (!ac.signal.aborted) setWriting(false);
+      });
+    return () => ac.abort();
+  }, [client, language]);
+  return { s, narrative: written ?? (writing ? undefined : s?.narrative), writing, error };
+}
+
 export function Reports() {
   const [client, setClient] = useState("");
+  const [language, setLanguage] = useState<StatementLanguage>("en");
+  const st = useStatement(client, language);
   const clients = useApi<ClientEmissions>("/api/fleet/clients");
   const { data: r, error } = useApi<FleetReport>(`/api/fleet/report${query({ client_id: client || undefined })}`);
   const section = "border-t border-rule px-6 py-6";
@@ -48,6 +89,18 @@ export function Reports() {
             ))}
           </select>
         </label>
+        {client && (
+          <label className="flex flex-col gap-2 text-sm text-ink-soft">
+            Statement language
+            <select value={language} onChange={(e) => setLanguage(e.target.value as StatementLanguage)} className="min-h-11 min-w-44 border-2 border-ink bg-paper px-2 font-sans text-base normal-case tracking-normal text-ink">
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code} lang={l.code}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <button onClick={() => window.print()} className="btn-solid min-h-11 border-2 border-ink bg-ink px-4 text-sm font-bold text-paper">
           Print or save as PDF
         </button>
@@ -77,22 +130,107 @@ export function Reports() {
 
   const when = new Date(r.meta.generated_at).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" });
   const t = r.totals;
+  const s = client && st.s?.client_id === client ? st.s : undefined;
+  const n = st.narrative;
 
   return (
     <>
       {controls}
-      <article aria-labelledby="report-h">
+      <article aria-labelledby="report-h" className={client ? "statement-print" : undefined}>
         <header className="px-6 pb-6 pt-8">
           <h2 id="report-h" className="font-display text-4xl font-semibold leading-tight">
             {r.meta.title}
           </h2>
           <p className="mt-2 font-bold">
-            {r.meta.client ?? "The whole company"} · {r.meta.period} · prepared {when}
+            {r.meta.client ?? "The whole company"} · {s ? `${monthName(s.period.from)} to ${monthName(s.period.to)}` : r.meta.period} · prepared {when}
           </p>
           {r.meta.demo_data && <p className="mt-2 inline-block rounded-full bg-mark px-3 py-1 font-mono text-xs uppercase tracking-widest text-on-mark">Demo data: illustrative</p>}
           <p className="mt-3 max-w-[65ch]">{r.meta.statement}</p>
         </header>
 
+        {client && (
+          <section aria-labelledby="r-summary" className={section}>
+            <SectionHead id="r-summary" title="In short" tone="solid" aside={n && <AuditBadge narrative={n} />} />
+            <div role="status" aria-live="polite" className="no-print text-ink-soft">
+              {st.writing && "Writing your statement..."}
+            </div>
+            {st.error && (
+              <p role="alert" className="no-print mb-3 max-w-[70ch] rounded-2xl border-2 border-clay p-3">
+                {st.error} The figures below are not affected.
+              </p>
+            )}
+            {n?.error && <p className="no-print mb-3 max-w-[70ch] text-ink-soft">{n.error}</p>}
+            {n && n.narrative_language !== language && <p className="no-print mb-3 text-ink-soft">The standard wording is only available in English.</p>}
+            {n && (
+              <p lang={n.narrative_language} className="max-w-[70ch] text-lg leading-relaxed">
+                {n.text}
+              </p>
+            )}
+          </section>
+        )}
+
+        {s && (
+          <section aria-labelledby="r-statement" className={section}>
+            <SectionHead id="r-statement" title="The numbers" tone="solid" />
+            <div className="grid gap-x-10 sm:grid-cols-2 print:grid-cols-2">
+              <ul>
+                <Line label="Fuel burned">
+                  <span className="num">{litres(s.totals.litres.value ?? 0)} litres</span>
+                  <Stamp label={s.totals.litres.label} />
+                </Line>
+                <Line label="Emissions">
+                  <span className="num">{litres(s.totals.co2e_kg.value ?? 0)} kg CO2e</span>
+                  <Stamp label={s.totals.co2e_kg.label} />
+                </Line>
+                {s.co2e_per_ha && (
+                  <Line label="Per hectare">
+                    <span className="num">{oneDecimal.format(s.co2e_per_ha.value ?? 0)} kg CO2e</span>
+                    <Stamp label={s.co2e_per_ha.label} />
+                  </Line>
+                )}
+                {s.co2e_per_job && (
+                  <Line label="Per job">
+                    <span className="num">{oneDecimal.format(s.co2e_per_job.value ?? 0)} kg CO2e</span>
+                    <Stamp label={s.co2e_per_job.label} />
+                  </Line>
+                )}
+                <Line label="Fuel cost">
+                  <span className="num">{gbpFull(s.totals.cost_gbp.value ?? 0)}</span>
+                  <Stamp label={s.totals.cost_gbp.label} />
+                </Line>
+                <Line label="Area worked">
+                  <span className="num">{oneDecimal.format(s.area_ha.value ?? 0)} hectares</span>
+                  <Stamp label={s.area_ha.label} />
+                </Line>
+                <Line label="Work done">
+                  <span className="num">
+                    {litres(s.jobs)} jobs · {litres(s.hours)} engine hours
+                  </span>
+                </Line>
+              </ul>
+              <div>
+                <h3 className="mt-4 font-bold sm:mt-0 print:mt-0">By operation</h3>
+                <ul>
+                  {s.by_operation.map((o) => (
+                    <Line key={o.operation} label={o.operation}>
+                      <span className="num">
+                        {litres(o.litres.value ?? 0)} L · {pctText(o.share_pct)}%
+                      </span>
+                      <Stamp label={o.litres.label} />
+                    </Line>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            {s.jobs_without_area > 0 && (
+              <p className="mt-3 max-w-[70ch] text-sm text-ink-soft">
+                {s.jobs_without_area} jobs have no recorded area. Their fuel is in the totals, but not in the figure per hectare.
+              </p>
+            )}
+          </section>
+        )}
+
+        {!s && (
         <section aria-labelledby="r-totals" className={section}>
           <SectionHead id="r-totals" title="The numbers" tone="solid" />
           <ul>
@@ -115,9 +253,10 @@ export function Reports() {
             </Line>
           </ul>
         </section>
+        )}
 
         {r.months && (
-          <section aria-labelledby="r-months" className={section}>
+          <section aria-labelledby="r-months" className={`${section} ${client ? "print:hidden" : ""}`}>
             <SectionHead id="r-months" title="Month by month" tone="dashed" />
             <ul>
               {r.months.map((m) => (
@@ -211,9 +350,9 @@ export function Reports() {
         )}
 
         <section aria-labelledby="r-limits" className={section}>
-          <SectionHead id="r-limits" title="What we do not know" tone="muted" />
+          <SectionHead id="r-limits" title={client ? "What this statement does not cover" : "What we do not know"} tone="muted" />
           <ul className="list-disc space-y-2 pl-5">
-            {r.limits.map((l) => (
+            {(s?.limits ?? r.limits).map((l) => (
               <li key={l} className="max-w-[70ch]">
                 {l}
               </li>

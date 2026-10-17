@@ -17,6 +17,7 @@ dates shifted exactly four years, so its seasons stay real) or `assigned` (place
 | `maintenance_events.csv` | Services every 250 job hours and a few routine repairs | Synthetic |
 | `ground_truth_anomalies.csv` | The three planted problems, for scoring detection. Never shown to the analytics | Synthetic |
 | `actions.csv`, `action_overlay.csv`, `ground_truth_actions.csv` | Two logged changes at S2 (a real effect of 15% planted on one, none on the other), the litres of the treated jobs after the change, and the planted effects for scoring. The tool never reads the last file | Synthetic, illustrative. Real litres in `jobs.csv` are never changed |
+| `maintenance_sheets/` | 36 workshop job-sheet photos, one per maintenance event (`python data/synthetic/generate_workshop_sheets.py`), their ground truth and one planted keying error (MNT-0022: 165.1 hours on the sheet, 156.1 in the log). The cost on the sheets is illustrative only (an invented price list) and never enters a fleet figure | Synthetic |
 
 Sources: S1 TUM Agricultural Load Cycles (CC BY 4.0); S2 Rossi & Alemanno vineyard dataset (CC BY 4.0, fuel
 estimated from tank level, labelled measured); S3 Dana, Ozener & Tellioglu tillage CAN data (CC BY 4.0, area

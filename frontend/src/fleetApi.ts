@@ -31,11 +31,13 @@ export type Severity = "high" | "medium" | "low";
 
 // Anomalies and reconciliation findings share the fields the overview needs.
 export interface Finding {
+  id: string;
   kind: string;
   severity: Severity;
   title: string;
   litres: Figure;
   site_id: string;
+  diagnosable: boolean; // true when diagnose_anomaly has causes to test for this kind
 }
 
 export interface Anomalies {
@@ -290,6 +292,184 @@ export interface DeliveryNotes {
   litres_in_log: Figure;
   findings: NoteFinding[];
   note: string;
+}
+
+// F4 client carbon statement (GET /api/fleet/client-statement): figures from code, a short summary written by Gemini
+// and checked by code, or the standard wording when the check or the model fails.
+export type StatementLanguage = "en" | "de" | "es" | "hi";
+
+export interface Narrative {
+  text: string;
+  narrative_source: "gemini" | "template";
+  narrative_language: StatementLanguage;
+  audited: boolean;
+  attempts: number;
+  numbers_checked: number;
+  error: string | null;
+}
+
+export interface ClientStatement {
+  client_id: string;
+  client_name: string;
+  language: StatementLanguage;
+  period: { from: string; to: string };
+  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure };
+  area_ha: Figure;
+  co2e_per_ha: Figure | null;
+  co2e_per_job: Figure | null;
+  jobs: number;
+  jobs_without_area: number;
+  hours: number;
+  by_operation: { operation: string; litres: Figure; co2e_kg: Figure; share_pct: number }[];
+  limits: string[];
+  narrative: Narrative;
+}
+
+// The API's own message (a limit reached, a model failure) instead of a bare status code.
+async function apiError(r: Response): Promise<Error> {
+  let detail = `The API answered ${r.status}`;
+  try {
+    const body = await r.json();
+    if (typeof body.detail === "string") detail = body.detail;
+  } catch {
+    // not JSON: keep the status
+  }
+  return new Error(detail);
+}
+
+export async function fetchClientStatement(clientId: string, language: StatementLanguage, narrate: boolean, signal?: AbortSignal): Promise<ClientStatement> {
+  const r = await fetch(`/api/fleet/client-statement?${new URLSearchParams({ client_id: clientId, language, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<ClientStatement>;
+}
+
+// F7 live delivery-note upload (POST /api/fleet/delivery-notes/check): Gemini reads one photo, rules R1-R8 and the
+// fuel-log comparison check it. Nothing is saved.
+export const NOTE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const NOTE_MAX_BYTES = 5 * 1024 * 1024;
+
+export type NoteVerdict = "matches_log" | "needs_attention" | "needs_review" | "not_a_delivery_note";
+
+export interface ReadLine {
+  product: string | null;
+  litres: number | null;
+  unit_price: number | null;
+  unit_price_unit: "GBP_per_litre" | "pence_per_litre" | null;
+  line_net: number | null;
+}
+
+export interface NoteCheck {
+  verdict: NoteVerdict;
+  read: { doc_type: string; supplier: string | null; doc_number: string | null; date: string | null; lines: ReadLine[]; total: number | null };
+  validated_lines: { product: string | null; litres: number | null; unit_price_gbp: number | null; counts: boolean; outcome: string; reasons: string[] }[];
+  findings: NoteFinding[];
+  usage: { input_tokens: number; output_tokens: number; thinking_tokens: number; total_tokens: number } | null;
+  model_version: string | null;
+  data_source: string;
+}
+
+export async function checkDeliveryNote(photo: Blob, signal?: AbortSignal): Promise<NoteCheck> {
+  const r = await fetch("/api/fleet/delivery-notes/check", { method: "POST", headers: { "Content-Type": photo.type }, body: photo, signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<NoteCheck>;
+}
+
+// F5 anomaly diagnosis (GET /api/fleet/diagnosis): possible causes tested by code; with narrate, Gemini adds one-line
+// reasons, up to two untested ideas and a summary checked by code. Gemini never sets a result or the order.
+export type CauseStatus = "supported" | "not_supported" | "cannot_test";
+
+export interface Cause {
+  id: string;
+  title: string;
+  description: string;
+  status: CauseStatus;
+  status_text: string;
+  evidence: Figure | null;
+  evidence_measures: string | null; // what the evidence figure counts, in words
+  explains_pct: number | null;
+  would_settle: string | null;
+  suggested_by: "code" | "gemini";
+  why?: string | null;
+  tag?: string | null;
+}
+
+export interface Diagnosis {
+  finding_id: string;
+  kind: string;
+  title: string;
+  finding_figure: Figure;
+  hypotheses: Cause[];
+  disclaimer: string;
+  summary?: Narrative; // only with narrate=true
+}
+
+export async function fetchDiagnosis(findingId: string, narrate: boolean, signal?: AbortSignal): Promise<Diagnosis> {
+  const r = await fetch(`/api/fleet/diagnosis?${new URLSearchParams({ finding_id: findingId, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<Diagnosis>;
+}
+
+// F6 weekly briefing (GET /api/fleet/briefing): three items chosen by fixed rules in code; the short intro is the
+// standard wording, or written by Gemini and checked by code when asked for.
+export interface BriefingItem {
+  id: string;
+  family: string;
+  kind: string;
+  severity: Severity;
+  title: string;
+  figure: Figure;
+  why_it_matters: string;
+  next_step: string;
+  would_improve: string;
+  link: string;
+}
+
+export interface Briefing {
+  heading: string;
+  period: string;
+  rules: string;
+  items: BriefingItem[];
+  candidates: number;
+  language: StatementLanguage;
+  intro: Narrative;
+}
+
+export async function fetchBriefing(language: StatementLanguage, narrate: boolean, signal?: AbortSignal): Promise<Briefing> {
+  const r = await fetch(`/api/fleet/briefing?${new URLSearchParams({ language, narrate: String(narrate) })}`, { signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<Briefing>;
+}
+
+// P2a voice notes (POST /api/fleet/voice-notes/read): Gemini hears which machine and what problem; code checks the note
+// against the fleet list. The note is estimated (read from speech) and nothing is saved.
+export const VOICE_TYPES = ["audio/webm", "audio/ogg", "audio/mp4", "audio/x-m4a", "audio/m4a", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/wave"];
+export const VOICE_MAX_BYTES = 2 * 1024 * 1024;
+
+export interface VoiceNoteCheck {
+  status: "ready" | "needs_check";
+  reasons: string[];
+  note: {
+    machine_id: string;
+    machine: string;
+    site: string | null;
+    issue: "hydraulic" | "tyres" | "engine" | "electrical" | "other" | null;
+    severity: "low" | "medium" | "high" | null;
+    follow_up: string;
+    confidence: "high" | "medium" | "low";
+    transcript: string;
+  };
+  label: "estimated";
+  label_note: string;
+  saved: false;
+  usage: { input_tokens: number; output_tokens: number; thinking_tokens: number; total_tokens: number } | null;
+  model_version: string | null;
+  data_source: string;
+}
+
+export async function readVoiceNote(audio: Blob, signal?: AbortSignal): Promise<VoiceNoteCheck> {
+  const r = await fetch("/api/fleet/voice-notes/read", { method: "POST", headers: { "Content-Type": audio.type }, body: audio, signal });
+  if (!r.ok) throw await apiError(r);
+  return r.json() as Promise<VoiceNoteCheck>;
 }
 
 export interface TrustCheck {
