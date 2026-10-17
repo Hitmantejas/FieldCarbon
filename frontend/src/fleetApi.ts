@@ -291,3 +291,19 @@ export interface DeliveryNotes {
   findings: NoteFinding[];
   note: string;
 }
+
+export interface TrustCheck {
+  group: string;
+  question: string;
+  result: string;
+  detail: string;
+  status: "pass" | "partial" | "not_run";
+}
+
+export interface TrustScoreboard {
+  available: boolean;
+  message?: string;
+  updated?: string;
+  checks: TrustCheck[];
+  limits: string[];
+}

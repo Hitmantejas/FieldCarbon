@@ -38,6 +38,7 @@ each change are less certain, and FieldCarbon says so.
 | Opportunities, What if | Ranked interventions with cost, litres saved, payback range and evidence |
 | Proof | **Before-and-after proof**: each logged change is judged against the machines that did not change; a saving is proven only when its range clears zero, otherwise "can't tell yet". The two logged changes are made up (illustrative) to show the method |
 | Reports | A traceable report a contractor can share with clients and buyers |
+| Trust | The latest eval results in plain words (tools, hidden problems found, planted savings recovered, analyst answers traced, documents read), what each test checks and what the tests do not show |
 
 ## Gemini on Vertex AI
 
@@ -60,6 +61,7 @@ TODO: dollar cost at current Vertex AI pricing.
 | Tool eval cases | 33 of 33 pass |
 | Figures with a confidence label and sources | 100% of 687 |
 | Planted fuel problems found (A1–A3) | 3 of 3 |
+| Planted before-and-after effects recovered | 2 of 2 |
 | Gemini reading accuracy, 24 farm receipts (every field) | 100% |
 | Gemini reading accuracy, 14 fleet delivery notes (every field) | 100% |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
@@ -103,6 +105,10 @@ flowchart LR
 
 - **Engine:** BigQuery (reference, input and telemetry tables; calculated views; BigQuery GIS for
   fields) and tested Python. Every figure follows one contract: `{value, unit, label, how, source_ids, low, high}`.
+- **Fleet data:** the 15 fleet tables load into BigQuery with `python infra/load_fleet.py --apply`. With
+  `FIELDCARBON_DATA=bigquery` the app reads them from there (default `csv`: the files in `data/fleet`). The views in
+  `backend/emissions/views/030_fleet_views.sql` compute litres x emission factor in SQL, and a test checks they agree
+  with the `fleet_summary` tool.
 - **App:** FastAPI backend and React + Vite + Tailwind frontend in one Cloud Run service.
 - **Region:** data and services in `us-central1`; Gemini uses Vertex AI's `global` endpoint, where
   `gemini-3.5-flash` is offered. Only synthetic documents and demo questions are sent to it.

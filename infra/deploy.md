@@ -2,8 +2,8 @@
 
 One Cloud Run service, `fieldcarbon-app`, in `us-central1`. It runs the FastAPI backend and serves the built React app from
 the same container (see `Dockerfile`). Gemini is called through the Vertex AI `global` endpoint (`gemini-3.5-flash` is not
-offered in `us-central1`). Data is read from the CSVs baked into the image (`FIELDCARBON_DATA=csv`), so the service needs
-no BigQuery access.
+offered in `us-central1`). By default data is read from the CSVs baked into the image (`FIELDCARBON_DATA=csv`), so the
+service needs no BigQuery access. Section 5 switches it to BigQuery.
 
 The project `ai-hackathon-india` is shared with other teams: every resource below starts with `fieldcarbon-`, and nothing
 else is touched. Commands are written for Git Bash. Run them in order, from the repo root.
@@ -79,6 +79,23 @@ curl -s -o /dev/null -w "%{http_code}\n" "$URL/api/sources"   # 200, the API
 curl -s -X POST "$URL/api/agent/ask" -H "Content-Type: application/json" \
   -d '{"question": "How much fuel did the fleet use, by site?"}'  # one Gemini call
 ```
+
+## 5. Serve the fleet data from BigQuery (optional)
+
+Load the tables first (`python infra/load_fleet.py --apply`, see the script header). Then let the service account read
+them and run queries, and switch the data source:
+
+```bash
+for ROLE in roles/bigquery.dataViewer roles/bigquery.jobUser; do
+  gcloud projects add-iam-policy-binding ai-hackathon-india \
+    --member="serviceAccount:fieldcarbon-run@ai-hackathon-india.iam.gserviceaccount.com" --role="$ROLE" --condition=None
+done
+gcloud run services update fieldcarbon-app --project=ai-hackathon-india --region=us-central1 \
+  --update-env-vars="FIELDCARBON_DATA=bigquery"
+```
+
+`dataViewer` on the whole project is read-only but wide in a shared project. If the admin prefers, grant it on the
+`fieldcarbon` dataset only. Set `FIELDCARBON_DATA=csv` to go back. The service reads each table once per instance start.
 
 ## Removing it
 

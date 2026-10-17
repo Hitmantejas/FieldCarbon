@@ -63,7 +63,7 @@ class Runner:
         print(f"  $ {shown}")
         res = subprocess.run([exe, *args[1:]], input=stdin, capture_output=True, text=True, encoding="utf-8")
         if check and res.returncode != 0:
-            sys.exit(f"command failed ({res.returncode}):\n{res.stderr.strip()[-2000:]}")
+            sys.exit(f"command failed ({res.returncode}):\n{(res.stderr.strip() or res.stdout.strip())[-2000:]}")
         return res
 
     def exists(self, args: list[str]) -> bool:

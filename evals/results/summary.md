@@ -3,6 +3,7 @@
 | Tool eval cases | 33 of 33 pass |
 | Figures with a confidence label and sources | 100% of 697 |
 | Planted fuel problems found | 3 of 3 |
+| Planted before-and-after effects recovered | 2 of 2 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |
 | Gemini reading accuracy, Farm B receipts (litres) | 100% |
 | Gemini reading accuracy, fleet delivery notes (litres) | 100% |

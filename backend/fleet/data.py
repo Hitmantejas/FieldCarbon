@@ -1,4 +1,8 @@
-"""Cached readers for the fleet tables in data/fleet, plus the fuel ledger every fleet tool starts from."""
+"""Cached readers for the fleet tables, plus the fuel ledger every fleet tool starts from.
+
+The tables come from the CSV files in data/fleet, or from the BigQuery tables fleet_<name> when FIELDCARBON_DATA=bigquery
+(see backend/emissions/data.py). Every fleet tool reads through here, so switching the source changes nothing else.
+"""
 from __future__ import annotations
 
 from functools import lru_cache
@@ -6,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from backend.emissions import data as emissions_data
 
 ROOT = Path(__file__).resolve().parents[2]
 FLEET = ROOT / "data" / "fleet"
@@ -17,8 +23,14 @@ OTHER_NAMES = {
 UNASSIGNED = "unassigned"
 
 
-def _read(name: str, **kw) -> pd.DataFrame:
-    return pd.read_csv(FLEET / f"{name}.csv", **kw)
+def _read(name: str, parse_dates: list[str] | None = None) -> pd.DataFrame:
+    if emissions_data.source() == "csv":
+        return pd.read_csv(FLEET / f"{name}.csv", parse_dates=parse_dates)
+    table = f"`{emissions_data.PROJECT}.{emissions_data.DATASET}.fleet_{name}`"
+    df = pd.DataFrame(emissions_data.bigquery_query(f"SELECT * FROM {table}"))
+    for col in parse_dates or []:  # BigQuery returns timezone-aware timestamps; the CSV path has none
+        df[col] = pd.to_datetime(df[col], utc=True).dt.tz_localize(None)
+    return df
 
 
 @lru_cache(maxsize=1)
@@ -73,7 +85,7 @@ def dispenses() -> pd.DataFrame:
 
 @lru_cache(maxsize=1)
 def depots() -> pd.DataFrame:
-    return _read("depots").set_index("depot_id")
+    return _read("depots", parse_dates=["opening_date"]).set_index("depot_id")
 
 
 @lru_cache(maxsize=1)

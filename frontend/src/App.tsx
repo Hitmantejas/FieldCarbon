@@ -9,6 +9,7 @@ import { Overview } from "./screens/Overview";
 import { Proof } from "./screens/Proof";
 import { Reports } from "./screens/Reports";
 import { Sites } from "./screens/Sites";
+import { Trust } from "./screens/Trust";
 import { WhatIf } from "./screens/WhatIf";
 import { SourcesProvider } from "./sources";
 
@@ -30,6 +31,7 @@ export default function App() {
         {screen === "opportunities" && <Opportunities />}
         {screen === "proof" && <Proof />}
         {screen === "control" && <FuelControl />}
+        {screen === "trust" && <Trust />}
       </Shell>
     </SourcesProvider>
   );

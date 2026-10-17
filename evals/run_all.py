@@ -87,9 +87,9 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import fleet_detection, range_coverage, receipt_accuracy
+    from evals import fleet_detection, proof_recovery, range_coverage, receipt_accuracy
 
-    out = {"fleet_detection": fleet_detection.score()}
+    out = {"fleet_detection": fleet_detection.score(), "proof_recovery": proof_recovery.score()}
     rc = range_coverage.coverage()
     out["range_coverage"] = {k: v for k, v in rc.items() if k != "rows"}
     out["receipt_accuracy"] = {}
@@ -111,6 +111,7 @@ def markdown(s: dict) -> str:
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
         ("Planted fuel problems found", f"{fd.get('found', fd.get('detected', '?'))} of {fd.get('planted', fd.get('total', '?'))}"),
+        ("Planted before-and-after effects recovered", f"{o['proof_recovery']['recovered']} of {o['proof_recovery']['changes']}"),
         ("Receipts-only ranges containing the telemetry truth",
          f"{rc['operations_inside']} of {rc['operations']} jobs ({pct(rc['coverage_by_litres'])} of litres)"),
         ("Gemini reading accuracy, Farm B receipts (litres)", reading(o["receipt_accuracy"]["b"])),

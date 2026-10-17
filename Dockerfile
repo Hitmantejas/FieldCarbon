@@ -17,6 +17,7 @@ COPY backend/ backend/
 COPY data/reference/ data/reference/
 COPY data/aggregated/ data/aggregated/
 COPY data/fleet/ data/fleet/
+COPY evals/results/ evals/results/
 COPY --from=ui /ui/dist/ frontend/dist/
 RUN useradd --create-home --uid 10001 app
 USER app

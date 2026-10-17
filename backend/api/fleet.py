@@ -14,6 +14,7 @@ from backend.tools.fleet_opportunities import fleet_opportunities
 from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_summary import fleet_summary
 from backend.tools.reconcile_fuel import reconcile_fuel
+from backend.tools.trust_scoreboard import trust_scoreboard
 from backend.tools.what_if import what_if
 
 router = APIRouter(prefix="/api/fleet")
@@ -78,6 +79,11 @@ def get_actions(action_id: str | None = None):
         return action_impact(action_id)
     except ValueError as e:
         raise HTTPException(404, str(e)) from e
+
+
+@router.get("/trust")
+def get_trust():
+    return trust_scoreboard()
 
 
 @router.get("/what-if")
