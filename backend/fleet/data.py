@@ -72,6 +72,12 @@ def stock_readings() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
+def maintenance() -> pd.DataFrame:
+    """Workshop events per machine (synthetic): event_id, machine_id, date, event_type, job_hours_at_event, note."""
+    return _read("maintenance_events", parse_dates=["date"])
+
+
+@lru_cache(maxsize=1)
 def ledger() -> pd.DataFrame:
     """All fuel burned, one row per job or per machine-month of non-job fuel (data gaps carry no fuel and are left out)."""
     j = jobs().assign(month=lambda d: d.start_ts.dt.to_period("M").astype(str), is_job=True, label=lambda d: d.litres_label)

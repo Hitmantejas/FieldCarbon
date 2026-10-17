@@ -14,7 +14,8 @@ FIGURE_FAMILIES = {"litres", "kg", "gbp", "pct", "l_per_ha", "l_per_h", "ha", "h
 
 
 def sentences(text: str) -> list[str]:
-    return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
+    """Split after . ! ? and the Hindi danda (।), so a Hindi text is checked sentence by sentence too."""
+    return [s for s in re.split(r"(?<=[.!?।])\s+", text) if s.strip()]
 
 
 def _figure_count(sentence: str) -> int:
@@ -71,6 +72,35 @@ def citation_coverage(answer: str, outputs: list) -> tuple[int, int]:
     text = answer.lower()
     named = [i for i in _ideas(outputs) if i["name"].lower() in text]
     return sum(_cites(i, text) for i in named), len(named)
+
+
+def rewrite_request(unmatched, uncited=(), unlabelled=(), unrounded=()) -> str:
+    """The one retry message. A number whose size is in the tools but whose saving/increase is turned round is named
+    as such, so the model fixes the words instead of hunting for a number it already has. Ideas named without their
+    source, sentences with a figure but no confidence label, and figures with needless decimals are named too.
+    Used by the analyst agent and by narrate_with_audit (backend/agent/narrate.py)."""
+    invented = ", ".join(dict.fromkeys(n.text for n in unmatched if not n.wrong_direction))
+    flipped = ", ".join(dict.fromkeys(n.text for n in unmatched if n.wrong_direction))
+    parts = []
+    if invented:
+        parts.append(f"These numbers in your answer did not come from the tools: {invented}. Rewrite them using only numbers "
+                     "the tool results contain, written as they appear. If a number is not available, say so instead of working it out.")
+    if flipped:
+        parts.append(f"These numbers are in the tool results, but your answer gives them the opposite direction (a saving where "
+                     f"the tools show an increase, or the other way round): {flipped}. Keep the numbers and describe the direction "
+                     "the tools give.")
+    if uncited:
+        named = "; ".join(f'{g["name"]} (source: {" / ".join(g["titles"][:2])})' for g in uncited)
+        parts.append(f"These ideas are named without their research source: {named}. Name the source title next to each idea, "
+                     "every time it appears, including for a second site.")
+    if unlabelled:
+        quoted = " | ".join(s[:120] for s in unlabelled[:4])
+        parts.append(f"These sentences give a figure without its confidence label: {quoted}. Add measured, allocated or "
+                     "estimated in the same sentence, as the tool results give it.")
+    if unrounded:
+        parts.append(f"These figures have more decimals than a person would write: {', '.join(unrounded)}. Round them as a person "
+                     "would (whole litres, whole pounds, tonnes with one decimal), with a comma for thousands in every language (16,492).")
+    return " ".join(parts) + " Rewrite the whole answer."
 
 
 def uncited_ideas(answer: str, outputs: list) -> list[dict]:

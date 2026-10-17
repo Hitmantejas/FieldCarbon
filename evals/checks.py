@@ -1,17 +1,23 @@
-"""Eval cases (evals/cases.json): the agent tools and the checks run on their output.
+"""Eval cases (evals/cases.json): the agent tools and the checks run on their output, and the answer checks run on
+recorded agent answers (refusals, wording, no invented numbers).
 
 Shared by tests/test_evals.py and the harness (evals/run_all.py)."""
 import json
+import re
 from pathlib import Path
 
 import pytest
 
+from backend.agent.faithfulness import audit
 from backend.tools.calculate_roi import calculate_roi
+from backend.tools.contracts import LABELS
 from backend.tools.check_delivery_notes import check_delivery_notes
+from backend.tools.client_statement import client_statement
 from backend.tools.rank_interventions import rank_interventions
 from backend.tools.benchmark_peers import benchmark_peers
 from backend.tools.data_quality import data_quality
 from backend.tools.detect_anomalies import detect_anomalies
+from backend.tools.diagnose_anomaly import diagnose_anomaly
 from backend.tools.fleet_jobs import fleet_jobs
 from backend.tools.fleet_report import fleet_report
 from backend.tools.fleet_opportunities import fleet_opportunities
@@ -20,7 +26,11 @@ from backend.tools.emissions_per_client import emissions_per_client
 from backend.tools.fleet_summary import fleet_summary
 from backend.tools.generate_report import generate_report
 from backend.tools.reconcile_fuel import reconcile_fuel
+from backend.tools.read_maintenance import check_demo_sheet
 from backend.tools.set_goal import set_goal
+from backend.tools.upload_note import check_demo_note
+from backend.tools.voice_note import check_demo_voice_note
+from backend.tools.weekly_briefing import weekly_briefing
 from backend.tools.what_would_improve import what_would_improve
 
 CASES = json.loads((Path(__file__).resolve().parents[1] / "evals" / "cases.json").read_text(encoding="utf-8"))["cases"]
@@ -29,7 +39,9 @@ TOOLS = {"rank_interventions": rank_interventions, "calculate_roi": calculate_ro
          "fleet_summary": fleet_summary, "emissions_per_client": emissions_per_client, "reconcile_fuel": reconcile_fuel,
          "data_quality": data_quality, "benchmark_peers": benchmark_peers, "detect_anomalies": detect_anomalies,
          "fleet_jobs": fleet_jobs, "fleet_report": fleet_report, "fleet_opportunities": fleet_opportunities, "what_if": what_if,
-         "check_delivery_notes": check_delivery_notes}
+         "check_delivery_notes": check_delivery_notes, "client_statement": client_statement,
+         "check_uploaded_note": check_demo_note, "diagnose_anomaly": diagnose_anomaly, "weekly_briefing": weekly_briefing,
+         "read_voice_note": check_demo_voice_note, "read_maintenance_sheet": check_demo_sheet}
 
 
 def figures(node):
@@ -84,15 +96,74 @@ def check(case: dict, output, spec: dict) -> None:
         assert next(i for i in output["ideas"] if i["intervention_id"] == spec["intervention_id"])["state"] == spec["equals"]
     elif kind == "scenario_litres":
         assert output["is_scenario"] and output["litres_saved"]["value"] == pytest.approx(spec["approx"], abs=spec["abs"])
+    elif kind == "statement_matches_client":
+        row = emissions_per_client(output["client_id"])["rows"][0]
+        assert all(output["totals"][k]["value"] == row[k]["value"] for k in ("litres", "co2e_kg", "cost_gbp"))
+        assert all(f["source_ids"] and f["label"] for f in figures(output))
+        assert LABELS.index(output["co2e_per_ha"]["label"]) >= LABELS.index("allocated")
     elif kind == "cost_note":
         assert output["cost_note"] == spec["equals"]
+    elif kind == "note_verdict":
+        assert output["verdict"] == spec["equals"], output["verdict"]
+        assert all(f["figure"] is None or (f["figure"]["source_ids"] and f["figure"]["label"]) for f in output["findings"])
+    elif kind == "voice_status":
+        assert output["status"] == spec["equals"], (output["status"], output["reasons"])
+        assert output["label"] == "estimated" and output["saved"] is False
+        assert output["note"]["machine_id"] == spec["machine_id"] and output["note"]["severity"] == spec["severity"]
+    elif kind == "sheet_verdict":
+        assert output["verdict"] == spec["equals"], (output["verdict"], output["reasons"])
+        assert [d["field"] for d in output["differences"]] == spec["fields"]
+    elif kind == "diagnosis_top":
+        top = output["hypotheses"][0]
+        assert top["status"] == "supported" and top["id"] == spec["equals"], (top["id"], top["status"])
+        assert all(h["evidence"] is None or (h["evidence"]["source_ids"] and h["evidence"]["label"]) for h in output["hypotheses"])
+    elif kind == "diagnosis_status":
+        h = next(h for h in output["hypotheses"] if h["id"] == spec["hypothesis"])
+        assert h["status"] == spec["equals"], (h["id"], h["status"])
+    elif kind == "briefing_items":
+        items = output["items"]
+        assert [i["family"] for i in items] == spec["families"] and items[0]["id"] == spec["first"], [i["id"] for i in items]
+        assert all(i["next_step"] and i["would_improve"] and i["figure"]["label"] in LABELS for i in items)
     else:
         raise AssertionError(f"unknown check {kind}")
 
 
+ANSWER_CHECKS = ("forbidden_regex", "tool_not_called", "must_mention_any", "no_new_numbers", "called_with")
+
+
+def answer_check(spec: dict, answer: str, called: set[str], outputs: list, question: str = "", calls: list = ()) -> str | None:
+    """One answer check on a recorded agent run: None when the answer passes, otherwise what failed."""
+    kind = spec["type"]
+    if kind == "forbidden_regex":
+        m = re.search(spec["pattern"], answer)
+        return None if m is None else f"forbidden text: {m.group(0)}"
+    if kind == "tool_not_called":
+        return None if spec["tool"] not in called else f"called {spec['tool']}"
+    if kind == "must_mention_any":
+        low = answer.lower()
+        return None if any(p.lower() in low for p in spec["phrases"]) else f"mentions none of: {', '.join(spec['phrases'])}"
+    if kind == "no_new_numbers":
+        a = audit(answer, outputs, question)
+        return None if a.faithful else f"untraced numbers: {', '.join(n.text for n in a.unmatched)}"
+    if kind == "called_with":  # a follow-up that changes a filter must call the tool again with the new one
+        hit = any(c["name"] == spec["tool"] and all(c.get("args", {}).get(k) == v for k, v in spec["args"].items()) for c in calls)
+        return None if hit else f"{spec['tool']} not called with {spec['args']}"
+    raise AssertionError(f"unknown answer check {kind}")
+
+
 def run_case(case: dict):
-    """Run the case's first expected tool with its arguments and apply every check (raises on failure)."""
-    output = TOOLS[case["expected_tools"][0]](**case["arguments"])
+    """Run the case's first expected tool with its arguments and apply every check (raises on failure). A case with
+    `expect_error` passes only if the tool refuses with that message, and so returns no figures. A case with no
+    expected tool (a question the analyst should refuse) has only answer checks, scored on recorded runs."""
+    if not case["expected_tools"]:
+        assert not case["checks"], case["id"]
+        return None
+    tool = TOOLS[case["expected_tools"][0]]
+    if case.get("expect_error"):
+        with pytest.raises(ValueError, match=case["expect_error"]):
+            tool(**case["arguments"])
+        return None
+    output = tool(**case["arguments"])
     for spec in case["checks"]:
         check(case, output, spec)
     return output

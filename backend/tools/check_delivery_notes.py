@@ -49,63 +49,78 @@ def _finding(kind: str, doc_no: str, title: str, figure: dict | None, **extra) -
     return {"kind": kind, "severity": SEVERITY[kind], "doc_no": doc_no, "title": title, "figure": figure, **extra}
 
 
+def _compare_note(rid: str, x: dict, doc_lines: list, log: pd.DataFrame, litres_tolerance: float,
+                  price_tolerance: float) -> tuple[list[dict], set, bool]:
+    """One note against the fuel log (`log` carries a `key` column from _key): its findings, the log rows it
+    accounts for, and whether it matches the log exactly. Shared with the live upload (upload_note.py)."""
+    findings, used_rows = [], set()
+    fuel = [l for l in doc_lines if l.counts and l.litres]
+    review = [l for l in doc_lines if l.outcome == "needs_review"]
+    doc_no = x.get("doc_number") or rid
+    if review:
+        findings.append(_finding("note_needs_review", doc_no, f"Delivery note {doc_no} could not be read with confidence",
+                                 None, reasons=sorted({r for l in review for r in l.reasons})))
+        return findings, used_rows, False
+    rows = log[log.key == _key(x.get("supplier"), doc_no)]
+    litres = sum(l.litres for l in fuel)
+    if rows.empty:
+        findings.append(_finding("note_not_in_log", doc_no, f"Delivery note {doc_no} is not in the fuel log", _litres(
+            litres, bullets(f"The note shows **{litres:,.0f} litres** delivered.",
+                            "No row in the fuel log has this supplier and note number, so the depot's books miss it."),
+            SOURCE)))
+        return findings, used_rows, False
+    used_rows |= set(rows.delivery_id)
+    first = rows.iloc[0]
+    diffs = 0
+    if len(rows) > 1:
+        diffs += 1
+        findings.append(_finding("entered_twice", doc_no, f"Delivery note {doc_no} is in the fuel log {len(rows)} times",
+                                 _litres(float(first.litres) * (len(rows) - 1), bullets(
+                                     f"There is **one paper note** for **{litres:,.0f} litres**.",
+                                     f"The fuel log has **{len(rows)} rows** with its supplier and number.",
+                                     "Only one delivery happened, so the extra rows overstate fuel received."),
+                                     SOURCE, LOG_SOURCE)))
+    if abs(litres - float(first.litres)) > litres_tolerance:
+        diffs += 1
+        findings.append(_finding("litres_differ", doc_no, f"Litres on note {doc_no} differ from the fuel log",
+                                 _litres(litres - float(first.litres), bullets(
+                                     f"Note: **{litres:,.1f} litres**. Log: **{first.litres:,.1f} litres**."),
+                                     SOURCE, LOG_SOURCE)))
+    price = next((l.unit_price_gbp for l in fuel if l.unit_price_gbp is not None), None)
+    if price is not None and abs(price - float(first.unit_price_gbp)) > price_tolerance:
+        diffs += 1
+        cost = (float(first.unit_price_gbp) - price) * litres
+        findings.append(_finding("price_differs", doc_no, f"The price on note {doc_no} differs from the fuel log",
+                                 _gbp(cost, bullets(
+                                     f"Note: **£{price:.4f} a litre**. Log: **£{first.unit_price_gbp:.4f} a litre**.",
+                                     f"On **{litres:,.0f} litres** the log's fuel cost is off by **£{abs(cost):,.2f}** "
+                                     f"({'too high' if cost > 0 else 'too low'}).",
+                                     "Likely a keying error: check the invoice before paying or reporting."),
+                                     SOURCE, LOG_SOURCE), on_note=price, in_log=float(first.unit_price_gbp)))
+    if str(x.get("date")) != first.ts.date().isoformat():
+        diffs += 1
+        findings.append(_finding("date_differs", doc_no, f"The date on note {doc_no} differs from the fuel log", None,
+                                 on_note=x.get("date"), in_log=first.ts.date().isoformat()))
+    return findings, used_rows, diffs == 0
+
+
+def _log() -> pd.DataFrame:
+    return data.deliveries().assign(key=lambda d: [_key(s, n) for s, n in zip(d.supplier, d.doc_no)])
+
+
 def check_delivery_notes(litres_tolerance: float = 0.5, price_tolerance: float = 0.00005) -> dict:
     """Each delivery note against the fuel log: matches, differs (which field and what it costs),
     is missing from the log, or is entered twice; and log rows that have no note behind them."""
     readings, source = _readings()
     lines = validate(sorted(readings.items()), "fleet", fleet_settings())
-    log = data.deliveries().assign(key=lambda d: [_key(s, n) for s, n in zip(d.supplier, d.doc_no)])
+    log = _log()
     findings, matched, used_rows = [], 0, set()
     for rid, x in sorted(readings.items()):
         doc_lines = [l for l in lines if l.receipt_id == rid]
-        fuel = [l for l in doc_lines if l.counts and l.litres]
-        review = [l for l in doc_lines if l.outcome == "needs_review"]
-        doc_no = x.get("doc_number") or rid
-        if review:
-            findings.append(_finding("note_needs_review", doc_no, f"Delivery note {doc_no} could not be read with confidence",
-                                     None, reasons=sorted({r for l in review for r in l.reasons})))
-            continue
-        rows = log[log.key == _key(x.get("supplier"), doc_no)]
-        litres = sum(l.litres for l in fuel)
-        if rows.empty:
-            findings.append(_finding("note_not_in_log", doc_no, f"Delivery note {doc_no} is not in the fuel log", _litres(
-                litres, bullets(f"The note shows **{litres:,.0f} litres** delivered.",
-                                "No row in the fuel log has this supplier and note number, so the depot's books miss it."),
-                SOURCE)))
-            continue
-        used_rows |= set(rows.delivery_id)
-        first = rows.iloc[0]
-        diffs = 0
-        if len(rows) > 1:
-            diffs += 1
-            findings.append(_finding("entered_twice", doc_no, f"Delivery note {doc_no} is in the fuel log {len(rows)} times",
-                                     _litres(float(first.litres) * (len(rows) - 1), bullets(
-                                         f"There is **one paper note** for **{litres:,.0f} litres**.",
-                                         f"The fuel log has **{len(rows)} rows** with its supplier and number.",
-                                         "Only one delivery happened, so the extra rows overstate fuel received."),
-                                         SOURCE, LOG_SOURCE)))
-        if abs(litres - float(first.litres)) > litres_tolerance:
-            diffs += 1
-            findings.append(_finding("litres_differ", doc_no, f"Litres on note {doc_no} differ from the fuel log",
-                                     _litres(litres - float(first.litres), bullets(
-                                         f"Note: **{litres:,.1f} litres**. Log: **{first.litres:,.1f} litres**."),
-                                         SOURCE, LOG_SOURCE)))
-        price = next((l.unit_price_gbp for l in fuel if l.unit_price_gbp is not None), None)
-        if price is not None and abs(price - float(first.unit_price_gbp)) > price_tolerance:
-            diffs += 1
-            cost = (float(first.unit_price_gbp) - price) * litres
-            findings.append(_finding("price_differs", doc_no, f"The price on note {doc_no} differs from the fuel log",
-                                     _gbp(cost, bullets(
-                                         f"Note: **£{price:.4f} a litre**. Log: **£{first.unit_price_gbp:.4f} a litre**.",
-                                         f"On **{litres:,.0f} litres** the log's fuel cost is off by **£{abs(cost):,.2f}** "
-                                         f"({'too high' if cost > 0 else 'too low'}).",
-                                         "Likely a keying error: check the invoice before paying or reporting."),
-                                         SOURCE, LOG_SOURCE), on_note=price, in_log=float(first.unit_price_gbp)))
-        if str(x.get("date")) != first.ts.date().isoformat():
-            diffs += 1
-            findings.append(_finding("date_differs", doc_no, f"The date on note {doc_no} differs from the fuel log", None,
-                                     on_note=x.get("date"), in_log=first.ts.date().isoformat()))
-        matched += diffs == 0
+        f, used, ok = _compare_note(rid, x, doc_lines, log, litres_tolerance, price_tolerance)
+        findings += f
+        used_rows |= used
+        matched += ok
     for r in log[~log.delivery_id.isin(used_rows)].itertuples():
         findings.append(_finding("log_row_without_note", r.doc_no, f"Fuel log row {r.delivery_id} has no delivery note",
                                  _litres(float(r.litres), bullets(f"The log records **{r.litres:,.0f} litres**.",

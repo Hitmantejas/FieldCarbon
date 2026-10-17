@@ -1,0 +1,23 @@
+{
+  "clip_id": "V06",
+  "heard": {
+    "transcript": "One of the tractors has a hydraulic hose rubbing on the frame, can someone take a look?",
+    "machine_id": "unknown",
+    "issue": "hydraulic",
+    "severity": "medium",
+    "follow_up": "Someone needs to inspect the hydraulic hose rubbing on the frame.",
+    "confidence": "high",
+    "is_machine_problem": true
+  },
+  "usage": {
+    "input_tokens": 1007,
+    "output_tokens": 66,
+    "thinking_tokens": 629,
+    "total_tokens": 1702
+  },
+  "model": "gemini-3.5-flash",
+  "location": "global",
+  "model_version": "gemini-3.5-flash",
+  "prompt_version": "voice-v1",
+  "read_at": "2026-10-17T12:15:30+00:00"
+}

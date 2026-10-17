@@ -49,3 +49,12 @@ CLAUDE.md
 .claude/
 docs/FieldCarbon_scope_change_brief.docx
 docs/~$eldCarbon_scope_change_brief.docx
+
+# --- Voice clips: team members' real voices stay off the public repo (P2a); only scripts and readings are committed ---
+*.m4a
+*.wav
+*.mp3
+*.webm
+*.ogg
+*.aac
+*.flac

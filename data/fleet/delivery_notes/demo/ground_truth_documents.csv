@@ -1,0 +1,5 @@
+doc_id,doc_type,supplier,doc_number,date,price_month,net_gbp,vat_rate,vat_gbp,total_gbp,damage,duplicate_of,counts_toward_total
+matches,delivery_note,Supplier B (demo),DN-S1-0001,2025-08-15,2025-08,1349.82,0.05,67.49,1417.31,clean,,True
+litres-differ,delivery_note,Supplier A (demo),DN-S1-0002,2025-09-19,2025-09,1497.0,0.05,74.85,1571.85,clean,,True
+price-differs,delivery_note,Supplier A (demo),DN-S1-0004,2025-10-16,2025-10,1336.86,0.05,66.84,1403.7,clean,,True
+not-in-log,delivery_note,Supplier B (demo),DN-S1-0042,2025-10-06,2025-10,1378.98,0.05,68.95,1447.93,clean,,True

@@ -44,11 +44,12 @@ DATE = re.compile(r"\b\d{4}-\d{2}(?:-\d{2})?\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b")
 LIST_MARKER = re.compile(r"(?m)^\s*\d+[.)]\s")
 DAY_BEFORE_MONTH = re.compile(rf"\b\d{{1,2}}(?:st|nd|rd|th)?\s+(?:{MONTHS})\b", re.IGNORECASE)
 
-# Tool-output keys whose bare numbers have a known unit family.
-KEY_FAMILIES = [("l_per_ha", "l_per_ha"), ("l_per_h", "l_per_h"), ("litres", "litres"), ("kg", "kg"),
+# Tool-output keys whose bare numbers have a known unit family. CO2e per hectare is kg, as in any language
+# "10.7 kg CO2e per hectare" is read as kg (backend/agent/statement_text.py does the same).
+KEY_FAMILIES = [("l_per_ha", "l_per_ha"), ("co2e_per_ha", "kg"), ("l_per_h", "l_per_h"), ("litres", "litres"), ("kg", "kg"),
                 ("gbp", "gbp"), ("cost", "gbp"), ("pct", "pct"), ("share", "pct"), ("hectares", "ha"),
                 ("area", "ha"), ("_ha", "ha"), ("hours", "hours"), ("kw", "kw"), ("years", "years")]
-FIGURE_UNITS = {"L": "litres", "kg CO2e": "kg", "GBP": "gbp", "% of your emissions": "pct", "ha": "ha"}
+FIGURE_UNITS = {"L": "litres", "kg CO2e": "kg", "kg CO2e/ha": "kg", "GBP": "gbp", "% of your emissions": "pct", "ha": "ha"}
 
 # Direction: +1 a saving, -1 an increase, 0 not stated. Keys like litres_saved carry it in their sign; text in its words.
 SAVING_KEY = re.compile(r"saved|saving|avoided|reduction", re.IGNORECASE)
@@ -209,3 +210,26 @@ def guard(answer: str, tool_outputs: Iterable, question: str = "") -> tuple[bool
               "other way round).") if flipped else ""
     return False, (f"Check needed: these numbers could not be traced to FieldCarbon's calculations: {listed}.{turned} "
                    "Please treat them with care.")
+
+
+PATH_PART = re.compile(r"\.?([^.\[\]:]+)|\[(\d+)\]")
+
+
+def traced(a: Audit, tool_outputs: Iterable) -> list[dict]:
+    """Each checked number with where it traced to: the index of the tool output (or "question", or None when it did
+    not trace) and the confidence label of the figure it matched (None for a number written in tool text)."""
+    outputs, out = list(tool_outputs), []
+    for n in a.numbers:
+        call = label = None
+        if n.source == "question":
+            call = "question"
+        elif n.source:
+            steps = [int(i) if i else k for k, i in PATH_PART.findall(n.source.split(":")[0])]  # "tool", 1, "totals", ...
+            call = steps[1]
+            if ":" not in n.source and steps[-1] in ("value", "low", "high"):
+                parent = outputs
+                for step in steps[1:-1]:
+                    parent = parent[step]
+                label = parent.get("label") if isinstance(parent, dict) else None
+        out.append({"text": n.text, "call": call, "label": label})
+    return out

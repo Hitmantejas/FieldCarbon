@@ -154,4 +154,16 @@ button:disabled { cursor: not-allowed; }
   main { box-shadow: none !important; max-width: none !important; border-radius: 0 !important; }
   .rise, .span-in { animation: none !important; clip-path: none !important; transform: none !important; opacity: 1 !important; }
   .bg-ink, .bg-mark, .bg-moss, .bg-clay, .stamp-measured { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  /* A client statement fits one A4 page: smaller type and tighter sections; the months are left out (the period is in the header). */
+  @page { size: A4; margin: 12mm; }
+  .statement-print { font-size: 9.5pt; line-height: 1.35; }
+  .statement-print > header { padding: 0 0 0.5rem; }
+  .statement-print > header h2 { font-size: 18pt; }
+  .statement-print > section { padding: 0.45rem 0; break-inside: avoid; }
+  .statement-print > section h2 { font-size: 12pt; margin-bottom: 0.25rem; }
+  .statement-print li { padding-top: 0.15rem; padding-bottom: 0.15rem; }
+  .statement-print .text-lg { font-size: 10.5pt; }
+  .statement-print .stamp { font-size: 7pt; padding: 0 0.35rem; }
+  .statement-print .space-y-3 > * + * { margin-top: 0.2rem; }
+  .statement-print .text-sm { font-size: 8pt; }
 }

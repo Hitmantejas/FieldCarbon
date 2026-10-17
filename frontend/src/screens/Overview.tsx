@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Figure, Label } from "../api";
 import { useApi } from "../api";
+import { Briefing } from "../components/Briefing";
 import { FindingList } from "../components/FindingList";
 import { RangeBar } from "../components/RangeBar";
 import { SectionHead } from "../components/SectionHead";
@@ -68,6 +69,8 @@ export function Overview() {
           <Tile title="To look at" shown={String(watch.length)} unit="findings" highlight />
         </section>
       )}
+
+      <Briefing onOpen={open} />
 
       <section className="px-6" aria-labelledby="h-watch">
         <SectionHead id="h-watch" title="Worth a look" tone="mark" note="to investigate, not proof of a fault" />

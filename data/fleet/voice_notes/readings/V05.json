@@ -1,0 +1,23 @@
+{
+  "clip_id": "V05",
+  "heard": {
+    "transcript": "The tractor at the Konya site is blowing black smoke under load. Check the air filter tomorrow.",
+    "machine_id": "S3-T1",
+    "issue": "engine",
+    "severity": "medium",
+    "follow_up": "Check the air filter tomorrow.",
+    "confidence": "high",
+    "is_machine_problem": true
+  },
+  "usage": {
+    "input_tokens": 1005,
+    "output_tokens": 90,
+    "thinking_tokens": 406,
+    "total_tokens": 1501
+  },
+  "model": "gemini-3.5-flash",
+  "location": "global",
+  "model_version": "gemini-3.5-flash",
+  "prompt_version": "voice-v1",
+  "read_at": "2026-10-17T12:15:22+00:00"
+}

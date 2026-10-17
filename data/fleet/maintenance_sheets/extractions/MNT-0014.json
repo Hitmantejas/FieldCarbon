@@ -1,0 +1,32 @@
+{
+  "receipt_id": "MNT-0014",
+  "farm_id": "maintenance",
+  "model_id": "gemini-3.5-flash",
+  "location": "global",
+  "prompt_version": "maintenance-v1",
+  "extracted": {
+    "sheet_number": "MNT-0014",
+    "date": "2025-08-20",
+    "machine_id": "S2-T4",
+    "machine_as_written": "Vineyard tractor 4, 75 kW",
+    "service_type": "Fuel filter replaced",
+    "hours_at_service": 43.7,
+    "cost_gbp": 56.8,
+    "confidence": {
+      "machine": "high",
+      "date": "high",
+      "hours": "high",
+      "cost": "high"
+    },
+    "notes": null
+  },
+  "extracted_at": "2026-10-16T19:47:27+00:00",
+  "image": "sheets/MNT-0014.jpg",
+  "usage": {
+    "input_tokens": 2149,
+    "output_tokens": 160,
+    "thinking_tokens": 832,
+    "total_tokens": 3141
+  },
+  "model_version": "gemini-3.5-flash"
+}

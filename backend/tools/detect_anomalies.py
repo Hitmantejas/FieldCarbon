@@ -8,6 +8,7 @@ import pandas as pd
 from backend.emissions.text import bullets, month_name
 from backend.fleet import data
 from backend.tools.contracts import Figure
+from backend.tools.finding_id import tag
 
 NON_WORK = ("idle", "implement_nonproductive", "road_transport")
 
@@ -26,6 +27,7 @@ def detect_anomalies(z_limit: float = 3.5, min_group_jobs: int = 8, min_hours: f
     """Things in the machines' own data that are worth a look: frozen recorders, unusual jobs, heavy non-work fuel.
 
     These are observations from statistics, not proof of a fault. Operators are never named or compared.
+    Each finding has a stable `id` and `diagnosable` (true: diagnose_anomaly can test possible causes for every kind here).
     """
     findings: list[dict] = []
 
@@ -68,7 +70,7 @@ def detect_anomalies(z_limit: float = 3.5, min_group_jobs: int = 8, min_hours: f
             findings.append({
                 "kind": "job_outlier", "severity": _severity(litres, "L"), "machine_id": r.machine_id,
                 "machine": data.machine_name(r.machine_id), "site_id": site, "month": str(r.start_ts.to_period("M")),
-                "robust_z": float(z), "difference_pct": float(dev), "direction": "more" if more else "less",
+                "robust_z": float(z), "difference_pct": float(dev), "direction": "more" if more else "less", "job_id": r.job_id,
                 "title": (f"{data.machine_name(r.machine_id)} burned {abs(dev):.0f}% {'more' if more else 'less'} fuel per hour than usual "
                           f"for {data.operation_name(op).lower()} on {r.start_ts.date():%d %B %Y}"),
                 "litres": _fig(float(litres), "L", "measured", bullets(
@@ -100,5 +102,6 @@ def detect_anomalies(z_limit: float = 3.5, min_group_jobs: int = 8, min_hours: f
                     "Worth a look at how this tractor is used between jobs, not proof of waste."), "tum_alc_data")})
 
     findings.sort(key=lambda f: ({"high": 0, "medium": 1, "low": 2}[f["severity"]], -f["litres"]["value"]))
+    tag(findings)
     return {"findings": findings, "settings": {"z_limit": z_limit, "min_group_jobs": min_group_jobs, "min_hours": min_hours,
                                                "min_dev_pct": min_dev_pct, "share_ratio": share_ratio}}

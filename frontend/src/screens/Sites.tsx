@@ -3,6 +3,7 @@ import type { Figure } from "../api";
 import { useApi } from "../api";
 import { SectionHead } from "../components/SectionHead";
 import { Stamp } from "../components/Stamp";
+import { VoiceNote } from "../components/VoiceNote";
 import { WorkingSheet, type Opened } from "../components/WorkingSheet";
 import type { DataQuality, FleetSummary, GroupRow } from "../fleetApi";
 import { litres, tonnes } from "../format";
@@ -177,6 +178,11 @@ export function Sites() {
           </table>
           </div>
         )}
+      </section>
+
+      <section className="px-6" aria-labelledby="h-voice">
+        <SectionHead id="h-voice" title="Machine problems" tone="mark" note="estimated (read from speech)" />
+        <VoiceNote />
       </section>
 
       <section className="px-6" aria-labelledby="h-trust">
