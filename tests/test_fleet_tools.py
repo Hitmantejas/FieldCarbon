@@ -93,7 +93,10 @@ def test_emissions_use_the_uk_factor_and_cite_it():
 def test_cost_uses_the_invoice_prices_in_the_data_not_one_fixed_price():
     t = fleet_summary("site")["totals"]
     assert 0.70 < t["cost_gbp"]["value"] / t["litres"]["value"] < 1.2
-    assert t["cost_gbp"]["label"] in {"measured", "allocated"}
+    # litres x a month's delivery price (synthetic invoices, Defra where none): a calculation, never measured
+    assert t["cost_gbp"]["label"] == "estimated" and "estimated" in t["cost_gbp"]["how"]
+    for r in fleet_summary("client")["rows"]:
+        assert r["cost_gbp"]["label"] == "estimated"
 
 
 def test_every_figure_has_a_label_sources_and_plain_bullets():
