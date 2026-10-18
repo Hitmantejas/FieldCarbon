@@ -119,6 +119,15 @@ def test_the_caller_is_the_address_cloud_run_appended_last():
     assert caller_of("", None) == "unknown"
 
 
+def test_behind_our_own_proxy_the_caller_is_the_address_before_it(monkeypatch):
+    monkeypatch.setenv("FIELDCARBON_TRUSTED_PROXIES", "1")
+    assert caller_of("6.6.6.6, 1.1.1.1, 10.0.0.9", "127.0.0.1") == "1.1.1.1"  # a forged first entry is ignored
+    assert caller_of("1.1.1.1", "127.0.0.1") == "1.1.1.1"  # fewer entries than hops: the earliest one
+    monkeypatch.setenv("FIELDCARBON_TRUSTED_PROXIES", "-1")
+    with pytest.raises(ValueError, match="FIELDCARBON_TRUSTED_PROXIES"):
+        caller_of("1.1.1.1", None)
+
+
 def test_limits_come_from_env_vars_and_bad_values_are_rejected(monkeypatch):
     monkeypatch.setenv("FIELDCARBON_ASK_PER_MINUTE", "2")
     monkeypatch.setenv("FIELDCARBON_ASK_PER_DAY", "50")
