@@ -4,6 +4,8 @@ Kept in memory per Cloud Run instance (a restart resets them); the real daily ce
 number of instances, so deploy the service with a small --max-instances.
 FIELDCARBON_ASK_PER_MINUTE: questions one caller may ask in any 60 seconds (default 5).
 FIELDCARBON_ASK_PER_DAY: questions the instance answers per UTC day, all callers together (default 200).
+FIELDCARBON_TRUSTED_PROXIES: how many proxies of ours sit in front of this service (default 0). The frontend service forwards
+/api to this one, so Cloud Run sees the frontend as the caller; with 1, the caller is the address before it.
 FIELDCARBON_GEN_PER_MINUTE / FIELDCARBON_GEN_PER_DAY: the same for texts Gemini writes outside the chat (client statement,
 diagnosis, briefing, delivery-note upload); defaults 6 and 300. One limiter shared by those endpoints.
 """
@@ -26,6 +28,17 @@ def _positive_int(name: str, default: int) -> int:
         value = 0
     if value < 1:
         raise ValueError(f"{name} must be a whole number of at least 1, got {raw!r}")
+    return value
+
+
+def _non_negative_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, str(default))
+    try:
+        value = int(raw)
+    except ValueError:
+        value = -1
+    if value < 0:
+        raise ValueError(f"{name} must be a whole number of 0 or more, got {raw!r}")
     return value
 
 
@@ -76,9 +89,12 @@ class AskLimiter:
 
 
 def caller_of(forwarded_for: str | None, host: str | None) -> str:
-    """Cloud Run appends the address it saw to X-Forwarded-For, so the last entry is the one a caller cannot forge."""
+    """Cloud Run appends the address it saw to X-Forwarded-For, so the last entry is the one a caller cannot forge. Behind
+    FIELDCARBON_TRUSTED_PROXIES proxies of ours, the caller is that many entries earlier. A caller who reaches this service
+    directly can forge that entry; the daily cap still bounds what Gemini can cost."""
+    hops = _non_negative_int("FIELDCARBON_TRUSTED_PROXIES", 0)
     if forwarded_for:
-        last = forwarded_for.split(",")[-1].strip()
-        if last:
-            return last
+        entries = [e.strip() for e in forwarded_for.split(",") if e.strip()]
+        if entries:
+            return entries[max(0, len(entries) - 1 - hops)]
     return host or "unknown"

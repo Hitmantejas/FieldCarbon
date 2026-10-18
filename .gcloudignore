@@ -15,8 +15,7 @@ data/synthetic/
 **/*.zip
 **/*.pkl
 **/*.parquet
-frontend/node_modules/
-frontend/dist/
+frontend/
 tests/
 evals/
 docs/
