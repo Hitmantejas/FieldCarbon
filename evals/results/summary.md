@@ -1,8 +1,10 @@
 | Evaluation | Result |
 |---|---|
 | Tool eval cases | 72 of 72 pass |
-| Figures with a confidence label and sources | 100% of 916 |
+| Figures with a confidence label and sources | 100% of 918 |
 | Planted fuel problems found | 3 of 3 |
+| Detection stress test (faults injected at random, 40 per size) | unlogged withdrawals: 42% at 100 L, 100% at 150 L; over-dispensing: 100% when the extra is at least 50 L and 10%; extra fuel on one real job: 28% at +50%, 72% at +100%; duplicate note: 100% exact, 0% if the litres are mistyped |
+| Before-and-after calibration (random changes on real vineyard records) | no real effect: a saving or rise claimed in 9% of 150 trials; a real cut is found in 14% of trials at 10%, 62% at 20%, 94% at 30%; the 90% range holds the true value in 91% to 97% of trials |
 | Planted before-and-after effects recovered | 2 of 2 |
 | Planted problems whose top supported cause is the planted one | 3 of 3 |
 | Receipts-only ranges containing the telemetry truth | 8 of 12 jobs (64% of litres) |

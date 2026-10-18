@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { fold, LOOKED_AT, streamAsk, type Row } from "../agentSteps";
+import { AgentTrace } from "../components/AgentTrace";
 import { Bold } from "../components/Rich";
 import { SCREENS } from "../components/Shell";
 import { SectionHead } from "../components/SectionHead";
@@ -20,6 +22,7 @@ interface Answer {
   session_id: string;
   new_session: boolean;
   session_note: string | null;
+  trace?: Row[]; // the steps the analyst took, kept from the stream
 }
 
 // Questions about the screen the analyst was opened from (#/ask?from=control); each one the tools can answer.
@@ -44,26 +47,6 @@ const SUGGESTED = [
   "What if the arable site switched to HVO?",
   "Wie viel Diesel hat die Flotte insgesamt verbraucht?",
 ];
-
-// What each tool looked at, in words a manager uses.
-const LOOKED_AT: Record<string, string> = {
-  carbon_ledger: "Tonnes emitted, avoidable and proven",
-  action_impact: "Before and after a logged change",
-  fleet_summary: "Fuel, emissions and cost totals",
-  emissions_per_client: "Emissions for each client farm",
-  data_quality: "How far to trust the data",
-  reconcile_fuel: "Fuel handed out against fuel burned, and depot stock",
-  check_delivery_notes: "Delivery notes against the fuel log",
-  detect_anomalies: "Odd jobs and recorders",
-  diagnose_anomaly: "Possible causes, tested against the data",
-  benchmark_peers: "Machines compared with similar machines",
-  fleet_opportunities: "Ideas from research",
-  what_if: "A what-if scenario",
-  fleet_jobs: "The job list",
-  fleet_report: "The report",
-  client_statement: "A client farm's carbon statement",
-  weekly_briefing: "The three things to look at first",
-};
 
 // The model writes short paragraphs, "* " bullets and **bold**; show them as such, never as raw markdown.
 function AnswerText({ text }: { text: string }) {
@@ -132,7 +115,7 @@ function NumbersChecked({ audit }: { audit: Answer["audit"] }) {
   );
 }
 
-function Exchange({ a }: { a: Answer }) {
+function Exchange({ a, latest }: { a: Answer; latest: boolean }) {
   const { audit } = a;
   return (
     <li className="space-y-4 border-t border-rule py-6">
@@ -140,17 +123,10 @@ function Exchange({ a }: { a: Answer }) {
       <p className="font-display text-2xl font-semibold leading-tight">{a.question}</p>
       <AnswerText text={a.answer} />
       <NumbersChecked audit={audit} />
-      {a.tools_called.length > 0 && (
-        <details>
-          <summary className="min-h-11 font-mono text-xs uppercase tracking-widest">What I looked at</summary>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-soft">
-            {a.tools_called.map((t, i) => (
-              <li key={i}>
-                {LOOKED_AT[t.name] ?? t.name}
-                {Object.keys(t.args).length > 0 && ` (${Object.entries(t.args).map(([k, v]) => `${k.replace(/_/g, " ")}: ${String(v)}`).join(", ")})`}
-              </li>
-            ))}
-          </ul>
+      {a.trace && a.trace.length > 0 && (
+        <details open={latest}>
+          <summary className="min-h-11 cursor-pointer py-3 font-mono text-xs uppercase tracking-widest">How the analyst got here</summary>
+          <AgentTrace rows={a.trace} />
         </details>
       )}
     </li>
@@ -163,6 +139,7 @@ export function Ask() {
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]); // the conversation, oldest first
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [live, setLive] = useState<Row[]>([]); // the steps of the question being answered
   const box = useRef<HTMLTextAreaElement>(null);
   const [from] = useState(askedFrom);
   const suggested = (from && SUGGESTED_FOR[from]) || SUGGESTED;
@@ -179,17 +156,21 @@ export function Ask() {
     if (busy || question.trim().length < 3) return;
     setBusy(true);
     setError(null);
+    setLive([]);
     try {
-      const r = await fetch("/api/agent/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sessionId ? { question, session_id: sessionId } : { question }) });
-      if (!r.ok) throw new Error(r.status === 502 || r.status === 429 ? ((await r.json()).detail as string) : `The analyst answered ${r.status}`);
-      const answer = (await r.json()) as Answer;
+      let trace: Row[] = [];
+      const answer = await streamAsk<Answer>(sessionId ? { question, session_id: sessionId } : { question }, (e) => {
+        trace = fold(trace, e);
+        setLive(trace);
+      });
       setSessionId(answer.session_id);
-      setAnswers((a) => (answer.new_session ? [answer] : [...a, answer]));
+      setAnswers((a) => (answer.new_session ? [{ ...answer, trace }] : [...a, { ...answer, trace }]));
       setText("");
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
+      setLive([]);
       // After the button re-enables, so the next question can be typed straight away.
       setTimeout(() => box.current?.focus(), 0);
     }
@@ -218,7 +199,7 @@ export function Ask() {
             </p>
             <ol>
               {answers.map((a, i) => (
-                <Exchange key={`${a.question}-${i}`} a={a} />
+                <Exchange key={`${a.question}-${i}`} a={a} latest={i === answers.length - 1} />
               ))}
             </ol>
           </>
@@ -264,6 +245,12 @@ export function Ask() {
             {busy && <span className="font-mono text-xs uppercase tracking-widest text-ink-soft" role="status">This can take up to a minute: every number is checked before you see it.</span>}
           </div>
         </form>
+        {busy && live.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="font-mono text-xs uppercase tracking-widest">The analyst is working</p>
+            <AgentTrace rows={live} />
+          </div>
+        )}
         {error && (
           <p role="alert" className="mt-3 max-w-[70ch] rounded-2xl border-2 border-clay p-3 font-bold">
             {error}

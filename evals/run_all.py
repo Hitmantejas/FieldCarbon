@@ -99,11 +99,15 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import (fleet_detection, fleet_diagnosis, maintenance_accuracy, proof_recovery, range_coverage, receipt_accuracy,
+    from evals import (detection_stress, fleet_detection, proof_calibration, fleet_diagnosis, maintenance_accuracy, proof_recovery, range_coverage, receipt_accuracy,
                        upload_check, voice_accuracy)
     from backend.tools import read_maintenance
 
     out = {"fleet_detection": fleet_detection.score(), "proof_recovery": proof_recovery.score()}
+    stress = detection_stress.RESULTS
+    cal = proof_calibration.RESULTS
+    out["proof_calibration"] = json.loads(cal.read_text(encoding="utf-8")) if cal.exists() else "not run yet"
+    out["detection_stress"] = json.loads(stress.read_text(encoding="utf-8")) if stress.exists() else "not run yet"
     voices = voice_accuracy.load_readings()
     out["voice_accuracy"] = ({**{k: v for k, v in voice_accuracy.score(voices).items() if k != "per_clip"},
                               "tokens": voice_accuracy.token_usage()} if voices else "not run yet")
@@ -142,6 +146,32 @@ def _sheet_row(v: dict, pct) -> str:
             f"planted keying error found: {found}")
 
 
+def _stress_row(d, pct) -> str:
+    if isinstance(d, str):
+        return d
+    at = lambda rows, size: next(r for r in rows if r["size"] == size)  # noqa: E731
+    over = [r for r in d["over_dispense_pct"] if "eligible_trials" in r]
+    eligible = sum(r["eligible_trials"] for r in over)
+    return (f"unlogged withdrawals: {pct(at(d['unlogged_withdrawal_litres'], 100)['rate'])} at 100 L, "
+            f"{pct(at(d['unlogged_withdrawal_litres'], 150)['rate'])} at 150 L; "
+            f"over-dispensing: {pct(sum(r['eligible_detected'] for r in over) / eligible)} when the extra is at least 50 L and 10%; "
+            f"extra fuel on one real job: {pct(at(d['job_extra_fuel_pct'], 50)['rate'])} at +50%, "
+            f"{pct(at(d['job_extra_fuel_pct'], 100)['rate'])} at +100%; "
+            f"duplicate note: {pct(at(d['duplicate_note'], 'exact copy')['rate'])} exact, "
+            f"{pct(at(d['duplicate_note'], 'litres mistyped by 1%')['rate'])} if the litres are mistyped")
+
+
+def _calibration_row(d, pct) -> str:
+    if isinstance(d, str):
+        return d
+    at = lambda e: next(r for r in d["rows"] if r["effect_pct"] == e)  # noqa: E731
+    cover = [r["coverage"] for r in d["rows"] if r["coverage"] is not None]
+    return (f"no real effect: a saving or rise claimed in {pct(d['placebo_false_claim_rate'])} of {at(0)['judged']} trials; "
+            f"a real cut is found in {pct(at(-10)['reduction_shown'] / at(-10)['judged'])} of trials at 10%, "
+            f"{pct(at(-20)['reduction_shown'] / at(-20)['judged'])} at 20%, {pct(at(-30)['reduction_shown'] / at(-30)['judged'])} at 30%; "
+            f"the 90% range holds the true value in {pct(min(cover))} to {pct(max(cover))} of trials")
+
+
 def markdown(s: dict) -> str:
     t, a, st, o = s["tool_cases"], s["agent_runs"]["agent"], s["agent_runs"]["self_test"], s["other"]
     fd, rc, uc = o["fleet_detection"], o["range_coverage"], o["upload_check"]
@@ -152,6 +182,8 @@ def markdown(s: dict) -> str:
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
         ("Planted fuel problems found", f"{fd.get('found', fd.get('detected', '?'))} of {fd.get('planted', fd.get('total', '?'))}"),
+        ("Detection stress test (faults injected at random, 40 per size)", _stress_row(o["detection_stress"], pct)),
+        ("Before-and-after calibration (random changes on real vineyard records)", _calibration_row(o["proof_calibration"], pct)),
         ("Planted before-and-after effects recovered", f"{o['proof_recovery']['recovered']} of {o['proof_recovery']['changes']}"),
         ("Planted problems whose top supported cause is the planted one",
          f"{o['fleet_diagnosis']['correct']} of {o['fleet_diagnosis']['planted']}"),

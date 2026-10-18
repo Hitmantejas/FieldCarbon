@@ -111,11 +111,12 @@ export function CarbonLedger({ ledger, goal, onGoal, onOpen }: Props) {
         </div>
         <ul className="divide-y divide-rule">
           <GoalRow title="Strongest idea" sub={top.name} pct={g.top_action_pct} verdict={g.top_action_verdict} goal={g.target_pct} onOpen={onOpen} />
-          <GoalRow title="All ideas that fit" sub="a bounded range" pct={g.combined_pct} verdict={g.combined_verdict} goal={g.target_pct} onOpen={onOpen} />
+          <GoalRow title="All ideas that fit" sub="includes the switch to HVO fuel" pct={g.combined_pct} verdict={g.combined_verdict} goal={g.target_pct} onOpen={onOpen} />
+          <GoalRow title="Ideas that burn less fuel" sub="without the HVO switch" pct={g.burn_less_pct} verdict={g.burn_less_verdict} goal={g.target_pct} onOpen={onOpen} />
         </ul>
         <p className="mt-3 max-w-[70ch] text-sm text-ink-soft">
           The black line is the goal. Ideas cover {Math.round(avoidable.covered_share_pct)}% of the fleet&apos;s emissions. {avoidable.not_covered} Effects overlap, so
-          these are not added: the second bar runs from the largest single idea to a capped total.
+          these are not added: each combined bar runs from the largest single idea to the best idea of each overlapping group, combined as shares of what is left.
         </p>
       </section>
     </>

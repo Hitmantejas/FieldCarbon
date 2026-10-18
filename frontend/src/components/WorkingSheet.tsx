@@ -15,7 +15,8 @@ export interface Opened {
 }
 
 const STATUS_TEXT: Record<string, string> = {
-  from_problem_statement: "Figure not yet checked against the original paper",
+  checked_derived: "We worked this figure out from numbers in the source; it does not state it itself",
+  not_confirmed: "We could not find this figure in the source, so we show it but do not use it",
 };
 
 const UNIT_TEXT: Record<string, string> = {

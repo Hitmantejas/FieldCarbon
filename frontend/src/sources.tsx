@@ -16,6 +16,10 @@ const LINK_TEXT: Record<string, string> = {
   verified: "Link checked",
   unverified: "Link not checked yet",
   "missing-link": "No link yet",
+  "abstract-checked": "Abstract checked",
+  "listing-only": "Listing found, figures not found",
+  "not-found": "Paper not found",
+  "news-only": "Press coverage only",
 };
 
 export function linkText(status: string): string {

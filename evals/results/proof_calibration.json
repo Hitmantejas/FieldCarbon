@@ -1,0 +1,81 @@
+{
+  "seed": 2026,
+  "site": "S2",
+  "trials_per_effect": 150,
+  "rows": [
+    {
+      "effect_pct": 0,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 8,
+      "increase_shown": 6,
+      "cant_tell_yet": 136,
+      "range_holds_truth": 136,
+      "coverage": 0.907,
+      "median_width_pts": 40.1
+    },
+    {
+      "effect_pct": -5,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 9,
+      "increase_shown": 0,
+      "cant_tell_yet": 141,
+      "range_holds_truth": 144,
+      "coverage": 0.96,
+      "median_width_pts": 38.1
+    },
+    {
+      "effect_pct": -10,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 21,
+      "increase_shown": 0,
+      "cant_tell_yet": 129,
+      "range_holds_truth": 136,
+      "coverage": 0.907,
+      "median_width_pts": 36.8
+    },
+    {
+      "effect_pct": -20,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 93,
+      "increase_shown": 0,
+      "cant_tell_yet": 57,
+      "range_holds_truth": 141,
+      "coverage": 0.94,
+      "median_width_pts": 31.9
+    },
+    {
+      "effect_pct": -30,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 141,
+      "increase_shown": 0,
+      "cant_tell_yet": 9,
+      "range_holds_truth": 136,
+      "coverage": 0.907,
+      "median_width_pts": 27.8
+    },
+    {
+      "effect_pct": 10,
+      "trials": 150,
+      "judged": 150,
+      "not_enough_jobs": 0,
+      "reduction_shown": 0,
+      "increase_shown": 30,
+      "cant_tell_yet": 120,
+      "range_holds_truth": 145,
+      "coverage": 0.967,
+      "median_width_pts": 45.1
+    }
+  ],
+  "placebo_false_claim_rate": 0.093,
+  "reading_it": "effect_pct is the planted change in litres per hectare on the changed tractors. For the placebo row a claim of a saving or a rise is a false alarm; with a 90% range about 1 in 10 is expected by chance (5% each way). coverage is the share of trials whose range holds the planted value."
+}

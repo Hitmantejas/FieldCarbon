@@ -167,3 +167,31 @@ def test_the_audit_lists_each_number_with_the_tool_it_traces_to():
     assert {"text": f"{total} litres", "tool": "fleet_summary", "label": out["totals"]["litres"]["label"]} in nums
     assert {"text": "123,456 litres", "tool": None, "label": None} in nums
     assert len(nums) == r["audit"]["numbers_checked"]
+
+
+# ---- the steps the screen shows ---------------------------------------------------------------------------
+def steps_of(answers, **kw):
+    steps = []
+    run(answers, on_step=steps.append, **kw)
+    return steps
+
+
+def test_steps_come_in_order_tool_call_result_audit():
+    steps = steps_of(["The Arable site (Bavaria) burned 10,814 litres (allocated)."])
+    assert [s["step"] for s in steps] == ["tool_call", "tool_result", "audit"]
+    assert steps[0]["name"] == "fleet_summary" and steps[0]["args"] == {"group_by": "site"}
+    assert steps[1]["error"] is False and steps[1]["ms"] >= 0
+    assert steps[2]["faithful"] and steps[2]["attempt"] == 1 and steps[2]["numbers_checked"] > 0
+
+
+def test_a_rewrite_is_announced_with_its_reason_and_audited_again():
+    steps = steps_of(["The fleet used 31,000 litres.", "The fleet used 16,492 litres (allocated)."])
+    kinds = [s["step"] for s in steps]
+    assert kinds == ["tool_call", "tool_result", "audit", "rewrite", "audit"]
+    assert not steps[2]["faithful"] and steps[2]["untraced"] == ["31,000 litres"]
+    assert "1 number did not trace" in steps[3]["reason"]
+    assert steps[4]["faithful"] and steps[4]["attempt"] == 2
+
+
+def test_steps_never_carry_the_raw_tool_output():
+    assert all("output" not in s for s in steps_of(["The fleet used 16,492 litres (allocated)."]))

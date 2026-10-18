@@ -64,9 +64,32 @@ def test_actions_are_never_summed_into_a_point():
     assert combined["value"] is None
     assert combined["low"] == pytest.approx(max(a["co2e_avoided_t"]["low"] for a in actions))
     covered = ledger["avoidable"]["covered_emitted_t"]["value"]
-    assert combined["high"] <= covered + 1e-9
-    assert combined["high"] <= sum(a["co2e_avoided_t"]["high"] for a in actions) + 1e-9
+    assert max(a["co2e_avoided_t"]["high"] for a in actions) <= combined["high"] < covered
+    assert combined["high"] < sum(a["co2e_avoided_t"]["high"] for a in actions)
     assert OVERLAP_NOTE in combined["how"]
+
+
+def sized(name, high):
+    return {"intervention_id": name, "co2e_avoided_t": {"high": high}}
+
+
+def test_overlapping_ideas_count_once_and_independent_ideas_share_what_is_left():
+    from backend.tools.carbon_ledger import _combined_high
+    assert _combined_high([sized("no_till", 10), sized("reduced_tillage", 6)], 40) == pytest.approx(10)
+    assert _combined_high([sized("hvo_switch", 10), sized("shift_up_throttle_down", 10)], 40) == pytest.approx(40 * (1 - 0.75 * 0.75))
+    assert _combined_high([sized("hvo_switch", 50), sized("shift_up_throttle_down", 50)], 40) <= 40
+
+
+def test_the_fuel_switch_is_reported_apart_from_the_ideas_that_burn_less_fuel():
+    ledger = carbon_ledger()
+    burn_less, combined = ledger["avoidable"]["burn_less"], ledger["avoidable"]["combined"]
+    assert burn_less["high"] < combined["low"]  # HVO alone avoids more than every fuel-saving idea together
+    fewer = [a for a in feasible_actions(ledger) if a["intervention_id"] != "hvo_switch"]
+    assert burn_less["low"] == pytest.approx(max(a["co2e_avoided_t"]["low"] for a in fewer))
+    assert "leaves out the switch to HVO" in burn_less["how"]
+    g = ledger["goal"]
+    assert g["burn_less_pct"]["high"] == pytest.approx(100 * burn_less["high"] / ledger["emitted"]["value"])
+    assert g["burn_less_verdict"] in {"reaches", "might_reach", "falls_short"}
 
 
 def test_ideas_waiting_for_an_answer_are_listed_but_not_counted():

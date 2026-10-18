@@ -95,3 +95,39 @@ def test_bigquery_view_agrees_with_the_fleet_summary_tool(group_by):
         assert row["litres"] == pytest.approx(tool[key]["litres"]["value"], rel=1e-6), key
         assert row["co2e_kg"] == pytest.approx(tool[key]["co2e_kg"]["value"], rel=1e-6), key
         assert row["jobs"] == tool[key]["jobs"], key
+
+
+def _same(a, b, path="result"):
+    """Equal, with floats compared to a millionth: BigQuery and pandas may differ in the last digit."""
+    if isinstance(a, dict):
+        assert a.keys() == b.keys(), path
+        for k in a:
+            _same(a[k], b[k], f"{path}.{k}")
+    elif isinstance(a, (list, tuple)):
+        assert len(a) == len(b), path
+        for i, (x, y) in enumerate(zip(a, b)):
+            _same(x, y, f"{path}[{i}]")
+    elif isinstance(a, float) and isinstance(b, float):
+        assert a == pytest.approx(b, rel=1e-6, abs=1e-9), path
+    else:
+        assert a == b, path
+
+
+@pytest.mark.gcp
+@pytest.mark.skipif(os.environ.get("FIELDCARBON_GCP_TESTS") != "1", reason="reads BigQuery; set FIELDCARBON_GCP_TESTS=1 to run")
+@pytest.mark.parametrize("name", ["fleet_summary", "emissions_per_client", "reconcile_fuel", "detect_anomalies", "benchmark_peers",
+                                  "action_impact", "data_quality", "carbon_ledger"])
+def test_every_tool_gives_the_same_answer_from_bigquery_as_from_the_csv_files(name, monkeypatch):
+    from evals.checks import TOOLS
+    tool = TOOLS[name]
+    monkeypatch.setenv("FIELDCARBON_DATA", "csv")
+    clear_caches()
+    from_csv = tool()
+    monkeypatch.setenv("FIELDCARBON_DATA", "bigquery")
+    clear_caches()
+    try:
+        from_bigquery = tool()
+    finally:
+        monkeypatch.setenv("FIELDCARBON_DATA", "csv")
+        clear_caches()
+    _same(from_bigquery, from_csv)

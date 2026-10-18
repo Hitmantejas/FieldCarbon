@@ -119,6 +119,15 @@ def test_the_caller_is_the_address_cloud_run_appended_last():
     assert caller_of("", None) == "unknown"
 
 
+def test_behind_our_own_proxy_the_caller_is_the_address_before_it(monkeypatch):
+    monkeypatch.setenv("FIELDCARBON_TRUSTED_PROXIES", "1")
+    assert caller_of("6.6.6.6, 1.1.1.1, 10.0.0.9", "127.0.0.1") == "1.1.1.1"  # a forged first entry is ignored
+    assert caller_of("1.1.1.1", "127.0.0.1") == "1.1.1.1"  # fewer entries than hops: the earliest one
+    monkeypatch.setenv("FIELDCARBON_TRUSTED_PROXIES", "-1")
+    with pytest.raises(ValueError, match="FIELDCARBON_TRUSTED_PROXIES"):
+        caller_of("1.1.1.1", None)
+
+
 def test_limits_come_from_env_vars_and_bad_values_are_rejected(monkeypatch):
     monkeypatch.setenv("FIELDCARBON_ASK_PER_MINUTE", "2")
     monkeypatch.setenv("FIELDCARBON_ASK_PER_DAY", "50")
@@ -134,3 +143,37 @@ def test_the_reply_lists_each_checked_number_with_its_tool_and_label(monkeypatch
     nums = [{"text": "16,492 litres", "tool": "fleet_summary", "label": "allocated"}]
     monkeypatch.setattr(fleet_agent, "ask", lambda q, session_id=None: {**FAKE, "audit": {**FAKE["audit"], "numbers": nums}})
     assert client.post("/api/agent/ask", json={"question": "How much fuel?"}).json()["audit"]["numbers"] == nums
+
+
+# ---- the streamed ask ------------------------------------------------------------------------------------
+def _events(response):
+    import json
+    return [json.loads(line[6:]) for line in response.text.split("\n\n") if line.startswith("data: ")]
+
+
+def test_the_stream_sends_each_step_then_the_answer(monkeypatch):
+    def staged(q, session_id=None, on_step=None):
+        on_step({"step": "tool_call", "name": "fleet_summary", "args": {"group_by": "site"}})
+        on_step({"step": "tool_result", "name": "fleet_summary", "error": False, "ms": 12})
+        return FAKE
+    monkeypatch.setattr(fleet_agent, "ask", staged)
+    r = client.post("/api/agent/ask/stream", json={"question": "How much fuel?"})
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/event-stream")
+    events = _events(r)
+    assert [e["step"] for e in events] == ["tool_call", "tool_result", "answer"]
+    assert events[-1]["answer"].startswith("The fleet used") and "output" not in str(events[-1]["tools_called"])
+
+
+def test_a_failing_model_ends_the_stream_with_an_error_event(monkeypatch):
+    def broken(q, session_id=None, on_step=None):
+        raise RuntimeError("vertex down")
+    monkeypatch.setattr(fleet_agent, "ask", broken)
+    events = _events(client.post("/api/agent/ask/stream", json={"question": "How much fuel?"}))
+    assert events == [{"step": "error", "message": agent_api.UNREACHABLE}]
+
+
+def test_the_stream_counts_against_the_same_limit(monkeypatch):
+    monkeypatch.setattr(fleet_agent, "ask", lambda q, session_id=None, on_step=None: FAKE)
+    codes = [client.post("/api/agent/ask/stream", json={"question": "How much fuel?"}, headers={"X-Forwarded-For": "2.2.2.2"}).status_code
+             for _ in range(6)]
+    assert codes == [200] * 5 + [429]

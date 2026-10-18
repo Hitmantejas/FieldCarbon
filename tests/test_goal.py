@@ -41,7 +41,7 @@ def test_target_figures_are_the_goal_applied_to_the_farm_totals():
 
 def test_verdicts_at_a_20_percent_goal_for_farm_a():
     got = {i["intervention_id"]: i["verdict"] for i in set_goal(20)["ideas"]}
-    assert got["no_till"] == "reaches"
+    assert got["no_till"] == "might_reach"  # its low end is 48% of tillage and seeding fuel since the SDSU figure was checked
     assert got["hvo_switch"] == "reaches"
     assert got["reduced_tillage"] == "falls_short"  # counted on ploughed fields only: best case ~5.1 t of ~7.3 t
     assert got["shift_up_throttle_down"] == "falls_short"

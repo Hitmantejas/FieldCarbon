@@ -95,3 +95,12 @@ def test_the_api_lists_every_action_and_filters_to_one():
     one = client.get('/api/fleet/actions', params={'action_id': 'ACT-02'}).json()
     assert len(one['actions']) == 1 and one['actions'][0]['status'] == 'cant_tell_yet'
     assert client.get('/api/fleet/actions', params={'action_id': 'ACT-99'}).status_code == 404
+
+
+def test_the_answer_does_not_depend_on_the_order_the_source_returns_jobs(monkeypatch):
+    from backend.fleet import data
+    from backend.tools import action_impact as ai
+    expected = ai.action_impact("ACT-01")
+    shuffled = data.jobs().sample(frac=1, random_state=7).reset_index(drop=True)
+    monkeypatch.setattr(ai, "jobs", lambda: shuffled)
+    assert ai.action_impact("ACT-01") == expected

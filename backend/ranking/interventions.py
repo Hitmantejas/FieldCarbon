@@ -96,6 +96,11 @@ def _is_manufacturer(source_id: str) -> bool:
     return bool(_sources().loc[source_id, "is_manufacturer"])
 
 
+def _counts(c) -> bool:
+    """Whether a coefficient row sets the range: not a maker's claim, and its figure was not lost when the source was checked."""
+    return not _is_manufacturer(c.source_id) and c.value_status != "not_confirmed"
+
+
 def _litres_in(ctx: FarmContext, categories: list[str], ploughed_only: bool = False) -> float:
     cat = _operations().category
     litres = ctx.ploughed_litres_by_op if ploughed_only and ctx.ploughed_litres_by_op is not None else ctx.litres_by_op
@@ -176,7 +181,8 @@ def _apply(ctx: FarmContext, c) -> _Row:
 
 def _robustness(coefs: pd.DataFrame) -> tuple[str, int]:
     src = _sources()
-    independent = {s for s in coefs.source_id if not src.loc[s, "is_manufacturer"] and src.loc[s, "evidence_type"] != "news"}
+    independent = {c.source_id for c in coefs.itertuples()
+                   if _counts(c) and src.loc[c.source_id, "evidence_type"] != "news"}
     n = len(independent)
     return ("strong" if n >= 3 else "moderate" if n == 2 else "limited"), n
 
@@ -196,7 +202,7 @@ def _evidence(coefs: pd.DataFrame) -> tuple[Evidence, ...]:
         evidence_type=src.loc[c.source_id, "evidence_type"], region=_text(src.loc[c.source_id, "region"]),
         year=_year(src.loc[c.source_id, "year"]), is_manufacturer=bool(src.loc[c.source_id, "is_manufacturer"]),
         low=float(c.low), high=float(c.high), unit=c.unit, baseline=c.baseline, derivation=c.derivation,
-        value_status=c.value_status, used_in_range=not _is_manufacturer(c.source_id),
+        value_status=c.value_status, used_in_range=_counts(c),
     ) for c in coefs.itertuples())
 
 
@@ -257,8 +263,8 @@ def _merge(low: _Row, high: _Row) -> _Row:
 
 def _evaluate_one(ctx: FarmContext, intervention_id: str, coefs: pd.DataFrame,
                   ctx_high: FarmContext | None = None) -> InterventionResult:
-    # Manufacturer claims are shown as evidence but never set the range (CLAUDE.md section 6).
-    used = coefs[[not _is_manufacturer(s) for s in coefs.source_id]]
+    # Manufacturer claims and figures that could not be confirmed are shown as evidence but never set the range (CLAUDE.md section 6).
+    used = coefs[[_counts(c) for c in coefs.itertuples()]]
     rows = [_apply(ctx, c) for c in used.itertuples()]
     if ctx_high is not None:  # an estimated split (Tier 3): ctx is its low end, ctx_high its high end
         rows = [_merge(r, _apply(ctx_high, c)) for r, c in zip(rows, used.itertuples())]
