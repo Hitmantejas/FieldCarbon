@@ -56,8 +56,15 @@ def schema(menu: list[str]) -> dict:
             "required": ["why", "extra_ideas", "summary"]}
 
 
+# A count of one is given in the singular, so Gemini copies "1 month", not "1 months" (as the app shows it).
+SINGULAR = {"notes": "note", "months": "month", "days": "day"}
+
+
 def _fig(f: dict | None) -> dict | None:
-    return None if f is None else {"value": _r(f["value"]), "unit": f["unit"], "label": f["label"]}
+    if f is None:
+        return None
+    unit = SINGULAR.get(f["unit"], f["unit"]) if f["value"] == 1 else f["unit"]
+    return {"value": _r(f["value"]), "unit": unit, "label": f["label"]}
 
 
 def gemini_facts(d: dict) -> dict:
