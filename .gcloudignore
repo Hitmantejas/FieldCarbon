@@ -17,6 +17,7 @@ data/synthetic/
 **/*.parquet
 frontend/
 tests/
-evals/
+evals/*
+!evals/results/
 docs/
 infra/
