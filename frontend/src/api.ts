@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 
 export type Label = "measured" | "allocated" | "estimated" | "excluded";
 
-// Farm A: real telemetry (Tier 1). Farm B: the same farm through receipts and a farm profile (Tier 3).
-export type FarmId = "a" | "b";
-
 export interface Figure {
   value: number | null;
   unit: string;
@@ -13,73 +10,6 @@ export interface Figure {
   source_ids: string[];
   low: number | null;
   high: number | null;
-}
-
-export interface Reference {
-  low: number;
-  typical: number;
-  high: number;
-  band_pct: number;
-  source_ids: string[];
-}
-
-export interface Summary {
-  farm: { id: string; name: string; tier: number; description: string };
-  litres: Figure;
-  co2e_kg: Figure;
-  cost_gbp: Figure;
-  hours: number | null; // receipts carry no engine hours
-  tractors: string[];
-  excluded_hours: number | null;
-  receipts?: number;
-  review_litres?: number;
-  provenance: {
-    dataset: string;
-    licence?: string;
-    attribution?: string;
-    emission_factors: string;
-    fuel_use_rates?: string;
-    data_source?: string;
-    demo_data: boolean;
-  };
-}
-
-export interface BreakdownRow {
-  key: string;
-  name: string;
-  litres: Figure;
-  co2e_kg: Figure;
-  cost_gbp: Figure;
-  hours: number | null;
-  share_pct: number;
-}
-
-export type Band = "below_typical" | "typical" | "above_typical" | "well_above" | "insufficient_data" | "no_reference";
-
-export interface Rating {
-  operation_code: string;
-  display_name: string;
-  band: Band;
-  hectares: number;
-  litres: number;
-  l_per_ha: number | null;
-  reference: Reference | null;
-  litres_at_stake_low: number;
-  litres_at_stake_high: number;
-  match_quality: "direct" | "closest" | "composite" | "none";
-  label: Label;
-  how: string;
-  second_opinion: Reference | null;
-  sources_agree: boolean | null;
-  litres_at_stake_label: Label;
-}
-
-export interface PainPoints {
-  available?: boolean; // false for receipts only: rating jobs against the rates that made the estimate is circular
-  reason?: string;
-  ratings: Rating[];
-  above_range: { count: number; litres_low: number; litres_high: number; count_sources_agree: number; label: Label } | null;
-  not_working: { litres: number; litres_low?: number; litres_high?: number; total_litres: number; share_pct: number; label: Label };
 }
 
 export interface SourceInfo {
@@ -119,6 +49,7 @@ export interface PlanFigures {
   cost: Figure | null;
   payback_years: Figure | null;
   running_cost_change_gbp: Figure | null;
+  gbp_per_tco2e?: Figure | null; // fleet ideas only
 }
 
 export interface Intervention {
@@ -136,22 +67,11 @@ export interface Intervention {
   figures: PlanFigures;
   cost_kind: "capex_one_off" | "running_cost_extra_per_litre" | "operating_cost_per_area_change" | null;
   cost_note: string;
+  gbp_per_tco2e_note?: string;
   notes: string;
 }
 
-export interface GoalIdea {
-  intervention_id: string;
-  name: string;
-  state: Intervention["state"];
-  robustness: Intervention["robustness"];
-  n_sources: number;
-  missing_inputs: string[];
-  verdict: "reaches" | "might_reach" | "falls_short" | "not_applicable";
-  reach: Figure | null;
-  warning: string | null;
-}
-
-// The farmer's answers; an unanswered question is simply missing.
+// The user's answers to the Opportunities questions; an unanswered question is simply missing.
 export interface Answers {
   tyre_pressure_checked?: boolean;
   has_ctis?: boolean;
@@ -165,84 +85,12 @@ export function query(params: Record<string, string | number | boolean | undefin
   return s ? `?${s}` : "";
 }
 
-export interface Goal {
-  target_pct: number;
-  suggested_pct: number;
-  suggested_how: string;
-  target_co2e: Figure;
-  target_litres: Figure;
-  counts: Record<GoalIdea["verdict"], number>;
-  ideas: GoalIdea[];
-}
-
-export interface SharpenOutcome {
-  answer: boolean | string;
-  applies: boolean;
-  verdict: GoalIdea["verdict"];
-  litres_saved: Figure | null;
-}
-
-export interface SharpenQuestion {
-  field: keyof Answers;
-  intervention_id: string;
-  name: string;
-  outcomes: SharpenOutcome[];
-  matters_for_goal: boolean;
-  swing: Figure;
-}
-
-export interface Sharpen {
-  target_pct: number;
-  top: keyof Answers | null;
-  questions: SharpenQuestion[];
-  still_uncertain: string[];
-}
-
-export interface Report {
-  meta: { title: string; farm: string; demo_data: boolean; generated_at: string; statement: string };
-  totals: { litres: Figure; co2e_kg: Figure; cost_gbp: Figure; engine_hours: number | null; excluded_hours: number | null };
-  pain_points_note?: string;
-  where_it_went: { name: string; share_pct: number; litres: Figure }[];
-  pain_points: {
-    name: string;
-    band: Band;
-    you_l_per_ha: number;
-    typical_low: number;
-    typical_high: number;
-    hectares: number;
-    sources_agree: boolean | null;
-    at_stake: Figure;
-  }[];
-  plan: {
-    goal: { target_pct: number; target_co2e: Figure; target_litres: Figure };
-    ideas: {
-      intervention_id: string;
-      name: string;
-      robustness: Intervention["robustness"];
-      n_sources: number;
-      verdict: GoalIdea["verdict"];
-      reach: Figure | null;
-      figures: PlanFigures;
-      how: string;
-      cost_kind: Intervention["cost_kind"];
-      overlaps: string[];
-    }[];
-    waiting: number;
-  };
-  answers: Answers;
-  limits: string[];
-  labels: { label: Label; meaning: string }[];
-  method: string;
-  attribution: { dataset: string; licence: string; attribution: string; emission_factors: string };
-  sources: SourceInfo[];
-}
-
 export type State<T> = { data?: T; error?: string };
 
 export function useApi<T>(path: string): State<T> {
   const [state, setState] = useState<State<T>>({});
   useEffect(() => {
-    setState({}); // a new path (another farm) must never show the previous answer
+    setState({}); // a new path must never show the previous answer
     const ac = new AbortController();
     fetch(path, { signal: ac.signal })
       .then((r) => {

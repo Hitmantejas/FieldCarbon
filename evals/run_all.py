@@ -99,11 +99,11 @@ def agent_runs() -> dict:
 
 
 def other_evals() -> dict:
-    from evals import (fleet_detection, fleet_diagnosis, maintenance_accuracy, range_coverage, receipt_accuracy, upload_check,
-                       voice_accuracy)
+    from evals import (fleet_detection, fleet_diagnosis, maintenance_accuracy, proof_recovery, range_coverage, receipt_accuracy,
+                       upload_check, voice_accuracy)
     from backend.tools import read_maintenance
 
-    out = {"fleet_detection": fleet_detection.score()}
+    out = {"fleet_detection": fleet_detection.score(), "proof_recovery": proof_recovery.score()}
     voices = voice_accuracy.load_readings()
     out["voice_accuracy"] = ({**{k: v for k, v in voice_accuracy.score(voices).items() if k != "per_clip"},
                               "tokens": voice_accuracy.token_usage()} if voices else "not run yet")
@@ -152,6 +152,7 @@ def markdown(s: dict) -> str:
         ("Tool eval cases", f"{t['passed']} of {t['cases']} pass"),
         ("Figures with a confidence label and sources", f"{pct(t['label_and_source_coverage'])} of {t['figures_checked']}"),
         ("Planted fuel problems found", f"{fd.get('found', fd.get('detected', '?'))} of {fd.get('planted', fd.get('total', '?'))}"),
+        ("Planted before-and-after effects recovered", f"{o['proof_recovery']['recovered']} of {o['proof_recovery']['changes']}"),
         ("Planted problems whose top supported cause is the planted one",
          f"{o['fleet_diagnosis']['correct']} of {o['fleet_diagnosis']['planted']}"),
         ("Receipts-only ranges containing the telemetry truth",

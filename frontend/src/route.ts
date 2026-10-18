@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ScreenId = "overview" | "ask" | "sites" | "jobs" | "opportunities" | "control" | "whatif" | "clients" | "reports";
+export type ScreenId = "overview" | "ask" | "sites" | "jobs" | "opportunities" | "proof" | "control" | "whatif" | "clients" | "reports" | "trust";
 
 const SCREEN_IDS: ScreenId[] = ["overview", "ask", "sites", "jobs", "opportunities", "control", "whatif", "clients", "reports"];
 const parts = () => location.hash.slice(2).split("?");

@@ -16,12 +16,3 @@ export function RangeBar({ low, high, max, description }: Props) {
     </div>
   );
 }
-
-// Plain share of a whole, for "how much of the fuel".
-export function ShareBar({ pct, description }: { pct: number; description: string }) {
-  return (
-    <div role="img" aria-label={description} className="h-3 overflow-hidden rounded-full bg-tint">
-      <div className="span-in h-full rounded-full bg-moss" style={{ width: `${pct}%` }} />
-    </div>
-  );
-}

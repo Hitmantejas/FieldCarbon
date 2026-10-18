@@ -79,6 +79,72 @@ export interface Reconciliation {
 
 export type FleetIdea = Intervention;
 
+export type Verdict = "reaches" | "might_reach" | "falls_short";
+
+export interface LedgerAction {
+  intervention_id: string;
+  name: string;
+  state: "feasible" | "needs_info";
+  robustness: "strong" | "moderate" | "limited";
+  co2e_avoided_t: Figure;
+  gbp_per_tco2e: Figure | null;
+  gbp_per_tco2e_note: string;
+}
+
+export interface Ledger {
+  emitted: Figure;
+  sites: { site_id: string; name: string; co2e_t: Figure; kg_per_ha: Figure; covered_by_evidence: boolean }[];
+  avoidable: {
+    top_action: LedgerAction;
+    combined: Figure;
+    actions: LedgerAction[];
+    covered_emitted_t: Figure;
+    covered_share_pct: number;
+    not_covered: string;
+  };
+  proven: Figure;
+  proven_changes: { action_id: string; name: string }[];
+  goal: {
+    target_pct: number;
+    target_co2e: Figure;
+    top_action_pct: Figure;
+    combined_pct: Figure;
+    top_action_verdict: Verdict;
+    combined_verdict: Verdict;
+  };
+}
+
+export type ActionStatus = "reduction_shown" | "increase_shown" | "cant_tell_yet" | "not_enough_jobs";
+
+export interface ActionImpact {
+  action: {
+    action_id: string;
+    name: string;
+    site_name: string;
+    machines: string[];
+    start_date: string;
+    what_changed: string;
+    is_illustrative: boolean;
+  };
+  status: ActionStatus;
+  headline: string;
+  jobs: { changed_before: number; changed_after: number; others_before: number; others_after: number };
+  change_pct: Figure | null;
+  changed_change_pct: Figure | null;
+  others_change_pct: Figure | null;
+  litres_avoided: Figure | null;
+  co2e_avoided_t: Figure | null;
+  operations: string[];
+  caveats: string[];
+  what_would_improve: string;
+}
+
+export interface ActionImpactResult {
+  actions: ActionImpact[];
+  proven_co2e_t: Figure;
+  method: string;
+}
+
 export interface FleetOpportunities {
   scope: { site_ids: string[]; litres?: number };
   ideas: FleetIdea[];
@@ -404,4 +470,20 @@ export async function readVoiceNote(audio: Blob, signal?: AbortSignal): Promise<
   const r = await fetch("/api/fleet/voice-notes/read", { method: "POST", headers: { "Content-Type": audio.type }, body: audio, signal });
   if (!r.ok) throw await apiError(r);
   return r.json() as Promise<VoiceNoteCheck>;
+}
+
+export interface TrustCheck {
+  group: string;
+  question: string;
+  result: string;
+  detail: string;
+  status: "pass" | "partial" | "not_run";
+}
+
+export interface TrustScoreboard {
+  available: boolean;
+  message?: string;
+  updated?: string;
+  checks: TrustCheck[];
+  limits: string[];
 }

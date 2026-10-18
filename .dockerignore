@@ -17,6 +17,7 @@ data/synthetic/
 frontend/node_modules/
 frontend/dist/
 tests/
-evals/
+evals/*
+!evals/results/
 docs/
 infra/

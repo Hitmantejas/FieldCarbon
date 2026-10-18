@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from functools import wraps
 
-from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _notes, client_statement as _statement,
+from backend.tools import (action_impact as _actions, benchmark_peers as _peers, carbon_ledger as _ledger, check_delivery_notes as _notes, client_statement as _statement,
                            data_quality as _quality, diagnose_anomaly as _diagnose,
                            detect_anomalies as _anomalies, emissions_per_client as _clients, fleet_jobs as _jobs,
                            fleet_opportunities as _ideas, fleet_report as _report, fleet_summary as _summary, reconcile_fuel as _recon, what_if as _what_if,
@@ -18,7 +18,7 @@ from backend.tools import (benchmark_peers as _peers, check_delivery_notes as _n
 
 MAX_JOBS = 10
 MAX_ROWS = 15
-FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg"}  # their `how` is the same fixed formula on every row
+FORMULA_FIGURES = {"co2e_kg", "cost_gbp", "co2e_avoided_kg", "co2e_t", "co2e_avoided_t"}  # their `how` is the same fixed formula on every row
 KEEP_HOW = {"diagnose_anomaly", "benchmark_peers"}  # why each cause is supported; why a machine is above its peers
 SCREENS = {"#/control": "Fuel control", "#/opportunities": "Opportunities", "#/sites": "Sites"}  # app links, by screen name
 
@@ -59,6 +59,28 @@ def _safe(fn):
         except (ValueError, KeyError) as e:
             return {"error": f"{type(e).__name__}: {e}"}
     return run
+
+
+@_safe
+def carbon_ledger(goal_pct: float = 20) -> dict:
+    """The fleet's carbon ledger in tonnes of CO2e: emitted, avoidable and proven, with a check against a reduction goal.
+
+    Avoidable is the strongest idea's range plus a bounded combined range (ideas overlap, so they are never added). Only
+    the arable sites have research behind an idea. Proven is only what a logged change showed before and after, judged
+    against the other machines (see action_impact). goal_pct is
+    1 to 90 (percent of fleet emissions). Also gives tonnes per site, kg CO2e per hectare, and cost per tonne avoided.
+    """
+    return _ledger.carbon_ledger(goal_pct)
+
+
+@_safe
+def action_impact(action_id: str | None = None) -> dict:
+    """Did a logged change work? For each logged change (ACT-01, ACT-02) it compares litres per hectare before and after on
+    the changed machines against the other machines, and gives a range for the change in percent. Status is
+    reduction_shown (the range is below zero), cant_tell_yet (the range spans zero) or not_enough_jobs. Only a shown
+    reduction has litres and tonnes of CO2e avoided. These changes are illustrative demo data. Omit action_id for all.
+    """
+    return _actions.action_impact(action_id)
 
 
 @_safe

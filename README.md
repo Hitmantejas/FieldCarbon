@@ -32,11 +32,13 @@ each change are less certain, and FieldCarbon says so.
 
 | Screen | What the fleet manager sees |
 |---|---|
-| Overview | Fleet fuel, CO2e (well-to-wheel, UK GHG Conversion Factors 2025) and cost, by site and month |
-| Sites, Jobs, Clients | The same job compared across machines (L/ha, L/h, idle share); emissions per client farm; **machine problems reported by voice** |
+| Overview | **Carbon ledger**: tonnes of CO2e emitted, a bounded range of tonnes that could be avoided, tonnes proven avoided, whether a chosen goal is reachable, and £ per tonne avoided; then fuel, cost and CO2e by site and month |
+| Sites, Jobs, Clients | The same job compared across machines (L/ha, L/h, idle share); emissions per client farm |
 | Fuel control | Depot deliveries vs dispenses vs fuel burned; **delivery notes read by Gemini, checked against the fuel log** |
 | Opportunities, What if | Ranked interventions with cost, litres saved, payback range and evidence |
+| Proof | **Before-and-after proof**: each logged change is judged against the machines that did not change; a saving is proven only when its range clears zero, otherwise "can't tell yet". The two logged changes are made up (illustrative) to show the method |
 | Reports | A traceable report a contractor can share with clients and buyers |
+| Trust | The latest eval results in plain words (tools, hidden problems found, planted savings recovered, analyst answers traced, documents read), what each test checks and what the tests do not show |
 
 ## Gemini on Vertex AI
 
@@ -118,6 +120,10 @@ flowchart LR
 
 - **Engine:** BigQuery (reference, input and telemetry tables; calculated views; BigQuery GIS for
   fields) and tested Python. Every figure follows one contract: `{value, unit, label, how, source_ids, low, high}`.
+- **Fleet data:** the 15 fleet tables load into BigQuery with `python infra/load_fleet.py --apply`. With
+  `FIELDCARBON_DATA=bigquery` the app reads them from there (default `csv`: the files in `data/fleet`). The views in
+  `backend/emissions/views/030_fleet_views.sql` compute litres x emission factor in SQL, and a test checks they agree
+  with the `fleet_summary` tool.
 - **App:** FastAPI backend and React + Vite + Tailwind frontend in one Cloud Run service.
 - **Region:** data and services in `us-central1`; Gemini uses Vertex AI's `global` endpoint, where
   `gemini-3.5-flash` is offered. Only synthetic documents and demo questions are sent to it.

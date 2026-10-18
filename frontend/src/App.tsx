@@ -6,8 +6,10 @@ import { FuelControl } from "./screens/FuelControl";
 import { Jobs } from "./screens/Jobs";
 import { Opportunities } from "./screens/Opportunities";
 import { Overview } from "./screens/Overview";
+import { Proof } from "./screens/Proof";
 import { Reports } from "./screens/Reports";
 import { Sites } from "./screens/Sites";
+import { Trust } from "./screens/Trust";
 import { WhatIf } from "./screens/WhatIf";
 import { SourcesProvider } from "./sources";
 
@@ -27,7 +29,9 @@ export default function App() {
         {screen === "reports" && <Reports />}
         {screen === "sites" && <Sites />}
         {screen === "opportunities" && <Opportunities />}
+        {screen === "proof" && <Proof />}
         {screen === "control" && <FuelControl />}
+        {screen === "trust" && <Trust />}
       </Shell>
     </SourcesProvider>
   );
