@@ -52,8 +52,9 @@ def slice_figures(df: pd.DataFrame, synthetic_cols: bool = False) -> dict:
             f"**{litres:,.0f} litres** x **{factor.kg_per_unit:g} kg of CO2** for each litre of red diesel.",
             f"UK government figures for {EF_YEAR} (UK GHG CF {EF_YEAR}), including the CO2 from making and moving the fuel."),
             source_ids=src + (factor.source_id,))),
-        "cost_gbp": asdict(Figure(cost, "GBP", label, bullets(
+        "cost_gbp": asdict(Figure(cost, "GBP", "estimated", bullets(
             f"**{litres:,.0f} litres** x the price paid in each month's fuel deliveries.",
-            f"That averages **£{avg:.3f} a litre**. A month with no delivery uses the Defra red diesel price."),
+            f"That averages **£{avg:.3f} a litre**. A month with no delivery uses the Defra red diesel price.",
+            "Fuel is not priced litre by litre, so the cost is **estimated**."),
             source_ids=tuple(dict.fromkeys(src + (SYNTHETIC_SOURCE, "defra_ukammg"))))),
     }

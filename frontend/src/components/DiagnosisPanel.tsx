@@ -3,6 +3,7 @@ import { fetchDiagnosis } from "../fleetApi";
 import type { Cause, CauseStatus, Diagnosis, Finding } from "../fleetApi";
 import { litres } from "../format";
 import { AuditBadge } from "./AuditBadge";
+import { Rich } from "./Rich";
 import { Stamp } from "./Stamp";
 
 // The result is a word in a bordered tag, so it never relies on colour.
@@ -12,12 +13,13 @@ const STATUS_FORM: Record<CauseStatus, string> = {
   not_supported: "border-2 border-ink text-ink",
 };
 
-// Litres with thousands separators, percentages whole, and counts in the singular for one ("1 month", not "1 months").
+// Litres with thousands separators, percentages whole, hours to one decimal, and counts in the singular for one ("1 month", not "1 months").
 const COUNTS: Record<string, string> = { notes: "note", months: "month", days: "day" };
 const shownValue = (v: number | null, unit: string) => {
   if (v === null) return "not available";
   if (unit === "L") return `${litres(v)} L`;
   if (unit === "%") return `${Math.round(v)}%`;
+  if (unit === "h") return `${v.toLocaleString("en-GB", { maximumFractionDigits: 1 })} h`;
   return `${v.toLocaleString("en-GB")} ${v === 1 && COUNTS[unit] ? COUNTS[unit] : unit}`;
 };
 
@@ -39,7 +41,11 @@ function CauseRow({ c }: { c: Cause }) {
           {c.explains_pct !== null && <span className="num">explains {c.explains_pct}% of the finding</span>}
         </p>
       )}
-      {c.evidence && <p className="max-w-[70ch] text-sm text-ink-soft">{c.evidence.how}</p>}
+      {c.evidence && (
+        <div className="text-sm text-ink-soft">
+          <Rich text={c.evidence.how} />
+        </div>
+      )}
       {c.why && <p className="max-w-[70ch] text-sm">{c.suggested_by === "gemini" ? "Gemini's idea: " : "Gemini's reading: "}{c.why}</p>}
       {c.would_settle && (
         <p className="max-w-[70ch] text-sm">

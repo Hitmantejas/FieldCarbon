@@ -368,6 +368,15 @@ def test_every_evidence_figure_says_what_it_measures_in_words_without_numbers(fi
         assert h["evidence_measures"] is None or not re.search(r"\d", h["evidence_measures"])
 
 
+def test_a_count_of_one_reaches_gemini_in_the_singular():
+    """A live summary copied '1 months [allocated]' from the facts."""
+    ev = lambda n: {"value": n, "unit": "months", "label": "allocated"}
+    d = {"title": "t", "kind": "k", "finding_figure": {"value": 92.243, "unit": "h", "label": "measured"},
+         "hypotheses": [{"id": f"h{n}", "title": "t", "status_text": "s", "evidence": ev(n), "evidence_measures": "m",
+                         "explains_pct": None} for n in (1, 7)]}
+    assert [t["evidence"]["unit"] for t in diagnosis_text.gemini_facts(d)["tests"]] == ["month", "months"]
+
+
 def test_a_model_failure_keeps_the_tests_with_no_why_lines():
     d = dx.diagnose_anomaly(A1)
     out = diagnosis_text.explain(d, stub(_good, fail=True))
