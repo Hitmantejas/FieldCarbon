@@ -33,7 +33,7 @@ GROUPS = ((True, False), (True, True), (False, False), (False, True))  # (change
 def _job_table(action: pd.Series, overlay: pd.DataFrame) -> pd.DataFrame:
     changed = action.machine_ids.split(";")
     d = jobs()
-    d = d[(d.site_id == action.site_id) & (d.area_ha >= MIN_AREA_HA)].copy()
+    d = d[(d.site_id == action.site_id) & (d.area_ha >= MIN_AREA_HA)].sort_values("job_id").copy()  # a fixed order, so the resampling does not depend on how the source returns rows
     d["changed"] = d.machine_id.isin(changed)
     d["after"] = d.start_ts >= action.start_date
     with_action = overlay[overlay.action_id == action.name].set_index("job_id").litres_with_action  # this action's own overlay only

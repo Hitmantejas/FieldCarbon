@@ -5,12 +5,14 @@ from dataclasses import asdict
 from backend.emissions.text import bullets
 from backend.fleet.context import ARABLE_SITES
 from backend.ranking.goal import MAX_GOAL_PCT, MIN_GOAL_PCT, verdict
+from backend.ranking.interventions import OVERLAPS
 from backend.tools.action_impact import action_impact
 from backend.tools.contracts import Figure, weakest
 from backend.tools.fleet_opportunities import fleet_opportunities
 from backend.tools.fleet_summary import fleet_summary
 
 OVERLAP_NOTE = "Effects overlap, so these are not added."
+FUEL_SWITCH = "hvo_switch"  # changes what each litre emits, not the litres, so it is reported apart from the fuel-saving ideas
 NOT_COVERED = ("The vineyard is not covered: our research evidence is for arable field work, so no avoidable "
                "tonnes are claimed for it.")
 
@@ -47,6 +49,19 @@ def _action(idea: dict) -> dict:
             "gbp_per_tco2e": idea["figures"]["gbp_per_tco2e"], "gbp_per_tco2e_note": idea["gbp_per_tco2e_note"]}
 
 
+def _combined_high(actions: list[dict], covered_t: float) -> float:
+    """The most the ideas could avoid together, in tonnes. Only the best idea of each group of overlapping ideas counts, and the
+    groups are combined as shares of what is left, so the total can never pass the fuel burned and overlaps are never added."""
+    best: dict[frozenset, float] = {}
+    for a in actions:
+        group = frozenset({a["intervention_id"], *OVERLAPS.get(a["intervention_id"], ())})
+        best[group] = max(best.get(group, 0.0), min(a["co2e_avoided_t"]["high"], covered_t))
+    left = 1.0
+    for high in best.values():
+        left *= 1 - high / covered_t
+    return covered_t * (1 - left)
+
+
 def _pct_of(total_t: float, low_t: float, high_t: float, sources) -> dict:
     return _estimated("% of fleet emissions", bullets(
         f"**{low_t:,.1f} to {high_t:,.1f} tonnes** of CO2e avoided, out of **{total_t:,.1f} tonnes** burned by the fleet."),
@@ -68,20 +83,28 @@ def carbon_ledger(goal_pct: float = 20, known: dict | None = None) -> dict:
     feasible = [_action(i) for i in ideas if i["state"] == "feasible"]
     actions = feasible + [_action(i) for i in ideas if i["state"] != "feasible"]
     top = feasible[0]  # ideas arrive ranked by strength of evidence
-    largest = max(feasible, key=lambda a: a["co2e_avoided_t"]["low"])
-    highs = [a["co2e_avoided_t"]["high"] for a in feasible]
     sources = [s for a in feasible for s in a["co2e_avoided_t"]["source_ids"]]
-    combined_low, combined_high = largest["co2e_avoided_t"]["low"], min(sum(highs), covered_t)
-    combined = _estimated("t CO2e per year", bullets(
-        f"At least the **largest single idea's low estimate**: **{combined_low:,.1f} tonnes** ({largest['name']}).",
-        f"At most the **ideas' high estimates added together**, held to the **{covered_t:,.1f} tonnes** the arable sites burn: "
-        f"**{combined_high:,.1f} tonnes**.", OVERLAP_NOTE), sources, combined_low, combined_high)
+
+    def combined_range(chosen: list[dict], what: str) -> dict:
+        largest = max(chosen, key=lambda a: a["co2e_avoided_t"]["low"])
+        low, high = largest["co2e_avoided_t"]["low"], _combined_high(chosen, covered_t)
+        return _estimated("t CO2e per year", bullets(
+            f"At least the **largest single idea's low estimate**: **{low:,.1f} tonnes** ({largest['name']}).",
+            f"At most the **best idea from each group of overlapping ideas**, each taking a share of what is left of the "
+            f"**{covered_t:,.1f} tonnes** the arable sites burn: **{high:,.1f} tonnes**.", what, OVERLAP_NOTE),
+            [s for a in chosen for s in a["co2e_avoided_t"]["source_ids"]], low, high)
+
+    combined = combined_range(feasible, "This includes the switch to HVO fuel, which is most of it.")
+    fewer_litres = [a for a in feasible if a["intervention_id"] != FUEL_SWITCH]
+    burn_less = combined_range(fewer_litres, "This leaves out the switch to HVO fuel: only ideas that burn fewer litres.")
+    combined_low, combined_high = combined["low"], combined["high"]
 
     top_t = top["co2e_avoided_t"]
     target = Figure(emitted_t * goal_pct / 100, "t CO2e", emitted["label"], bullets(
         f"**{goal_pct:g}%** of the **{emitted_t:,.1f} tonnes** the fleet emitted."), source_ids=tuple(emitted["source_ids"]))
     top_pct = _pct_of(emitted_t, top_t["low"], top_t["high"], top_t["source_ids"])
     combined_pct = _pct_of(emitted_t, combined_low, combined_high, sources)
+    burn_less_pct = _pct_of(emitted_t, burn_less["low"], burn_less["high"], burn_less["source_ids"])
     proof = action_impact()
     proven_changes = [{"action_id": a["action"]["action_id"], "name": a["action"]["name"]} for a in proof["actions"] if a["co2e_avoided_t"]]
 
@@ -89,14 +112,15 @@ def carbon_ledger(goal_pct: float = 20, known: dict | None = None) -> dict:
         "emitted": emitted,
         "sites": sites,
         "avoidable": {
-            "top_action": top, "combined": combined, "actions": actions,
+            "top_action": top, "combined": combined, "burn_less": burn_less, "actions": actions,
             "covered_emitted_t": {**emitted, "value": covered_t, "how": bullets(
                 f"Fuel burned at the arable sites: **{covered_t:,.1f} tonnes** of CO2e. Only these sites have research behind an idea.")},
             "covered_share_pct": 100 * covered_t / emitted_t, "not_covered": NOT_COVERED,
         },
         "proven": proof["proven_co2e_t"],
         "proven_changes": proven_changes,
-        "goal": {"target_pct": goal_pct, "target_co2e": asdict(target), "top_action_pct": top_pct, "combined_pct": combined_pct,
+        "goal": {"target_pct": goal_pct, "target_co2e": asdict(target), "top_action_pct": top_pct, "combined_pct": combined_pct, "burn_less_pct": burn_less_pct,
                  "top_action_verdict": verdict(top_pct["low"], top_pct["high"], goal_pct),
-                 "combined_verdict": verdict(combined_pct["low"], combined_pct["high"], goal_pct)},
+                 "combined_verdict": verdict(combined_pct["low"], combined_pct["high"], goal_pct),
+                 "burn_less_verdict": verdict(burn_less_pct["low"], burn_less_pct["high"], goal_pct)},
     }
