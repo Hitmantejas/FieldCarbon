@@ -88,7 +88,7 @@
         {
           "type": "verdict",
           "intervention_id": "no_till",
-          "equals": "reaches"
+          "equals": "might_reach"
         },
         {
           "type": "verdict",

@@ -4,7 +4,7 @@ Gemini plans which tools to call and explains their results in plain English. Ev
 (CLAUDE.md principle 1). Before an answer leaves `ask()`, the auditor checks that each number traces to a tool output,
 and coverage checks that each figure has its label and each idea its source; an answer that fails is rewritten once with
 the problems named, and if a number still does not trace it carries a visible note. `ask()` can also record the run for
-the eval harness (evals/run_all.py).
+the eval harness (evals/run_all.py), and report each step as it happens (`on_step`) so the screen can show the agent working.
 
 Follow-up questions share a session id: the model sees the last MAX_TURNS questions and their answers, and the auditor
 checks a follow-up against every tool output of the conversation, so an earlier figure may be repeated without a new
@@ -18,6 +18,7 @@ import threading
 import time
 import uuid
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from google.adk.agents import Agent
@@ -158,13 +159,19 @@ def _vertex_model() -> str:
     return MODEL
 
 
-class Turn:
-    """What one model turn produced: the final text, the tool calls and their outputs, and the tokens used."""
+Step = Callable[[dict], None]
 
-    def __init__(self) -> None:
+
+class Turn:
+    """What one model turn produced: the final text, the tool calls and their outputs, and the tokens used.
+    `on_step` hears each tool call and each result as it happens, without the raw output."""
+
+    def __init__(self, on_step: Step | None = None) -> None:
         self.text = ""
         self.calls: list[dict] = []
         self.tokens = {"input": 0, "output": 0, "thinking": 0}
+        self._on_step = on_step or (lambda step: None)
+        self._started: dict[int, float] = {}
 
     def add(self, event) -> None:
         pending = {}
@@ -172,10 +179,14 @@ class Turn:
             call = {"name": c.name, "args": dict(c.args or {}), "output": None}
             self.calls.append(call)
             pending[c.id or c.name] = call
+            self._started[id(call)] = time.monotonic()
+            self._on_step({"step": "tool_call", "name": call["name"], "args": call["args"]})
         for r in event.get_function_responses():
             call = pending.get(r.id or r.name) or next((x for x in reversed(self.calls) if x["name"] == r.name and x["output"] is None), None)
             if call is not None:
                 call["output"] = r.response
+                self._on_step({"step": "tool_result", "name": call["name"], "error": "error" in (r.response or {}),
+                               "ms": round(1000 * (time.monotonic() - self._started.pop(id(call), time.monotonic())))})
         u = event.usage_metadata
         if u:
             self.tokens["input"] += u.prompt_token_count or 0
@@ -185,15 +196,17 @@ class Turn:
             self.text = "".join(p.text or "" for p in event.content.parts if not getattr(p, "thought", False)).strip()
 
 
-async def _turn(runner: Runner, user_id: str, session_id: str, message: str) -> Turn:
-    turn = Turn()
+async def _turn(runner: Runner, user_id: str, session_id: str, message: str, on_step: Step | None = None) -> Turn:
+    turn = Turn(on_step)
     content = types.Content(role="user", parts=[types.Part(text=message)])
     async for event in runner.run_async(user_id=user_id, session_id=session_id, new_message=content):
         turn.add(event)
     return turn
 
 
-async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, new: bool, dropped: list[str]) -> dict:
+async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, new: bool, dropped: list[str],
+               on_step: Step | None = None) -> dict:
+    say = on_step or (lambda step: None)
     for old in dropped:
         await _sessions.delete_session(app_name=APP, user_id=USER, session_id=old)
     if new:
@@ -202,12 +215,14 @@ async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, 
     runner = Runner(app_name=APP, agent=build_agent(model, conv.questions), session_service=_sessions)
     earlier = list(conv.calls)  # a follow-up may repeat any figure the conversation's tools returned
 
-    turn = await _turn(runner, USER, sid, question)
+    turn = await _turn(runner, USER, sid, question, say)
     calls, answer, tokens, attempts = list(turn.calls), turn.text, dict(turn.tokens), 1
     verdict = _verdict(answer, earlier + calls, question)
     gaps = _gaps(answer, earlier + calls)
+    say(_audit_step(1, verdict, gaps))
     if (not verdict.faithful or any(gaps.values())) and retry:
-        again = await _turn(runner, USER, sid, rewrite_request(verdict.unmatched, **gaps))
+        say({"step": "rewrite", "reason": _problems(verdict, gaps)})
+        again = await _turn(runner, USER, sid, rewrite_request(verdict.unmatched, **gaps), say)
         all_calls = calls + again.calls
         tokens = {k: tokens[k] + again.tokens[k] for k in tokens}
         attempts = 2
@@ -216,6 +231,7 @@ async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, 
             answer, verdict = again.text, second
         calls = all_calls
         gaps = _gaps(answer, earlier + calls)
+        say(_audit_step(2, verdict, gaps))
     if not verdict.faithful:
         _, note = guard(answer, [c["output"] for c in earlier + calls], question)
         answer = f"{answer}\n\n{note}"
@@ -231,6 +247,20 @@ async def _ask(model, question: str, retry: bool, sid: str, conv: Conversation, 
             "tokens": tokens}
 
 
+def _audit_step(attempt: int, verdict, gaps: dict) -> dict:
+    return {"step": "audit", "attempt": attempt, "faithful": verdict.faithful, "numbers_checked": verdict.checked,
+            "untraced": [n.text for n in verdict.unmatched], "uncited": len(gaps["uncited"]),
+            "unlabelled": len(gaps["unlabelled"]), "unrounded": len(gaps["unrounded"])}
+
+
+def _problems(verdict, gaps: dict) -> str:
+    """What the auditor found, in a line, for the step shown to the user."""
+    found = [f"{len(verdict.unmatched)} number{'s' * (len(verdict.unmatched) != 1)} did not trace to a calculation"] if verdict.unmatched else []
+    found += [f"{len(gaps[k])} {what}" for k, what in (("uncited", "idea without its source"), ("unlabelled", "figure without a confidence label"),
+                                                       ("unrounded", "figure with too many decimals")) if gaps[k]]
+    return "; ".join(found)
+
+
 def _gaps(answer: str, calls: list[dict]) -> dict:
     outputs = [c["output"] for c in calls]
     return {"uncited": uncited_ideas(answer, outputs), "unlabelled": unlabelled_sentences(answer), "unrounded": unrounded_numbers(answer)}
@@ -241,13 +271,13 @@ def _verdict(answer: str, calls: list[dict], question: str):
 
 
 def ask(question: str, model=None, retry: bool = True, record: bool = False, case_id: str | None = None,
-        record_file: str = "agent.jsonl", session_id: str | None = None) -> dict:
+        record_file: str = "agent.jsonl", session_id: str | None = None, on_step: Step | None = None) -> dict:
     """Answer one question, as a follow-up when `session_id` names a live conversation; an unknown or ended id starts a
     new one and says so. `model` is a model name or an ADK model object (tests pass a scripted one). `tool_calls` are
     this question's; a recorded run keeps every call of the conversation, since the audit may use any of them."""
     sid, conv, new, dropped = _open(session_id)
     with conv.lock:  # one question at a time per conversation
-        result = asyncio.run(_ask(model, question, retry, sid, conv, new, dropped))
+        result = asyncio.run(_ask(model, question, retry, sid, conv, new, dropped, on_step))
     result.update(session_id=sid, new_session=new, session_note=ENDED if new and session_id else None)
     result["model"] = model if isinstance(model, str) or model is None else type(model).__name__
     session_calls = result.pop("session_calls")

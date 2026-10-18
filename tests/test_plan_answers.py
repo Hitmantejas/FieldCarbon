@@ -41,7 +41,7 @@ def test_goal_uses_the_same_answers():
 
 
 def test_goal_counts_each_verdict_for_farm_a_at_20_percent():
-    assert set_goal(20)["counts"] == {"reaches": 2, "might_reach": 0, "falls_short": 5, "not_applicable": 1}
+    assert set_goal(20)["counts"] == {"reaches": 1, "might_reach": 1, "falls_short": 5, "not_applicable": 1}
 
 
 def test_api_accepts_answers_and_rejects_nonsense():

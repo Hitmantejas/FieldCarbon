@@ -97,6 +97,7 @@ export interface Ledger {
   avoidable: {
     top_action: LedgerAction;
     combined: Figure;
+    burn_less: Figure;
     actions: LedgerAction[];
     covered_emitted_t: Figure;
     covered_share_pct: number;
@@ -109,8 +110,10 @@ export interface Ledger {
     target_co2e: Figure;
     top_action_pct: Figure;
     combined_pct: Figure;
+    burn_less_pct: Figure;
     top_action_verdict: Verdict;
     combined_verdict: Verdict;
+    burn_less_verdict: Verdict;
   };
 }
 

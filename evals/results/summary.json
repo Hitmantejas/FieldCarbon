@@ -3,7 +3,7 @@
     "cases": 72,
     "passed": 72,
     "label_and_source_coverage": 1.0,
-    "figures_checked": 916,
+    "figures_checked": 918,
     "failures": []
   },
   "agent_runs": {
@@ -803,6 +803,388 @@
         }
       ],
       "note": "action_impact works from the job records; it never reads the answer file."
+    },
+    "proof_calibration": {
+      "seed": 2026,
+      "site": "S2",
+      "trials_per_effect": 150,
+      "rows": [
+        {
+          "effect_pct": 0,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 8,
+          "increase_shown": 6,
+          "cant_tell_yet": 136,
+          "range_holds_truth": 136,
+          "coverage": 0.907,
+          "median_width_pts": 40.1
+        },
+        {
+          "effect_pct": -5,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 9,
+          "increase_shown": 0,
+          "cant_tell_yet": 141,
+          "range_holds_truth": 144,
+          "coverage": 0.96,
+          "median_width_pts": 38.1
+        },
+        {
+          "effect_pct": -10,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 21,
+          "increase_shown": 0,
+          "cant_tell_yet": 129,
+          "range_holds_truth": 136,
+          "coverage": 0.907,
+          "median_width_pts": 36.8
+        },
+        {
+          "effect_pct": -20,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 93,
+          "increase_shown": 0,
+          "cant_tell_yet": 57,
+          "range_holds_truth": 141,
+          "coverage": 0.94,
+          "median_width_pts": 31.9
+        },
+        {
+          "effect_pct": -30,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 141,
+          "increase_shown": 0,
+          "cant_tell_yet": 9,
+          "range_holds_truth": 136,
+          "coverage": 0.907,
+          "median_width_pts": 27.8
+        },
+        {
+          "effect_pct": 10,
+          "trials": 150,
+          "judged": 150,
+          "not_enough_jobs": 0,
+          "reduction_shown": 0,
+          "increase_shown": 30,
+          "cant_tell_yet": 120,
+          "range_holds_truth": 145,
+          "coverage": 0.967,
+          "median_width_pts": 45.1
+        }
+      ],
+      "placebo_false_claim_rate": 0.093,
+      "reading_it": "effect_pct is the planted change in litres per hectare on the changed tractors. For the placebo row a claim of a saving or a rise is a false alarm; with a 90% range about 1 in 10 is expected by chance (5% each way). coverage is the share of trials whose range holds the planted value."
+    },
+    "detection_stress": {
+      "seed": 2026,
+      "trials_per_size": 40,
+      "unmodified_data": {
+        "jobs": 713,
+        "job_outliers_flagged": 13,
+        "per_100_jobs": 1.82,
+        "by_site": {
+          "S1": 11,
+          "S2": 2
+        },
+        "direction": {
+          "more": 9,
+          "less": 4
+        },
+        "note": "The three reconcile findings in these tables are the planted problems A1 to A3. Job outliers have no ground truth: they are leads, and some will be ordinary variation."
+      },
+      "over_dispense_pct": [
+        {
+          "size": 5,
+          "trials": 40,
+          "detected": 0,
+          "rate": 0.0,
+          "interval_95": [
+            0.0,
+            0.088
+          ],
+          "median_litres": 10.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 0,
+          "eligible_detected": 0
+        },
+        {
+          "size": 10,
+          "trials": 40,
+          "detected": 8,
+          "rate": 0.2,
+          "interval_95": [
+            0.105,
+            0.348
+          ],
+          "median_litres": 21.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 8,
+          "eligible_detected": 8
+        },
+        {
+          "size": 15,
+          "trials": 40,
+          "detected": 14,
+          "rate": 0.35,
+          "interval_95": [
+            0.221,
+            0.505
+          ],
+          "median_litres": 23.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 14,
+          "eligible_detected": 14
+        },
+        {
+          "size": 20,
+          "trials": 40,
+          "detected": 18,
+          "rate": 0.45,
+          "interval_95": [
+            0.307,
+            0.602
+          ],
+          "median_litres": 41.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 17,
+          "eligible_detected": 17
+        },
+        {
+          "size": 30,
+          "trials": 40,
+          "detected": 16,
+          "rate": 0.4,
+          "interval_95": [
+            0.263,
+            0.554
+          ],
+          "median_litres": 46.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 16,
+          "eligible_detected": 16
+        },
+        {
+          "size": 50,
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 87.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "eligible_trials": 40,
+          "eligible_detected": 40
+        }
+      ],
+      "unlogged_withdrawal_litres": [
+        {
+          "size": 50,
+          "trials": 40,
+          "detected": 0,
+          "rate": 0.0,
+          "interval_95": [
+            0.0,
+            0.088
+          ],
+          "median_litres": 50.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        },
+        {
+          "size": 100,
+          "trials": 40,
+          "detected": 17,
+          "rate": 0.425,
+          "interval_95": [
+            0.285,
+            0.578
+          ],
+          "median_litres": 100.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        },
+        {
+          "size": 150,
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 150.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        },
+        {
+          "size": 250,
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 250.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        },
+        {
+          "size": 500,
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 500.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        },
+        {
+          "size": 900,
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 900.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0
+        }
+      ],
+      "duplicate_note": [
+        {
+          "size": "exact copy",
+          "trials": 40,
+          "detected": 40,
+          "rate": 1.0,
+          "interval_95": [
+            0.912,
+            1.0
+          ],
+          "median_litres": 1250.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "caught_by_another_finding": 0
+        },
+        {
+          "size": "litres mistyped by 1%",
+          "trials": 40,
+          "detected": 0,
+          "rate": 0.0,
+          "interval_95": [
+            0.0,
+            0.088
+          ],
+          "median_litres": 1262.0,
+          "new_unrelated_findings_per_trial": 0.9,
+          "baseline_findings_hidden_per_trial": 0.0,
+          "caught_by_another_finding": 36
+        }
+      ],
+      "job_extra_fuel_pct": [
+        {
+          "size": 20,
+          "trials": 40,
+          "detected": 4,
+          "rate": 0.1,
+          "interval_95": [
+            0.04,
+            0.231
+          ],
+          "median_litres": 3.0,
+          "new_unrelated_findings_per_trial": 0.03,
+          "baseline_findings_hidden_per_trial": 0.23
+        },
+        {
+          "size": 30,
+          "trials": 40,
+          "detected": 7,
+          "rate": 0.175,
+          "interval_95": [
+            0.087,
+            0.32
+          ],
+          "median_litres": 3.0,
+          "new_unrelated_findings_per_trial": 0.03,
+          "baseline_findings_hidden_per_trial": 0.07
+        },
+        {
+          "size": 50,
+          "trials": 40,
+          "detected": 11,
+          "rate": 0.275,
+          "interval_95": [
+            0.161,
+            0.428
+          ],
+          "median_litres": 8.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.28
+        },
+        {
+          "size": 75,
+          "trials": 40,
+          "detected": 18,
+          "rate": 0.45,
+          "interval_95": [
+            0.307,
+            0.602
+          ],
+          "median_litres": 14.0,
+          "new_unrelated_findings_per_trial": 0.03,
+          "baseline_findings_hidden_per_trial": 0.25
+        },
+        {
+          "size": 100,
+          "trials": 40,
+          "detected": 29,
+          "rate": 0.725,
+          "interval_95": [
+            0.572,
+            0.839
+          ],
+          "median_litres": 15.0,
+          "new_unrelated_findings_per_trial": 0.05,
+          "baseline_findings_hidden_per_trial": 0.53
+        },
+        {
+          "size": 200,
+          "trials": 40,
+          "detected": 38,
+          "rate": 0.95,
+          "interval_95": [
+            0.835,
+            0.986
+          ],
+          "median_litres": 28.0,
+          "new_unrelated_findings_per_trial": 0.0,
+          "baseline_findings_hidden_per_trial": 0.28
+        }
+      ],
+      "reading_it": "size is the injected fault; rate is the share of trials where the detector named that machine, depot or job. new_unrelated is findings that were not in the unmodified run; hidden is findings from the unmodified run that the fault made disappear (one big job moves the median the others are judged against). A rate near 0 below a threshold is the detector working as designed, not a miss to hide."
     },
     "voice_accuracy": {
       "clips": 8,

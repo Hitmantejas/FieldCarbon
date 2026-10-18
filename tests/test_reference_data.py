@@ -77,6 +77,17 @@ def test_interventions_ranges_and_applicability():
     assert 8 <= iv["intervention_id"].nunique() <= 10
 
 
+def test_every_intervention_figure_was_checked_against_its_source_or_is_marked_not_confirmed():
+    assert set(load("ref_interventions.csv")["value_status"]) <= {"checked", "checked_derived", "not_confirmed"}
+
+
+def test_every_source_in_the_intervention_table_exists_and_a_checked_figure_has_a_source_that_was_opened():
+    iv, src = load("ref_interventions.csv"), load("ref_sources.csv").set_index("source_id")
+    assert set(iv["source_id"]) <= set(src.index)
+    opened = iv[iv["value_status"] != "not_confirmed"]
+    assert not set(src.loc[opened["source_id"], "link_status"]) & {"unverified", "missing-link", "not-found", "listing-only"}
+
+
 def test_fuel_prices_one_row_per_month():
     p = load("ref_fuel_prices.csv")
     assert not p.duplicated(["fuel_type", "price_month"]).any()

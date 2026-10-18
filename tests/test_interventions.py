@@ -41,7 +41,7 @@ def test_reduced_tillage_applies_to_tillage_litres_only():
 def test_no_till_base_includes_seeding():
     r = get(BASE, "no_till")
     base = 1000 + 500 + 100 + 800
-    assert (r.litres_saved_low, r.litres_saved_high) == pytest.approx((0.667 * base, 0.867 * base))
+    assert (r.litres_saved_low, r.litres_saved_high) == pytest.approx((0.481 * base, 0.867 * base))  # SDSU 6 vs 2 and 5.4 vs 2.8 gal/ac, Kosutic 86.7%
 
 
 def test_tillage_changes_are_not_feasible_on_a_farm_that_does_not_plough():
@@ -91,10 +91,10 @@ def test_ballast_needs_a_known_liquid_ballast():
 def test_shift_up_uses_only_drawbar_jobs_under_each_load_limit():
     r = get(BASE, "shift_up_throttle_down")
     # Drawbar jobs: ploughing (70% load) and deep cultivating (45%). PTO jobs never count.
-    # Rows at a 75% limit see both (1500 L); rows at a 50% limit see deep cultivating only (500 L).
+    # Every confirmed row has a 75% limit, so all drawbar jobs under it count (1500 L); the 50% rows were not confirmed.
     assert r.state == "feasible"
-    assert r.litres_saved_low == pytest.approx(0.149 * 500)    # KPI at 50% load
-    assert r.litres_saved_high == pytest.approx(0.50 * 1500)   # JARQ upper bound at 75%
+    assert r.litres_saved_low == pytest.approx(0.10 * 1500)    # Iowa State crop article
+    assert r.litres_saved_high == pytest.approx(0.30 * 1500)   # JARQ at 55% engine load
 
 
 def test_shift_up_not_feasible_when_no_drawbar_job_is_light_enough():
@@ -144,9 +144,12 @@ def test_every_recommendation_names_its_sources_and_how_far_to_trust_each_link()
         assert r.evidence and all(e.source_id and e.title and e.link_status for e in r.evidence)
 
 
-def test_a_source_without_a_link_is_passed_through_as_such_not_hidden():
+def test_a_figure_that_could_not_be_confirmed_is_shown_but_sets_no_range_and_counts_as_no_source():
     gutd = get(BASE, "shift_up_throttle_down")
-    assert any(e.url == "" and e.link_status.startswith("missing-link") for e in gutd.evidence)
+    lost = [e for e in gutd.evidence if e.value_status == "not_confirmed"]
+    assert {e.source_id for e in lost} == {"isu_pm2089", "kpi_microcad2025"}
+    assert not any(e.used_in_range for e in lost) and all(e.used_in_range for e in gutd.evidence if e not in lost)
+    assert (gutd.robustness, gutd.n_sources) == ("strong", 3)  # Iowa State article, Nebraska test analysis, JARQ
 
 
 def test_every_figure_is_labelled_estimated_and_explains_itself():
@@ -191,7 +194,7 @@ def test_tillage_counts_only_the_fields_that_were_ploughed():
     assert till.litres_saved_low == pytest.approx(0.12 * 1200)
     assert till.litres_saved_high == pytest.approx(0.594 * 1200)
     assert "fields you ploughed" in till.how
-    assert get(ctx, "no_till").litres_saved_low == pytest.approx(0.667 * 1500)
+    assert get(ctx, "no_till").litres_saved_low == pytest.approx(0.481 * 1500)
     # Other interventions keep using all the farm's working fuel.
     tyres = with_known(tyre_pressure_checked=False)
     assert get(replace(tyres, ploughed_litres_by_op=ctx.ploughed_litres_by_op), "correct_tyre_pressure") \
